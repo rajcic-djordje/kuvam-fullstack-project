@@ -13,5 +13,8 @@
     "dev": "node --watch  --env-file=.env server.js"
   },
   "author": "Djordje Rajcic",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }
