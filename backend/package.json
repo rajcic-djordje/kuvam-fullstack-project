@@ -1,14 +1,17 @@
 {
   "name": "kuvam-backend",
   "version": "1.0.0",
-  "description": "Backend REST API for the Kuvam platform",
+  "description": "Backend API for the Kuvam platform",
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.0.0"
+    "node": "22.x"
   },
-  "scripts": {},
-  "keywords": [],
+  "packageManager": "npm@11.4.2",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
   "author": "Djordje Rajcic",
   "license": "MIT"
 }
