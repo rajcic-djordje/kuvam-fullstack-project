@@ -5,7 +5,14 @@ const connectToDatabase = async() => {
 
     await mongoose.connect(env.nodeMongoDBUri)
 
-    console.log("Conected to MongoDB.")
+    console.log("Connected to MongoDB.")
 }
 
-export {connectToDatabase}
+
+const disconnectFromDatabase = async() => {
+    await mongoose.disconnect(env.nodeMongoDBUri)
+
+    console.log("Disconnected from MongoDb.")
+}
+
+export {connectToDatabase, disconnectFromDatabase}
