@@ -5,6 +5,7 @@ import cors from "cors"
 import env from "./config/env.js";
 const app = express();
 import authRoutes from "./routes/authRoutes.js"
+import adminSellerRoutes from "./routes/adminSellerRoutes.js"
 
 app.use(helmet())
 app.use(cors({
@@ -22,6 +23,7 @@ app.get("/api/v1/health", (req,res) => {
 })
 
 app.use("/api/v1/auth", authRoutes)
+app.use("/api/v1/admin", adminSellerRoutes)
 
 app.use((req,res)=>{
 
