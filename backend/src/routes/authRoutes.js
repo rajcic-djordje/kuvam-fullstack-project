@@ -1,8 +1,10 @@
 import express from "express"
-import { register } from "../controllers/authController.js"
+import { register, login } from "../controllers/authController.js"
 import { validateBody } from "../middleware/validateBody.js"
-import { registerSchema } from "../validators/authValidator.js"
-
+import { loginSchema, registerSchema } from "../validators/authValidator.js"
+import { authenticate } from "../middleware/authenticate.js"
+import { authorize } from "../middleware/authorize.js"
+import { USER_ROLES } from "../constants/user.js"
 const router = express.Router()
 
 router.post(
@@ -10,5 +12,12 @@ router.post(
     validateBody(registerSchema),
     register
 )
+
+router.post(
+    "/login",
+    validateBody(loginSchema),
+    login
+)
+
 
 export default router

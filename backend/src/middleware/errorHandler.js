@@ -6,7 +6,7 @@ const errorHandler = (err,req,res,next) => {
     const code = isExpectedError? err.code: "INTERNAL_SERVER_ERROR"
     const message = isExpectedError? err.message: "Unexpected error occurred."
     
-
+console.log(err)
 
     const error = {
         error:
@@ -14,7 +14,9 @@ const errorHandler = (err,req,res,next) => {
         "code" : code,
         "message" : message
     }
+    
 }
+
 
     return res.status(status).json(error)
 }

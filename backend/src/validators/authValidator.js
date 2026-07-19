@@ -25,4 +25,10 @@ const registerSchema = z.object({
     path: ["businessName"]
 })
 
-export { registerSchema }
+
+const loginSchema = z.object({
+    email: z.email().trim().toLowerCase(),
+    password: z.string().min(1)
+})
+
+export { registerSchema, loginSchema }

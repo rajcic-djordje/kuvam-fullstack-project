@@ -1,8 +1,9 @@
 import bcrypt from 'bcrypt'
 import User from '../models/user.js'
-import { USER_ROLES } from '../constants/user.js'
+import { USER_ROLES, USER_STATUS } from '../constants/user.js'
 import AppError from '../errors/appError.js'
 import Seller from '../models/seller.js'
+import { generateAccessToken } from '../utils/jwt.js'
 
 const allowedRoles = [USER_ROLES.BUYER, USER_ROLES.SELLER]
 
@@ -73,4 +74,48 @@ const registerUser = async(userData) => {
     }
 }
 
-export {registerUser}
+
+const loginUser = async (credentials) => {
+
+    const email = credentials.email
+    const password = credentials.password
+
+    const transformedEmail = email.trim().toLowerCase()
+
+    const user = await User.findOne({email: transformedEmail}).select("+passwordHash")
+
+    if(!user)
+        throw new AppError("Invalid email or password", 401,"INVALID_CREDENTIALS")
+
+    const passwordMatch = await bcrypt.compare(password, user.passwordHash)
+
+    if(!passwordMatch)
+        throw new AppError("Invalid email or password.", 401, "INVALID_CREDENTIALS")
+
+    if(user.status==USER_STATUS.SUSPENDED)
+        throw new AppError("Account suspended.", 403, "ACCOUNT_SUSPENDED")
+    else if(user.status==USER_STATUS.DEACTIVATED)
+        throw new AppError("Account deactivated.", 403, "ACCOUNT_DEACTIVATED")
+
+    const validUser = {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        status: user.status
+
+    }
+
+    const accessToken = generateAccessToken(validUser)
+
+    return {
+        validUser,
+        accessToken
+    }
+}
+
+    
+
+
+export {registerUser, loginUser}
