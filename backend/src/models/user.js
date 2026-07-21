@@ -9,7 +9,11 @@ const userSchema = new mongoose.Schema({
     email: {type: String, required: true, trim: true, unique: true, lowercase: true},
     passwordHash: {type: String, required: true, select: false},
     role: {type: String, required: true, enum: Object.values(USER_ROLES)},
-    status: {type: String, required: true, enum: Object.values(USER_STATUS), default: USER_STATUS.ACTIVE}
+    status: {type: String, required: true, enum: Object.values(USER_STATUS), default: USER_STATUS.ACTIVE},
+    reportsCount: {type: Number, default: 0, min: 0},
+    offences: {type: Number, default: 0, min:0},
+    suspensionReason: {type:String, trim: true, maxlength: 500, default:null},
+    banReason: {type: String, trim: true, maxlength: 500, default: null}
 }, {timestamps: true})
 
 

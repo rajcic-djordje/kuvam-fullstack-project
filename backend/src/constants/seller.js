@@ -2,7 +2,8 @@ const SELLER_APPROVAL_STATUS = {
     PENDING   : "pending",
     APPROVED  : "approved",
     REJECTED  : "rejected",
-    SUSPENDED : "suspended"
+    SUSPENDED : "suspended",
+    
 }
 
 export {SELLER_APPROVAL_STATUS}

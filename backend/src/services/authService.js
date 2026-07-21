@@ -92,8 +92,15 @@ const loginUser = async (credentials) => {
     if(!passwordMatch)
         throw new AppError("Invalid email or password.", 401, "INVALID_CREDENTIALS")
 
-    if(user.status==USER_STATUS.SUSPENDED)
-        throw new AppError("Account suspended.", 403, "ACCOUNT_SUSPENDED")
+    if(user.status==USER_STATUS.SUSPENDED){
+        const message = user.suspensionReason? `Account suspended. Reason: ${user.suspensionReason}`: "Account suspended."
+        throw new AppError(message, 403, "ACCOUNT_SUSPENDED")
+    }
+
+    else if(user.status==USER_STATUS.BANNED){
+        const message = user.banReason? `Account banned. Reason: ${user.banReason}`: "Account banned."
+        throw new AppError(message, 403, "ACCOUNT_BANNED")
+    }
     else if(user.status==USER_STATUS.DEACTIVATED)
         throw new AppError("Account deactivated.", 403, "ACCOUNT_DEACTIVATED")
 

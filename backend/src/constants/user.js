@@ -8,7 +8,8 @@ const USER_ROLES = {
 const USER_STATUS = {
     ACTIVE: "active",
     SUSPENDED: "suspended",
-    DEACTIVATED: "deactivated"
+    DEACTIVATED: "deactivated",
+    BANNED : "banned"
 }
 
 
