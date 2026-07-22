@@ -11,4 +11,13 @@ const createOfferSchema = z.object({
     imageUrl: z.url().nullable().optional()
 })
 
-export {createOfferSchema}
+const updateOfferSchema = createOfferSchema
+    .partial()
+    .refine(
+        (data) => Object.keys(data).length > 0,
+        {
+            message: "At least one field must be provided."
+        }
+    )
+
+export {createOfferSchema, updateOfferSchema}

@@ -1,10 +1,10 @@
 import express from 'express'
-import { createOfferListing, getMyOffers, activateOfferListing, deactivateOfferListing } from '../controllers/offerController.js'
+import { createOfferListing,getAvailableOfferById, getAvailableOffers, getMyOffers, updateOfferListing, activateOfferListing, deactivateOfferListing } from '../controllers/offerController.js'
 import { authenticate } from '../middleware/authenticate.js'
 import { authorize } from '../middleware/authorize.js'
 import { USER_ROLES } from '../constants/user.js'
 import { validateBody } from '../middleware/validateBody.js'
-import { createOfferSchema } from '../validators/offerValidator.js'
+import { createOfferSchema, updateOfferSchema } from '../validators/offerValidator.js'
 
 const router = express.Router()
 
@@ -38,6 +38,22 @@ router.patch(
     deactivateOfferListing
 )
 
+router.patch(
+    "/:offerId",
+    authenticate,
+    authorize(USER_ROLES.SELLER),
+    validateBody(updateOfferSchema),
+    updateOfferListing
+)
 
+router.get(
+    "/",
+    getAvailableOffers
+)
+
+router.get(
+    "/:offerId",
+    getAvailableOfferById
+)
 
 export default router

@@ -75,4 +75,55 @@ const setOfferActiveStatus = async (userId, offerId, isActive) => {
     return offer
 }
 
-export {createOffer, getSellerOffers, setOfferActiveStatus}
+const updateSellerOffer = async (userId, offerId, updateData) => {
+
+    const seller = await Seller.findOne({user: userId})
+
+    if(!seller)
+        throw new AppError("Seller profile not found.", 404, "SELLER_PROFILE_NOT_FOUND")
+
+    const offer = await Offer.findById(offerId)
+
+    if(!offer)
+        throw new AppError("Offer not found.", 404, "OFFER_NOT_FOUND")
+
+    if(!offer.seller.equals(seller._id))
+        throw new AppError("You cant modify another seller's offer.", 403, "OFFER_ACCESS_DENIED")
+
+    Object.assign(offer, updateData)
+
+    await offer.save()
+
+    return offer
+}
+
+const getPublicOffers = async () => {
+
+
+    const offers = await Offer.find({ isActive: true, availableQuantity: {$gt: 0}}).sort({createdAt: -1}).populate({path: "seller", select: "businessName description approvalStatus"})
+
+    const approved =  offers.filter(
+        (offer) => offer.seller && offer.seller.approvalStatus === SELLER_APPROVAL_STATUS.APPROVED
+    )
+
+    return approved
+}
+
+
+const getPublicOfferById = async (offerId) => {
+
+    const offer = await Offer.findOne({_id: offerId, isActive: true, availableQuantity: {$gt: 0}}).populate({path: "seller", select: "businessName description approvalStatus"})
+
+    if(!offer)
+        throw new AppError("Offer not found.", 404, "OFFER_NOT_FOUND")
+
+    if(!offer.seller || offer.seller.approvalStatus !== SELLER_APPROVAL_STATUS.APPROVED)
+        throw new AppError("Offer not found.", 404, "OFFER_NOT_FOUND")
+
+
+    return offer
+    
+}
+
+
+export {createOffer, getPublicOfferById, getSellerOffers, setOfferActiveStatus, getPublicOffers, updateSellerOffer}
