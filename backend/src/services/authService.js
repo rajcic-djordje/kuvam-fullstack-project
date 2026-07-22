@@ -114,10 +114,10 @@ const loginUser = async (credentials) => {
 
     }
 
-    const accessToken = generateAccessToken(validUser)
+    const accessToken = generateAccessToken(user)
 
     return {
-        validUser,
+        user: validUser,
         accessToken
     }
 }
