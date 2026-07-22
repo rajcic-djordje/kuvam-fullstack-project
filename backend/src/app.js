@@ -8,6 +8,8 @@ import authRoutes from "./routes/authRoutes.js"
 import adminSellerRoutes from "./routes/adminSellerRoutes.js"
 import adminUserRoutes from "./routes/adminUserRoutes.js"
 import offerRoutes from "./routes/offerRoutes.js"
+import orderRoutes from "./routes/orderRoutes.js"
+
 app.use(helmet())
 app.use(cors({
     origin: env.nodeClientOrigin
@@ -27,6 +29,8 @@ app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/admin", adminSellerRoutes)
 app.use("/api/v1/admin", adminUserRoutes)
 app.use("/api/v1/offers", offerRoutes)
+app.use("/api/v1/orders", orderRoutes)
+
 app.use((req,res)=>{
 
     return res.status(404).json({

@@ -1,4 +1,4 @@
-import { z } from "zod"
+import z from "zod"
 import { USER_ROLES } from "../constants/user.js"
 
 const registerSchema = z.object({

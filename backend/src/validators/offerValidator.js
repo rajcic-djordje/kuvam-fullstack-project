@@ -1,4 +1,4 @@
-import { z } from "zod"
+import z from "zod"
 import { OFFER_CATEGORIES } from "../constants/offer.js"
 
 const createOfferSchema = z.object({
