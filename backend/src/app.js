@@ -11,6 +11,7 @@ import offerRoutes from "./routes/offerRoutes.js"
 import orderRoutes from "./routes/orderRoutes.js"
 import reviewRoutes from "./routes/reviewRoutes.js"
 import reportRoutes from "./routes/reportRoutes.js"
+import userRoutes from "./routes/userRoutes.js"
 
 app.use(helmet())
 app.use(cors({
@@ -34,6 +35,7 @@ app.use("/api/v1/offers", offerRoutes)
 app.use("/api/v1/orders", orderRoutes)
 app.use("/api/v1/reviews", reviewRoutes)
 app.use("/api/v1/reports", reportRoutes)
+app.use("/api/v1/users", userRoutes)
 
 app.use((req,res)=>{
 
