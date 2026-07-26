@@ -7,6 +7,7 @@ import { approveSellerApplication } from "../controllers/adminSellerController.j
 import { rejectSellerApplication } from "../controllers/adminSellerController.js"
 import { validateBody } from "../middleware/validateBody.js"
 import { rejectSellerSchema } from "../validators/adminSellerValidator.js"
+import { validateObjectId } from "../middleware/validateObjectId.js"
 
 const router = express.Router()
 
@@ -21,6 +22,7 @@ router.patch(
     "/sellers/:sellerId/approve",
     authenticate,
     authorize(USER_ROLES.ADMIN),
+    validateObjectId("sellerId"),
     approveSellerApplication
 )
 
@@ -28,6 +30,7 @@ router.patch(
     "/sellers/:sellerId/reject",
     authenticate,
     authorize(USER_ROLES.ADMIN),
+    validateObjectId("sellerId"),
     validateBody(rejectSellerSchema),
     rejectSellerApplication
 )

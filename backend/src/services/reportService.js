@@ -136,5 +136,29 @@ const rejectReport = async (adminId, reportId, adminNote) => {
 }
 
 
+const getAdminReports = async (query) => {
+    const status = query.status
 
-export {createReport, getPendingReports, approveReport, rejectReport}
+    const filter = {}
+
+    if (status) filter.status = status
+
+    const reports = await Report.find(filter).sort({ createdAt: -1 }).populate({
+        path: "reporter",
+        select: "firstName lastName email role"
+    }).populate({
+        path: "reportedUser",
+        select: "firstName lastName email role reportsCount offences status"
+    }).populate({
+        path: "order",
+        select: "quantity unitPrice totalPrice status createdAt"
+    }).populate({
+        path: "reviewedBy",
+        select: "firstName lastName email"
+    })
+
+    return reports
+}
+
+
+export {getAdminReports, createReport, getPendingReports, approveReport, rejectReport}

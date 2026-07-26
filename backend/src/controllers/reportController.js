@@ -1,4 +1,4 @@
-import { createReport, getPendingReports, approveReport, rejectReport } from "../services/reportService.js"
+import { createReport, getPendingReports, getAdminReports, approveReport, rejectReport } from "../services/reportService.js"
 
 const createReportListing = async (req, res) => {
     const userId = req.auth.userId
@@ -22,6 +22,15 @@ const getPendingReportListings = async (req, res) => {
 
     return res.status(200).json({
         message: "Pending reports retrieved successfully.",
+        reports
+    })
+}
+
+const getAdminReportListings = async (req, res) => {
+    const reports = await getAdminReports(req.queryData)
+
+    return res.status(200).json({
+        message: "Reports retrieved successfully.",
         reports
     })
 }
@@ -61,4 +70,4 @@ const rejectReportListing = async (req, res) => {
     })
 }
 
-export { createReportListing, getPendingReportListings, approveReportListing, rejectReportListing }
+export { createReportListing, getPendingReportListings, getAdminReportListings,approveReportListing, rejectReportListing }

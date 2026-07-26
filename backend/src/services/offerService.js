@@ -97,18 +97,38 @@ const updateSellerOffer = async (userId, offerId, updateData) => {
     return offer
 }
 
-const getPublicOffers = async () => {
+const getPublicOffers = async (query) => {
+    const search = query.search
+    const category = query.category
 
+    const approvedSellers = await Seller.find({
+        approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
+    })
 
-    const offers = await Offer.find({ isActive: true, availableQuantity: {$gt: 0}}).sort({createdAt: -1}).populate({path: "seller", select: "businessName description approvalStatus"})
+    const approvedSellerIds = approvedSellers.map((seller) => seller._id)
 
-    const approved =  offers.filter(
-        (offer) => offer.seller && offer.seller.approvalStatus === SELLER_APPROVAL_STATUS.APPROVED
-    )
+    const filter = {
+        isActive: true,
+        availableQuantity: { $gt: 0 },
+        seller: { $in: approvedSellerIds }
+    }
 
-    return approved
+    if (search) {
+        filter.$or = [
+            { name: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } }
+        ]
+    }
+
+    if (category) filter.category = category
+
+    const offers = await Offer.find(filter).sort({ createdAt: -1 }).populate({
+        path: "seller",
+        select: "businessName description approvalStatus"
+    })
+
+    return offers
 }
-
 
 const getPublicOfferById = async (offerId) => {
 

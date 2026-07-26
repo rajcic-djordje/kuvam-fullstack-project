@@ -5,7 +5,7 @@ import { authorize } from "../middleware/authorize.js"
 import { validateBody } from "../middleware/validateBody.js"
 import { USER_ROLES } from "../constants/user.js"
 import { createReviewSchema } from "../validators/reviewValidator.js"
-
+import { validateObjectId } from "../middleware/validateObjectId.js"
 const router = express.Router()
 
 router.post(
@@ -18,6 +18,7 @@ router.post(
 
 router.get(
     "/seller/:sellerId",
+    validateObjectId("sellerId"),
     getReviewsBySeller
 )
 

@@ -51,12 +51,18 @@ const createOrder = async (buyerId, orderData) => {
     return order
 }
 
-const getBuyerOrders = async (buyerId) => {
+const getBuyerOrders = async (buyerId, query) => {
+    const status = query.status
 
-    const orders = await Order.find({buyer: buyerId}).sort({createdAt: -1}).populate({path: "offer", select: "name category imageUrl unit"}).populate({path: "seller", select: "businessName"})
+    const filter = {
+        buyer: buyerId
+    }
+
+    if (status) filter.status = status
+
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).populate({ path: "offer", select: "name category imageUrl unit" }).populate({ path: "seller", select: "businessName" })
 
     return orders
-
 }
 
 const getBuyerOrderById = async (buyerId, orderId) => {
@@ -94,15 +100,21 @@ const cancelBuyerOrder = async (buyerId, orderId) => {
     return order
 }
 
-const getSellerOrders = async (userId) => {
-    
+const getSellerOrders = async (userId, query) => {
+    const status = query.status
+
     const seller = await Seller.findOne({ user: userId })
 
-    if(!seller)
+    if (!seller)
         throw new AppError("Seller profile not found.", 404, "SELLER_PROFILE_NOT_FOUND")
 
-    const orders = await Order.find({ seller: seller._id }).sort({ createdAt: -1 }).populate({path: "offer",select: "name category imageUrl unit"}).populate({path: "buyer",select: "firstName lastName"})
+    const filter = {
+        seller: seller._id
+    }
 
+    if (status) filter.status = status
+
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).populate({ path: "offer", select: "name category imageUrl unit" }).populate({ path: "buyer", select: "firstName lastName" })
 
     return orders
 }

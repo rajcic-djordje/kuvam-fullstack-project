@@ -12,8 +12,7 @@ const createOrderListing = async (req, res) => {
 
 const getMyOrders = async (req, res) => {
     const buyerId = req.auth.userId
-
-    const orders = await getBuyerOrders(buyerId)
+    const orders = await getBuyerOrders(buyerId, req.queryData)
 
     return res.status(200).json({
         message: "Buyer orders retrieved successfully.",
@@ -53,15 +52,13 @@ const cancelMyOrder = async (req, res) => {
 
 const getReceivedOrders = async (req, res) => {
     const userId = req.auth.userId
-
-    const orders = await getSellerOrders(userId)
+    const orders = await getSellerOrders(userId, req.queryData)
 
     return res.status(200).json({
         message: "Seller orders retrieved successfully.",
         orders
     })
 }
-
 const getReceivedOrderById = async (req, res) => {
     const userId = req.auth.userId
     const orderId = req.params.orderId
