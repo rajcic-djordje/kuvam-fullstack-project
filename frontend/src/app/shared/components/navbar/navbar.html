@@ -1,0 +1,41 @@
+<header class="navbar">
+  <div class="container navbar-container">
+    <a class="logo-link" routerLink="/" aria-label="Kuvam početna stranica">
+      <img class="logo" src="/images/kuvam-logo.png" alt="Kuvam">
+    </a>
+
+    <nav class="nav-links" aria-label="Glavna navigacija">
+      <a
+        class="nav-link"
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        Početna
+      </a>
+
+      <a
+        class="nav-link"
+        routerLink="/offers"
+        routerLinkActive="active"
+      >
+        Ponude
+      </a>
+
+      <a class="nav-link" routerLink="/" fragment="how-it-works">
+        Kako radi
+      </a>
+    </nav>
+
+    <div class="nav-actions">
+      <a class="login-link" routerLink="/login">
+        Prijava
+      </a>
+
+     <a class="register-button" routerLink="/register">
+  <img class="user-icon" src="/icons/person.svg" alt="">
+  <span>Registracija</span>
+</a>
+    </div>
+  </div>
+</header>
