@@ -1,0 +1,53 @@
+<article class="offer-card">
+  <div class="image-container">
+    @if (offer.imageUrl) {
+      <img
+        [src]="offer.imageUrl"
+        [alt]="offer.name"
+        loading="lazy"
+      >
+    } @else {
+      <div
+        class="image-placeholder"
+        role="img"
+        [attr.aria-label]="'Ponuda bez slike: ' + offer.name"
+      >
+        <span>Slika nije dostupna</span>
+      </div>
+    }
+  </div>
+
+  <div class="card-content">
+    <h3>{{ offer.name }}</h3>
+
+    <div class="seller-info">
+      <span class="seller-avatar" aria-hidden="true">
+        {{ sellerInitial }}
+      </span>
+
+      <span class="seller-name">
+        {{ offer.seller.businessName }}
+      </span>
+
+      <span class="category-tag">
+        {{ categoryLabel }}
+      </span>
+    </div>
+
+    <div class="card-footer">
+      <p class="price">
+        {{ offer.price }} RSD
+        <span>/ {{ offer.unit }}</span>
+      </p>
+
+      <a
+        class="details-link"
+        [routerLink]="['/offers', offer._id]"
+        [attr.aria-label]="'Detalji ponude ' + offer.name"
+      >
+        <span>Detalji</span>
+        
+      </a>
+    </div>
+  </div>
+</article>

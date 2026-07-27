@@ -1,0 +1,285 @@
+<main class="auth-page">
+  @if (errorMessage()) {
+    <div class="auth-toast" role="alert">
+      <div class="toast-mark" aria-hidden="true">
+        <span>!</span>
+      </div>
+
+      <div class="toast-content">
+        <strong>Registracija nije uspela</strong>
+        <p>{{ errorMessage() }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="toast-close"
+        aria-label="Zatvori poruku"
+        (click)="closeError()"
+      >
+        ×
+      </button>
+
+      <span class="toast-decoration" aria-hidden="true"></span>
+    </div>
+  }
+
+  <section class="auth-card">
+    <a
+      class="auth-logo"
+      routerLink="/"
+      aria-label="Kuvam početna stranica"
+    >
+      <img src="/images/kuvam-logo.png" alt="Kuvam">
+    </a>
+
+    <div class="auth-header">
+      <h1>Kreiraj nalog</h1>
+      <p>Pridruži se Kuvam zajednici kao kupac ili domaćin.</p>
+    </div>
+
+    <div class="role-options" aria-label="Vrsta naloga">
+      <button
+        type="button"
+        class="role-button"
+        [class.active]="registerForm.controls.role.value === 'buyer'"
+        [attr.aria-pressed]="registerForm.controls.role.value === 'buyer'"
+        (click)="setRole('buyer')"
+      >
+        Kupac
+      </button>
+
+      <button
+        type="button"
+        class="role-button"
+        [class.active]="registerForm.controls.role.value === 'seller'"
+        [attr.aria-pressed]="registerForm.controls.role.value === 'seller'"
+        (click)="setRole('seller')"
+      >
+        Prodavac
+      </button>
+    </div>
+
+    <form
+      class="auth-form"
+      [formGroup]="registerForm"
+      (ngSubmit)="register()"
+    >
+      <div class="name-fields">
+        <div class="form-field">
+          <label for="firstName">Ime</label>
+
+          <input
+            id="firstName"
+            type="text"
+            formControlName="firstName"
+            autocomplete="given-name"
+            placeholder="Unesi ime..."
+          >
+
+          <span class="field-message field-error" aria-live="polite">
+            @if (
+              registerForm.controls.firstName.touched &&
+              registerForm.controls.firstName.invalid
+            ) {
+              Ime mora imati između 2 i 50 karaktera.
+            }
+          </span>
+        </div>
+
+        <div class="form-field">
+          <label for="lastName">Prezime</label>
+
+          <input
+            id="lastName"
+            type="text"
+            formControlName="lastName"
+            autocomplete="family-name"
+            placeholder="Unesi prezime..."
+          >
+
+          <span class="field-message field-error" aria-live="polite">
+            @if (
+              registerForm.controls.lastName.touched &&
+              registerForm.controls.lastName.invalid
+            ) {
+              Prezime mora imati između 2 i 50 karaktera.
+            }
+          </span>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="email">Email adresa</label>
+
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          placeholder="ime@example.com"
+        >
+
+        <span class="field-message field-error" aria-live="polite">
+          @if (
+            registerForm.controls.email.touched &&
+            registerForm.controls.email.invalid
+          ) {
+            Unesi ispravnu email adresu.
+          }
+        </span>
+      </div>
+
+      <div class="password-fields">
+        <div class="form-field">
+          <label for="password">Lozinka</label>
+
+          <div class="password-field">
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="new-password"
+              placeholder="Unesi lozinku..."
+            >
+
+            <button
+              class="password-toggle"
+              type="button"
+              [attr.aria-label]="
+                showPassword()
+                  ? 'Sakrij lozinku'
+                  : 'Prikaži lozinku'
+              "
+              [attr.aria-pressed]="showPassword()"
+              (click)="togglePassword()"
+            >
+              {{ showPassword() ? 'Sakrij' : 'Prikaži' }}
+            </button>
+          </div>
+
+          <span class="field-message field-error" aria-live="polite">
+            @if (
+              registerForm.controls.password.touched &&
+              registerForm.controls.password.invalid
+            ) {
+              Lozinka mora imati najmanje 8 karaktera.
+            }
+          </span>
+        </div>
+
+        <div class="form-field">
+          <label for="confirmPassword">Ponovi lozinku</label>
+
+          <div class="password-field">
+            <input
+              id="confirmPassword"
+              [type]="showConfirmPassword() ? 'text' : 'password'"
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+              placeholder="Ponovi lozinku..."
+            >
+
+            <button
+              class="password-toggle"
+              type="button"
+              [attr.aria-label]="
+                showConfirmPassword()
+                  ? 'Sakrij ponovljenu lozinku'
+                  : 'Prikaži ponovljenu lozinku'
+              "
+              [attr.aria-pressed]="showConfirmPassword()"
+              (click)="toggleConfirmPassword()"
+            >
+              {{ showConfirmPassword() ? 'Sakrij' : 'Prikaži' }}
+            </button>
+          </div>
+
+          <span class="field-message field-error" aria-live="polite">
+            @if (
+              registerForm.controls.confirmPassword.touched &&
+              registerForm.controls.confirmPassword.hasError('required')
+            ) {
+              Ponovi unetu lozinku.
+            } @else if (
+              registerForm.controls.confirmPassword.touched &&
+              registerForm.hasError('passwordsMismatch')
+            ) {
+              Lozinke se ne poklapaju.
+            }
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="seller-fields-wrapper"
+        [class.open]="isSeller"
+        [attr.aria-hidden]="!isSeller"
+      >
+        <div class="seller-fields">
+          <div class="form-field">
+            <label for="businessName">Naziv domaćinstva</label>
+
+            <input
+              id="businessName"
+              type="text"
+              formControlName="businessName"
+              autocomplete="organization"
+              placeholder="Na primer, Bakina kuhinja"
+              [tabIndex]="isSeller ? 0 : -1"
+            >
+
+            <span class="field-message field-error" aria-live="polite">
+              @if (
+                registerForm.controls.businessName.touched &&
+                registerForm.controls.businessName.invalid
+              ) {
+                Naziv mora imati između 2 i 100 karaktera.
+              }
+            </span>
+          </div>
+
+          <div class="form-field">
+            <label for="description">
+              Kratak opis
+              <span>Opciono</span>
+            </label>
+
+            <textarea
+              id="description"
+              rows="4"
+              formControlName="description"
+              maxlength="500"
+              placeholder="Opiši svoju ponudu domaće hrane"
+              [tabIndex]="isSeller ? 0 : -1"
+            ></textarea>
+
+            <span class="field-message field-hint">
+              Najviše 500 karaktera.
+            </span>
+          </div>
+
+          <p class="seller-note">
+            Prodavci mogu dodavati ponude nakon odobrenja naloga.
+          </p>
+        </div>
+      </div>
+
+      <button
+        class="submit-button"
+        type="submit"
+        [disabled]="isSubmitting()"
+      >
+        @if (isSubmitting()) {
+          Kreiranje naloga...
+        } @else {
+          Registruj se
+        }
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Već imaš nalog?
+      <a routerLink="/login">Prijavi se</a>
+    </p>
+  </section>
+</main>

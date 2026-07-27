@@ -12,11 +12,19 @@
           od proverenih domaćina u tvom kraju.
         </p>
 
-        <form class="search-form">
+        <form
+          class="search-form"
+          (submit)="$event.preventDefault(); searchOffers(searchInput.value)"
+        >
           <div class="search-field">
-            <img src="/icons/search.svg" alt="" class="search-icon">
+            <img
+              class="search-icon"
+              src="/icons/search.svg"
+              alt=""
+            >
 
             <input
+              #searchInput
               type="search"
               placeholder="Pretraži jela, proizvode ili prodavce..."
               aria-label="Pretraži ponude"
@@ -32,6 +40,7 @@
         <div class="hero-benefits">
           <div class="benefit">
             <img src="/icons/shield-check.svg" alt="">
+
             <div>
               <strong>Provereni domaćini</strong>
               <span>Kvalitet kojem možeš da veruješ</span>
@@ -40,6 +49,7 @@
 
           <div class="benefit">
             <img src="/icons/leaf.svg" alt="">
+
             <div>
               <strong>Sveže i domaće</strong>
               <span>Pripremljeno s ljubavlju</span>
@@ -48,6 +58,7 @@
 
           <div class="benefit">
             <img src="/icons/geo-alt.svg" alt="">
+
             <div>
               <strong>Iz tvoje okoline</strong>
               <span>Brzo i jednostavno preuzimanje</span>
@@ -57,8 +68,144 @@
       </div>
 
       <div class="hero-image">
-        <img src="/images/hero-food.png" alt="Domaća hrana i proizvodi">
+        <img
+          src="/images/hero-food.png"
+          alt="Domaća hrana i proizvodi"
+        >
       </div>
     </div>
   </section>
+
+  <section
+    class="categories-section container"
+    aria-label="Kategorije hrane"
+  >
+    <div class="categories-list">
+      @for (category of categories; track category.id) {
+        <a
+          class="category-button"
+          routerLink="/offers"
+          [queryParams]="category.id === 'all'
+            ? {}
+            : { category: category.id }"
+          [style.--category-color]="category.iconColor"
+        >
+          <svg
+            class="category-icon"
+            [lucideIcon]="category.icon"
+            [size]="19"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+
+          <span class="category-label">
+            {{ category.name }}
+          </span>
+        </a>
+      }
+    </div>
+  </section>
+
+  <section class="offers-section container">
+    <div class="offers-header">
+      <h2>Najnovije ponude</h2>
+
+      <a
+        class="view-all-link"
+        routerLink="/offers"
+        aria-label="Prikaži sve ponude"
+      >
+        <span>Prikaži sve ponude</span>
+        <span class="link-arrow" aria-hidden="true">›</span>
+      </a>
+    </div>
+
+    @if (isLoadingOffers()) {
+      <p class="offers-status">
+        Ponude se učitavaju...
+      </p>
+    } @else if (offersError()) {
+      <p class="offers-status error">
+        Ponude trenutno nisu dostupne.
+      </p>
+    } @else if (latestOffers().length === 0) {
+      <p class="offers-status">
+        Trenutno nema dostupnih ponuda.
+      </p>
+    } @else {
+      <div class="offers-grid">
+        @for (offer of latestOffers(); track offer._id) {
+          <app-offer-card [offer]="offer" />
+        }
+      </div>
+    }
+  </section>
+
+  <section class="how-it-works-section container">
+  <h2>Kako funkcioniše</h2>
+
+  <div class="steps-list">
+    <article class="step-card">
+      <svg
+        class="step-icon"
+        [lucideIcon]="searchIcon"
+        [strokeWidth]="1.7"
+        aria-hidden="true"
+      ></svg>
+
+      <div class="step-content">
+        <h3>Pretraži</h3>
+        <p>Pronađi jela i proizvode iz svoje okoline.</p>
+      </div>
+    </article>
+
+    <article class="step-card">
+      <svg
+        class="step-icon"
+        [lucideIcon]="basketIcon"
+        [strokeWidth]="1.7"
+        aria-hidden="true"
+      ></svg>
+
+      <div class="step-content">
+        <h3>Poruči</h3>
+        <p>Izaberi ponudu i kontaktiraj domaćina.</p>
+      </div>
+    </article>
+
+    <article class="step-card">
+      <svg
+        class="step-icon"
+        [lucideIcon]="bagIcon"
+        [strokeWidth]="1.7"
+        aria-hidden="true"
+      ></svg>
+
+      <div class="step-content">
+        <h3>Preuzmi i uživaj</h3>
+        <p>Preuzmi narudžbinu i uživaj u domaćem ukusu.</p>
+      </div>
+    </article>
+
+    <article class="support-card">
+      <img
+        class="support-image"
+        src="/images/support-local.png"
+        alt="Korpa sa domaćim proizvodima"
+      >
+
+      <div class="support-content">
+        <h3>Podrži domaće</h3>
+        <p>Kupovinom na Kuvam podržavaš domaćinstva u svojoj zajednici.</p>
+      </div>
+
+      <svg
+        class="support-heart"
+        [lucideIcon]="heartIcon"
+        [strokeWidth]="1.8"
+        aria-hidden="true"
+      ></svg>
+    </article>
+  </div>
+</section>
 </main>
