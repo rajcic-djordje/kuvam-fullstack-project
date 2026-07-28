@@ -1,7 +1,7 @@
 import User from '../models/user.js'
 import { USER_STATUS } from '../constants/user.js'
 import AppError from '../errors/appError.js'
-
+import {revokeAllUserSessions} from "./refreshSessionService.js"
 
 const suspendUser = async(userId, reason) => {
 
@@ -21,6 +21,8 @@ const suspendUser = async(userId, reason) => {
 
 
     await user.save()
+
+    await revokeAllUserSessions(user._id)
 
     return user
 

@@ -3,7 +3,7 @@ import User from "../models/user.js"
 import Seller from "../models/seller.js"
 import AppError from "../errors/appError.js"
 import { USER_ROLES, USER_STATUS } from "../constants/user.js"
-
+import {revokeAllUserSessions} from "./refreshSessionService.js"
 
 const getCurrentUserProfile = async (userId) => {
     const user = await User.findById(userId)
@@ -99,6 +99,8 @@ const changeCurrentUserPassword = async (
 
     await user.save()
 
+    await revokeAllUserSessions(user._id)
+
     return true
 }
 
@@ -119,6 +121,8 @@ const deactivateCurrentUser = async (userId) => {
     user.suspensionReason = null
 
     await user.save()
+
+    await revokeAllUserSessions(user._id)
 
     return {
         id: user._id,

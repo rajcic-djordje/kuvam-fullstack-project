@@ -1,5 +1,5 @@
 import express from "express"
-import { register, login } from "../controllers/authController.js"
+import { register, login, refresh, logout } from "../controllers/authController.js"
 import { validateBody } from "../middleware/validateBody.js"
 import { loginSchema, registerSchema } from "../validators/authValidator.js"
 import { authenticate } from "../middleware/authenticate.js"
@@ -17,6 +17,16 @@ router.post(
     "/login",
     validateBody(loginSchema),
     login
+)
+
+router.post(
+    "/refresh",
+     refresh
+)
+
+router.post(
+    "/logout",
+     logout
 )
 
 

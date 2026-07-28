@@ -1,18 +1,15 @@
-import { HttpClient } from '@angular/common/http';
-import {
-  computed,
-  inject,
-  Injectable,
-  signal
-} from '@angular/core';
-import { Observable, tap } from 'rxjs';
-import { API_BASE_URL } from '../../../core/constants/api.constants';
+import {HttpClient} from '@angular/common/http';
+import {computed, inject, Injectable, signal} from '@angular/core';
+import {Observable, tap, finalize, catchError, of} from 'rxjs';
+import {API_BASE_URL} from '../../../core/constants/api.constants';
 import {
   AuthUser,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
-  RegisterResponse
+  RegisterResponse,
+  RefreshSessionResponse,
+  LogoutResponse
 } from '../models/auth';
 
 @Injectable({
@@ -22,85 +19,73 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly authUrl = `${API_BASE_URL}/auth`;
 
-  private readonly currentUserSignal = signal<AuthUser | null>(
-    this.readStoredUser()
-  );
+  private readonly accessTokenSignal = signal<string | null>(null);
+  private readonly currentUserSignal = signal<AuthUser | null>(null);
+  private readonly authInitializedSignal = signal(false);
 
   readonly currentUser = this.currentUserSignal.asReadonly();
+  readonly authInitialized = this.authInitializedSignal.asReadonly();
 
   readonly isAuthenticated = computed(() => {
-    return (
-      this.currentUserSignal() !== null &&
-      this.hasAccessToken()
-    );
+    return this.currentUserSignal() !== null && this.accessTokenSignal() !== null;
   });
 
   register(data: RegisterRequest): Observable<RegisterResponse> {
-    return this.http.post<RegisterResponse>(
-      `${this.authUrl}/register`,
-      data
-    );
+    return this.http.post<RegisterResponse>(`${this.authUrl}/register`, data);
   }
 
   login(data: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(
-      `${this.authUrl}/login`,
-      data
-    ).pipe(
+    return this.http.post<LoginResponse>(`${this.authUrl}/login`, data, {
+      withCredentials: true
+    }).pipe(
       tap(response => {
-        localStorage.setItem(
-          'accessToken',
-          response.accessToken
-        );
-
-        localStorage.setItem(
-          'authUser',
-          JSON.stringify(response.user)
-        );
-
+        this.accessTokenSignal.set(response.accessToken);
         this.currentUserSignal.set(response.user);
       })
     );
   }
 
-  updateCurrentUser(user: AuthUser): void {
-    localStorage.setItem(
-      'authUser',
-      JSON.stringify(user)
+  refreshSession(): Observable<RefreshSessionResponse> {
+    return this.http.post<RefreshSessionResponse>(`${this.authUrl}/refresh`, {}, {
+      withCredentials: true
+    }).pipe(
+      tap(response => {
+        this.accessTokenSignal.set(response.accessToken);
+        this.currentUserSignal.set(response.user);
+      })
     );
+  }
 
+  initializeSession(): Observable<RefreshSessionResponse | null> {
+    return this.refreshSession().pipe(
+      catchError(() => {
+        this.clearSession();
+
+        return of(null);
+      }),
+      finalize(() => {
+        this.authInitializedSignal.set(true);
+      })
+    );
+  }
+
+  updateCurrentUser(user: AuthUser): void {
     this.currentUserSignal.set(user);
   }
 
-  logout(): void {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('authUser');
+  logout(): Observable<LogoutResponse> {
+    return this.http.post<LogoutResponse>(`${this.authUrl}/logout`, {}, {withCredentials: true}).pipe(
+      finalize(() => {
+        this.clearSession();
+      })
+    );
+  }
+  getAccessToken(): string | null {
+    return this.accessTokenSignal();
+  }
 
+  clearSession(): void {
+    this.accessTokenSignal.set(null);
     this.currentUserSignal.set(null);
   }
-
-  getAccessToken(): string | null {
-    return localStorage.getItem('accessToken');
-  }
-
-  private hasAccessToken(): boolean {
-    return this.getAccessToken() !== null;
-  }
-
-  private readStoredUser(): AuthUser | null {
-    const storedUser = localStorage.getItem('authUser');
-
-    if (!storedUser) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(storedUser) as AuthUser;
-    } catch {
-      localStorage.removeItem('authUser');
-      return null;
-    }
-  }
-
-  
 }

@@ -43,3 +43,13 @@ export interface LoginResponse {
   accessToken: string;
   user: AuthUser;
 }
+
+export interface RefreshSessionResponse {
+  message: string;
+  accessToken: string;
+  user: AuthUser;
+}
+
+export interface LogoutResponse {
+  message: string;
+}

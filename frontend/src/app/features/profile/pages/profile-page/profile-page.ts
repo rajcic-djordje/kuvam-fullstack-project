@@ -341,7 +341,6 @@ export class ProfilePage implements OnInit, OnDestroy {
 
     this.profileService.changePassword(request).subscribe({
       next: () => {
-        this.isChangingPassword.set(false);
         this.isPasswordModalOpen.set(false);
         this.passwordForm.reset();
 
@@ -349,10 +348,14 @@ export class ProfilePage implements OnInit, OnDestroy {
         this.showNewPassword.set(false);
         this.showConfirmPassword.set(false);
 
-        this.showToast(
-          'Lozinka je uspešno promenjena.',
-          'success'
-        );
+        this.authService.logout().subscribe({
+          next: () => {
+            this.router.navigate(['/login']);
+          },
+          error: () => {
+            this.router.navigate(['/login']);
+          }
+        });
       },
       error: error => {
         this.isChangingPassword.set(false);
@@ -374,14 +377,20 @@ export class ProfilePage implements OnInit, OnDestroy {
 
     this.profileService.deactivateAccount().subscribe({
       next: () => {
-        this.authService.logout();
-        this.router.navigate(['/login']);
-      },
-      error: error => {
-        this.isDeactivating.set(false);
-        this.handleDeactivateError(error);
-      }
-    });
+        this.authService.logout().subscribe({
+          next: () => {
+            this.router.navigate(['/login']);
+          },
+          error: () => {
+            this.router.navigate(['/login']);
+          }
+        });
+  },
+  error: error => {
+    this.isDeactivating.set(false);
+    this.handleDeactivateError(error);
+  }
+});
   }
 
   toggleCurrentPassword(): void {

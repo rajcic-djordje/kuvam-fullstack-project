@@ -4,6 +4,7 @@ import { USER_ROLES, USER_STATUS } from '../constants/user.js'
 import AppError from '../errors/appError.js'
 import Seller from '../models/seller.js'
 import { generateAccessToken } from '../utils/jwt.js'
+import {createRefreshSession, rotateRefreshSession, revokeRefreshSession} from "./refreshSessionService.js"
 
 const allowedRoles = [USER_ROLES.BUYER, USER_ROLES.SELLER]
 
@@ -115,14 +116,44 @@ const loginUser = async (credentials) => {
     }
 
     const accessToken = generateAccessToken(user)
+    const refreshToken = await createRefreshSession(user._id)
 
     return {
         user: validUser,
-        accessToken
+        accessToken,
+        refreshToken
     }
 }
 
+const refreshUserSession = async(refreshToken) => {
+    if(!refreshToken)
+        throw new AppError("Refresh token is required.", 401, "REFRESH_TOKEN_REQUIRED")
+
+    const result = await rotateRefreshSession(refreshToken)
+    const user = result.user
+
+    const validUser = {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        status: user.status
+    }
+
+    const accessToken = generateAccessToken(user)
+
+    return {
+        user: validUser,
+        accessToken,
+        refreshToken: result.refreshToken
+    }
+}
+
+const logoutUser = async(refreshToken) => {
+    await revokeRefreshSession(refreshToken)
+}
     
 
 
-export {registerUser, loginUser}
+export {registerUser, loginUser, refreshUserSession, logoutUser}

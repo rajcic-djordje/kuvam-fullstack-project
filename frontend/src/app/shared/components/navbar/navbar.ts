@@ -28,7 +28,14 @@ export class Navbar {
 
   logout(): void {
     this.closeProfileMenu();
-    this.authService.logout();
-    this.router.navigate(['/']);
+
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/']);
+      },
+      error: () => {
+        this.router.navigate(['/']);
+      }
+    });
   }
 }

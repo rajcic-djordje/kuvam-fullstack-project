@@ -7,6 +7,7 @@ import { USER_ROLES } from "../constants/user.js"
 import User from "../models/user.js"
 import { REPORT_STATUS, AUTO_BAN_OFFENCE_THRESHOLD } from "../constants/report.js"
 import { USER_STATUS } from "../constants/user.js"
+import {revokeAllUserSessions} from "./refreshSessionService.js"
 
 const createReport = async (userId, userRole, reportData) => {
     const orderId = reportData.orderId
@@ -96,6 +97,9 @@ const approveReport = async (adminId, reportId, adminNote) => {
     }
 
     await reportedUser.save()
+
+    if(reportedUser.status === USER_STATUS.BANNED)
+        await revokeAllUserSessions(reportedUser._id)
 
     report.status = REPORT_STATUS.APPROVED
     report.reviewedBy = adminId
