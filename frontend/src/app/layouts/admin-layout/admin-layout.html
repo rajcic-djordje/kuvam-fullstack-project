@@ -1,0 +1,112 @@
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <a
+        class="admin-logo"
+        routerLink="/admin/dashboard"
+        aria-label="Kuvam admin pregled"
+      >
+        <img src="/images/kuvam-logo.png" alt="Kuvam">
+      </a>
+    </div>
+
+    <nav class="admin-navigation" aria-label="Admin navigacija">
+      <a
+        routerLink="/admin/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: true}"
+      >
+        <span class="navigation-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M3.5 10.5 12 3.5l8.5 7"></path>
+            <path d="M5.5 9.5V20h13V9.5"></path>
+            <path d="M9.5 20v-6h5v6"></path>
+          </svg>
+        </span>
+
+        <span>Pregled</span>
+      </a>
+
+      <a
+        routerLink="/admin/users"
+        routerLinkActive="active"
+      >
+        <span class="navigation-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="7.5" r="3.5"></circle>
+            <path d="M5 20.5v-1.7A6.8 6.8 0 0 1 11.8 12h.4a6.8 6.8 0 0 1 6.8 6.8v1.7"></path>
+          </svg>
+        </span>
+
+        <span>Korisnici</span>
+      </a>
+
+      <a
+        routerLink="/admin/banned-users"
+        routerLinkActive="active"
+      >
+        <span class="navigation-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8.5"></circle>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </span>
+
+        <span>Banovani</span>
+      </a>
+
+      <a
+        routerLink="/admin/pending-sellers"
+        routerLinkActive="active"
+      >
+        <span class="navigation-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 9h16"></path>
+            <path d="m5 9 1.4-5h11.2L19 9"></path>
+            <path d="M6 9v11h12V9"></path>
+            <path d="M9 20v-5h6v5"></path>
+          </svg>
+        </span>
+
+        <span>Prodavci</span>
+      </a>
+
+      <a
+        routerLink="/admin/suspensions"
+        routerLinkActive="active"
+      >
+        <span class="navigation-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8.5"></circle>
+            <path d="M9.5 8.5v7"></path>
+            <path d="M14.5 8.5v7"></path>
+          </svg>
+        </span>
+
+        <span>Suspenzije</span>
+      </a>
+
+      <a
+        routerLink="/admin/reports"
+        routerLinkActive="active"
+      >
+        <span class="navigation-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 21V4"></path>
+            <path d="M5 5h11l-1.5 4L18 13H5"></path>
+          </svg>
+        </span>
+
+        <span>Prijave</span>
+      </a>
+    </nav>
+  </aside>
+
+  <section class="admin-main">
+    <app-admin-navbar />
+
+    <main class="admin-content">
+      <router-outlet />
+    </main>
+  </section>
+</div>

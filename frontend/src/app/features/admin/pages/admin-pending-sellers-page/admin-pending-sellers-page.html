@@ -1,0 +1,229 @@
+<section class="admin-page">
+  <header class="page-header">
+    <div class="page-heading">
+      <span class="heading-decoration" aria-hidden="true">
+        <span></span>
+        <span></span>
+      </span>
+
+      <div>
+        <h1>Prodavci na čekanju</h1>
+
+        <p>
+          Pregled zahteva za pristup prodajnom delu Kuvam platforme.
+        </p>
+      </div>
+    </div>
+
+    <div class="sellers-summary">
+      <svg
+        [lucideIcon]="pendingIcon"
+        [strokeWidth]="1.8"
+        aria-hidden="true"
+      ></svg>
+
+      <div>
+        <strong>{{ sellers().length }}</strong>
+
+        <span>
+          {{ sellers().length === 1 ? 'prijava' : 'prijava' }}
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <section class="sellers-panel">
+    <div class="toolbar">
+      <label class="search-field">
+        <span class="search-icon">
+          <svg
+            [lucideIcon]="searchIcon"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+        </span>
+
+        <input
+          #searchInput
+          type="search"
+          placeholder="Pretraži naziv, vlasnika ili email adresu..."
+          aria-label="Pretraži prijave prodavaca"
+          [value]="searchTerm()"
+          (input)="onSearchChange(searchInput.value)"
+        >
+      </label>
+
+      <label class="sort-field">
+        <span>Sortiranje</span>
+
+        <select
+          #sortSelect
+          [value]="selectedSort()"
+          (change)="onSortChange(sortSelect.value)"
+        >
+          <option value="newest">Najnovije prijave</option>
+          <option value="oldest">Najstarije prijave</option>
+        </select>
+      </label>
+    </div>
+
+    @if (isLoading()) {
+      <div class="page-state">
+        <span class="loader" aria-hidden="true"></span>
+
+        <strong>Učitavanje prijava</strong>
+
+        <span>
+          Pripremamo listu zahteva novih prodavaca.
+        </span>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="page-state error-state">
+        <svg
+          [lucideIcon]="sellersIcon"
+          [strokeWidth]="1.7"
+          aria-hidden="true"
+        ></svg>
+
+        <strong>Prijave nisu dostupne</strong>
+
+        <span>{{ errorMessage() }}</span>
+
+        <button
+          type="button"
+          (click)="loadSellers()"
+        >
+          Pokušaj ponovo
+        </button>
+      </div>
+    } @else if (sellers().length === 0) {
+      <div class="page-state">
+        <svg
+          [lucideIcon]="pendingIcon"
+          [strokeWidth]="1.6"
+          aria-hidden="true"
+        ></svg>
+
+        <strong>Nema prodavaca na čekanju</strong>
+
+        <span>
+          Trenutno nema novih prijava koje odgovaraju pretrazi.
+        </span>
+      </div>
+    } @else {
+      <div class="sellers-list">
+        @for (seller of sellers(); track seller._id) {
+          <article class="seller-card">
+            <div class="identity-section">
+              <div class="avatar-wrapper">
+                <span class="seller-avatar">
+                  {{ getSellerInitials(seller) }}
+                </span>
+
+                <span
+                  class="avatar-status"
+                  aria-hidden="true"
+                ></span>
+              </div>
+
+              <div class="seller-details">
+                <strong>{{ seller.businessName }}</strong>
+
+                <span>
+                  {{ seller.description || 'Opis nije naveden.' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="card-divider" aria-hidden="true"></div>
+
+            <div class="information-section owner-section">
+              <span class="information-label">
+                Vlasnik
+              </span>
+
+              <span class="owner-name">
+                <svg
+                  [lucideIcon]="ownerIcon"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                {{ getOwnerName(seller) }}
+              </span>
+
+              <span class="owner-email">
+                {{ seller.user.email }}
+              </span>
+            </div>
+
+            <div class="card-divider" aria-hidden="true"></div>
+
+            <div class="information-section">
+              <span class="information-label">
+                Status prijave
+              </span>
+
+              <span class="pending-badge">
+                <svg
+                  [lucideIcon]="pendingIcon"
+                  [strokeWidth]="1.9"
+                  aria-hidden="true"
+                ></svg>
+
+                Na čekanju
+              </span>
+            </div>
+
+            <div class="card-divider" aria-hidden="true"></div>
+
+            <div class="information-section application-section">
+              <span class="information-label">
+                Prijava poslata
+              </span>
+
+              <span class="application-date">
+                <svg
+                  [lucideIcon]="calendarIcon"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <time [attr.datetime]="seller.createdAt">
+                  {{ seller.createdAt | date:'dd.MM.yyyy.' }}
+                </time>
+              </span>
+            </div>
+
+            <button
+              class="actions-button"
+              type="button"
+              [attr.aria-label]="
+                'Akcije za prijavu ' + seller.businessName
+              "
+            >
+              <svg
+                [lucideIcon]="actionsIcon"
+                [strokeWidth]="1.9"
+                aria-hidden="true"
+              ></svg>
+            </button>
+          </article>
+        }
+      </div>
+
+      <footer class="list-footer">
+        <span class="footer-decoration" aria-hidden="true">
+          <span></span>
+          <span></span>
+        </span>
+
+        <p>
+          Prikazano
+          <strong>{{ sellers().length }}</strong>
+          {{ sellers().length === 1 ? 'prijava prodavca' : 'prijava prodavaca' }}
+        </p>
+      </footer>
+    }
+  </section>
+</section>

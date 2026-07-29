@@ -18,6 +18,7 @@ import {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly authUrl = `${API_BASE_URL}/auth`;
+  private readonly adminAuthUrl = `${API_BASE_URL}/admin/auth`;
 
   private readonly accessTokenSignal = signal<string | null>(null);
   private readonly currentUserSignal = signal<AuthUser | null>(null);
@@ -36,6 +37,18 @@ export class AuthService {
 
   login(data: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.authUrl}/login`, data, {
+      withCredentials: true
+    }).pipe(
+      tap(response => {
+        this.accessTokenSignal.set(response.accessToken);
+        this.currentUserSignal.set(response.user);
+      })
+    );
+  }
+
+  loginAdmin(data: LoginRequest): Observable<LoginResponse> {
+
+    return this.http.post<LoginResponse>(`${this.adminAuthUrl}/login`, data, {
       withCredentials: true
     }).pipe(
       tap(response => {
