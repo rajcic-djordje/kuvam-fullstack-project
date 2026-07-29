@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
     reportsCount: {type: Number, default: 0, min: 0},
     offences: {type: Number, default: 0, min:0},
     suspensionReason: {type:String, trim: true, maxlength: 500, default:null},
+    suspendedAt: {type: Date, default: null},
     banReason: {type: String, trim: true, maxlength: 500, default: null}
 }, {timestamps: true})
 

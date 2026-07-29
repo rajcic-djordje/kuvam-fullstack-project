@@ -8,6 +8,9 @@ import { rejectSellerApplication } from "../controllers/adminSellerController.js
 import { validateBody } from "../middleware/validateBody.js"
 import { rejectSellerSchema } from "../validators/adminSellerValidator.js"
 import { validateObjectId } from "../middleware/validateObjectId.js"
+import { validateQuery } from "../middleware/validateQuery.js"
+import { pendingSellerQuerySchema } from "../validators/queryValidator.js"
+
 
 const router = express.Router()
 
@@ -15,6 +18,7 @@ router.get(
     "/sellers/pending",
     authenticate,
     authorize(USER_ROLES.ADMIN),
+    validateQuery(pendingSellerQuerySchema),
     getPendingSellerApplications
 )
 

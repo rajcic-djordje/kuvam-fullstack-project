@@ -1,14 +1,21 @@
 import { approveSeller, getPendingSellers, rejectSeller } from "../services/adminSellerService.js"
 
 
-const getPendingSellerApplications = async (req,res) => {
+const getPendingSellerApplications = async(req, res) => {
+    const search =
+        typeof req.query.search === "string"
+            ? req.query.search.trim()
+            : ""
 
-    const result = await getPendingSellers()
+    const sort =
+        req.query.sort === "oldest"
+            ? "oldest"
+            : "newest"
+
+    const sellers = await getPendingSellers(search, sort)
 
     return res.status(200).json({
-        message: "Pending seller applications retrieved successfully.",
-        result
-
+        sellers
     })
 }
 

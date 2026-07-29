@@ -2,10 +2,42 @@ import { SELLER_APPROVAL_STATUS } from '../constants/seller.js'
 import Seller from '../models/seller.js'
 import AppError from '../errors/appError.js'
 
-const getPendingSellers = async () =>
-{
-    return await Seller.find({approvalStatus: SELLER_APPROVAL_STATUS.PENDING}).populate("user", "firstName lastName email status").sort({createdAt: 1})
+const getPendingSellers = async(search, sort) => {
+    const filter = {
+        approvalStatus: SELLER_APPROVAL_STATUS.PENDING
+    }
 
+    if(search) {
+        const searchRegex = new RegExp(search, "i")
+
+        const matchingUsers = await User.find({
+            $or: [
+                { firstName: searchRegex },
+                { lastName: searchRegex },
+                { email: searchRegex }
+            ]
+        }).select("_id").lean()
+
+        const matchingUserIds = matchingUsers.map(user => user._id)
+
+        filter.$or = [
+            { businessName: searchRegex },
+            { user: { $in: matchingUserIds } }
+        ]
+    }
+
+    const sortOption =
+        sort === "oldest"
+            ? { createdAt: 1 }
+            : { createdAt: -1 }
+
+    return Seller.find(filter)
+        .populate(
+            "user",
+            "firstName lastName email status"
+        )
+        .sort(sortOption)
+        .lean()
 }
 
 const approveSeller = async (sellerId) => {

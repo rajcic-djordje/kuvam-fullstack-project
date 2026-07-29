@@ -9,6 +9,12 @@ import { REPORT_STATUS, AUTO_BAN_OFFENCE_THRESHOLD } from "../constants/report.j
 import { USER_STATUS } from "../constants/user.js"
 import {revokeAllUserSessions} from "./refreshSessionService.js"
 
+
+const escapeRegExp = (value) => {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+
 const createReport = async (userId, userRole, reportData) => {
     const orderId = reportData.orderId
     const reason = reportData.reason
@@ -94,6 +100,7 @@ const approveReport = async (adminId, reportId, adminNote) => {
         reportedUser.status = USER_STATUS.BANNED
         reportedUser.banReason =`Account automatically banned after ${reportedUser.offences} confirmed offences.`
         reportedUser.suspensionReason = null
+        reportedUser.suspendedAt = null
     }
 
     await reportedUser.save()
@@ -141,27 +148,69 @@ const rejectReport = async (adminId, reportId, adminNote) => {
 
 
 const getAdminReports = async (query) => {
+    const search = query.search
     const status = query.status
+    const sort = query.sort ?? "newest"
 
     const filter = {}
 
-    if (status) filter.status = status
+    if (status)
+        filter.status = status
 
-    const reports = await Report.find(filter).sort({ createdAt: -1 }).populate({
-        path: "reporter",
-        select: "firstName lastName email role"
-    }).populate({
-        path: "reportedUser",
-        select: "firstName lastName email role reportsCount offences status"
-    }).populate({
-        path: "order",
-        select: "quantity unitPrice totalPrice status createdAt"
-    }).populate({
-        path: "reviewedBy",
-        select: "firstName lastName email"
-    })
+    if (search) {
+        const searchRegex = new RegExp(
+            escapeRegExp(search),
+            "i"
+        )
 
-    return reports
+        const matchingUsers = await User.find({
+            $or: [
+                { firstName: searchRegex },
+                { lastName: searchRegex },
+                { email: searchRegex }
+            ]
+        })
+            .select("_id")
+            .lean()
+
+        const matchingUserIds = matchingUsers.map(
+            user => user._id
+        )
+
+        filter.$or = [
+            { reporter: { $in: matchingUserIds } },
+            { reportedUser: { $in: matchingUserIds } },
+            { reason: searchRegex },
+            { description: searchRegex }
+        ]
+    }
+
+    const sortOption =
+        sort === "oldest"
+            ? { createdAt: 1 }
+            : { createdAt: -1 }
+
+    return Report.find(filter)
+        .sort(sortOption)
+        .populate({
+            path: "reporter",
+            select: "firstName lastName email role"
+        })
+        .populate({
+            path: "reportedUser",
+            select:
+                "firstName lastName email role reportsCount offences status"
+        })
+        .populate({
+            path: "order",
+            select:
+                "quantity unitPrice totalPrice status createdAt"
+        })
+        .populate({
+            path: "reviewedBy",
+            select: "firstName lastName email"
+        })
+        .lean()
 }
 
 

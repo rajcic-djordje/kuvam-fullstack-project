@@ -6,6 +6,11 @@ const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET?.trim()
 const accessTokenExpiresIn = process.env.ACCESS_TOKEN_EXPIRES_IN?.trim()
 const refreshSessionExpiresInDays = Number(process.env.REFRESH_SESSION_EXPIRES_IN_DAYS)
 
+const adminFirstName = process.env.ADMIN_FIRST_NAME?.trim()
+const adminLastName = process.env.ADMIN_LAST_NAME?.trim()
+const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
+const adminPassword = process.env.ADMIN_PASSWORD
+
 const allowedValues = ["development", "test", "production"]
 
 if(!allowedValues.includes(nodeEnv))
@@ -29,6 +34,18 @@ if(!accessTokenExpiresIn)
 if(!Number.isInteger(refreshSessionExpiresInDays) || refreshSessionExpiresInDays < 1)
     throw new Error("Refresh session expiration is not valid.")
 
+if(!adminFirstName)
+    throw new Error("Admin first name is not valid.")
+
+if(!adminLastName)
+    throw new Error("Admin last name is not valid.")
+
+if(!adminEmail)
+    throw new Error("Admin email is not valid.")
+
+if(!adminPassword || adminPassword.length < 8)
+    throw new Error("Admin password is not valid.")
+
 const env = {
     nodeEnv,
     nodePort,
@@ -36,7 +53,11 @@ const env = {
     nodeMongoDBUri,
     accessTokenSecret,
     accessTokenExpiresIn,
-    refreshSessionExpiresInDays
+    refreshSessionExpiresInDays,
+    adminFirstName,
+    adminLastName,
+    adminEmail,
+    adminPassword
 }
 
 export default env

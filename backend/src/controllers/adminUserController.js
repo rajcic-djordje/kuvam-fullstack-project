@@ -1,4 +1,4 @@
-import { suspendUser, unsuspendUser } from "../services/adminUserService.js"
+import { getUsers, suspendUser, unsuspendUser, getSuspendedUsers} from "../services/adminUserService.js"
 
 
 
@@ -28,5 +28,34 @@ const unsuspendUserAccount = async(req,res) => {
     })
 }
 
+const getUserAccounts = async(req, res) => {
+    const search =
+        typeof req.query.search === "string"
+            ? req.query.search.trim()
+            : ""
 
-export {suspendUserAccount, unsuspendUserAccount}
+    const sort =
+        req.query.sort === "oldest"
+            ? "oldest"
+            : "newest"
+
+    const users = await getUsers(search, sort)
+
+    return res.status(200).json({
+        users
+    })
+}
+
+const getSuspendedUserAccounts = async(req, res) => {
+    const search = req.queryData.search ?? ""
+    const sort = req.queryData.sort ?? "newest"
+
+    const users = await getSuspendedUsers(search, sort)
+
+    return res.status(200).json({
+        users
+    })
+}
+
+
+export {suspendUserAccount, unsuspendUserAccount, getUserAccounts, getSuspendedUserAccounts}

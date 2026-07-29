@@ -119,6 +119,7 @@ const deactivateCurrentUser = async (userId) => {
 
     user.status = USER_STATUS.DEACTIVATED
     user.suspensionReason = null
+    user.suspendedAt = null
 
     await user.save()
 

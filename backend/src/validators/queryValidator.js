@@ -20,14 +20,54 @@ const orderQuerySchema = z.object({
 })
 
 const reportQuerySchema = z.object({
+    search: z.string()
+        .trim()
+        .min(1)
+        .max(100)
+        .optional(),
+
     status: z.string().refine(
         (value) => Object.values(REPORT_STATUS).includes(value),
         { message: "Invalid report status." }
-    ).optional()
+    ).optional(),
+
+    sort: z.enum([
+        "newest",
+        "oldest"
+    ]).optional()
 })
+
+const pendingSellerQuerySchema = z.object({
+    search: z.string()
+        .trim()
+        .min(1)
+        .max(100)
+        .optional(),
+
+    sort: z.enum([
+        "newest",
+        "oldest"
+    ]).optional()
+})
+
+const suspendedUsersQuerySchema = z.object({
+    search: z.string()
+        .trim()
+        .min(1)
+        .max(100)
+        .optional(),
+
+    sort: z.enum([
+        "newest",
+        "oldest"
+    ]).optional()
+})
+
 
 export {
     offerQuerySchema,
     orderQuerySchema,
-    reportQuerySchema
+    reportQuerySchema,
+    pendingSellerQuerySchema,
+    suspendedUsersQuerySchema
 }
