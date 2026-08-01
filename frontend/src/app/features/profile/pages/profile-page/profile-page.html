@@ -1,17 +1,21 @@
 <main class="profile-page container">
   @if (toastMessage()) {
     <div
-      class="profile-toast"
-      [class.error]="toastType() === 'error'"
-      role="status"
+      class="auth-toast"
+      [class.success]="toastType() === 'success'"
+      role="alert"
     >
-      <div class="toast-mark">
-        {{ toastType() === 'success' ? '✓' : '!' }}
+      <div class="toast-mark" aria-hidden="true">
+        <span>{{ toastType() === 'success' ? '✓' : '!' }}</span>
       </div>
 
       <div class="toast-content">
         <strong>
-          {{ toastType() === 'success' ? 'Uspešno' : 'Greška' }}
+          {{
+            toastType() === 'success'
+              ? 'Izmena je uspešna'
+              : 'Izmena nije uspela'
+          }}
         </strong>
 
         <p>{{ toastMessage() }}</p>
@@ -19,11 +23,14 @@
 
       <button
         type="button"
+        class="toast-close"
         aria-label="Zatvori poruku"
         (click)="closeToast()"
       >
         ×
       </button>
+
+      <span class="toast-decoration" aria-hidden="true"></span>
     </div>
   }
 
@@ -46,8 +53,6 @@
       </div>
 
       <div class="profile-identity">
-    
-
         <h1>{{ user.firstName }} {{ user.lastName }}</h1>
 
         <p>{{ user.email }}</p>
@@ -96,12 +101,7 @@
                 type="button"
                 (click)="startPersonalEditing()"
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m4 20 4.2-1 10.9-10.9a2.1 2.1 0 0 0-3-3L5.2 16Z"></path>
-                  <path d="m14.7 6.5 3 3"></path>
-                </svg>
-
-                <span>Uredi</span>
+                Uredi
               </button>
             } @else {
               <button
@@ -371,6 +371,248 @@
       </section>
 
       <div class="profile-side">
+        @if (user.role === 'buyer') {
+          <section class="profile-card location-card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="card-icon location-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z"></path>
+                    <circle cx="12" cy="10" r="2"></circle>
+                  </svg>
+                </span>
+
+                <div>
+                  <h2>Moja lokacija</h2>
+                  <p>Lokacija se koristi za prikaz ponuda iz tvog grada.</p>
+                </div>
+              </div>
+
+              <div class="card-actions">
+                @if (!isLocationEditing()) {
+                  <button
+                    class="edit-button"
+                    type="button"
+                    (click)="startLocationEditing()"
+                  >
+                    Uredi
+                  </button>
+                } @else {
+                  <button
+                    class="cancel-button"
+                    type="button"
+                    [disabled]="isSavingLocation()"
+                    (click)="cancelLocationEditing()"
+                  >
+                    Otkaži
+                  </button>
+
+                  <button
+                    class="save-button"
+                    type="button"
+                    [disabled]="isSavingLocation()"
+                    (click)="saveLocation()"
+                  >
+                    {{
+                      isSavingLocation()
+                        ? 'Čuvanje...'
+                        : 'Sačuvaj'
+                    }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (isLocationEditing()) {
+              <form
+                class="location-form"
+                [formGroup]="locationForm"
+                (ngSubmit)="saveLocation()"
+              >
+                <div class="form-field">
+                  <label for="buyerCity">Grad</label>
+
+                  <select
+                    id="buyerCity"
+                    formControlName="cityId"
+                  >
+                    <option value="" disabled>
+                      Izaberi grad
+                    </option>
+
+                    @for (city of cities(); track city.id) {
+                      <option [value]="city.id">
+                        {{ city.name }}
+                      </option>
+                    }
+                  </select>
+
+                  <span class="field-message field-error">
+                    @if (
+                      locationForm.controls.cityId.touched &&
+                      locationForm.controls.cityId.hasError('required')
+                    ) {
+                      Grad je obavezan.
+                    }
+                  </span>
+
+                  @if (isLoadingCities()) {
+                    <span class="field-message field-hint">
+                      Učitavanje gradova...
+                    </span>
+                  } @else if (citiesError()) {
+                    <span class="field-message field-error">
+                      {{ citiesError() }}
+                    </span>
+                  }
+                </div>
+
+                <div class="form-row location-address-row">
+                  <div class="form-field">
+                    <label for="buyerStreet">Ulica</label>
+
+                    <input
+                      id="buyerStreet"
+                      type="text"
+                      formControlName="street"
+                      autocomplete="street-address"
+                    >
+
+                    <span class="field-message field-error">
+                      @if (
+                        locationForm.controls.street.touched &&
+                        locationForm.controls.street.hasError('required')
+                      ) {
+                        Ulica je obavezna.
+                      } @else if (
+                        locationForm.controls.street.touched &&
+                        locationForm.controls.street.hasError('minlength')
+                      ) {
+                        Ulica mora imati najmanje 2 karaktera.
+                      } @else if (
+                        locationForm.controls.street.touched &&
+                        locationForm.controls.street.hasError('maxlength')
+                      ) {
+                        Ulica može imati najviše 150 karaktera.
+                      }
+                    </span>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="buyerStreetNumber">Broj</label>
+
+                    <input
+                      id="buyerStreetNumber"
+                      type="text"
+                      formControlName="streetNumber"
+                    >
+
+                    <span class="field-message field-error">
+                      @if (
+                        locationForm.controls.streetNumber.touched &&
+                        locationForm.controls.streetNumber.hasError('required')
+                      ) {
+                        Broj je obavezan.
+                      } @else if (
+                        locationForm.controls.streetNumber.touched &&
+                        locationForm.controls.streetNumber.hasError('maxlength')
+                      ) {
+                        Broj može imati najviše 20 karaktera.
+                      }
+                    </span>
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <div class="label-row">
+                    <label for="buyerAdditionalInfo">
+                      Dodatne informacije
+                    </label>
+
+                    <span>
+                      {{ locationForm.controls.additionalInfo.value.length }}/300
+                    </span>
+                  </div>
+
+                  <textarea
+                    id="buyerAdditionalInfo"
+                    rows="3"
+                    maxlength="300"
+                    formControlName="additionalInfo"
+                    placeholder="Na primer: sprat, stan ili ulaz"
+                  ></textarea>
+
+                  <span class="field-message field-error">
+                    @if (
+                      locationForm.controls.additionalInfo.touched &&
+                      locationForm.controls.additionalInfo.hasError('maxlength')
+                    ) {
+                      Dodatne informacije mogu imati najviše 300 karaktera.
+                    }
+                  </span>
+                </div>
+              </form>
+            } @else {
+              <div class="information-list location-list">
+                <div class="information-row">
+                  <span class="row-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z"></path>
+                      <circle cx="12" cy="10" r="2"></circle>
+                    </svg>
+                  </span>
+
+                  <span class="row-label">Grad</span>
+
+                  <strong>
+                    {{ user.city?.name || 'Grad nije unet' }}
+                  </strong>
+                </div>
+
+                <div class="information-row">
+                  <span class="row-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 11 12 4l9 7"></path>
+                      <path d="M5 10v10h14V10"></path>
+                    </svg>
+                  </span>
+
+                  <span class="row-label">Adresa</span>
+
+                  <strong>
+                    @if (
+                      user.address.street &&
+                      user.address.streetNumber
+                    ) {
+                      {{ user.address.street }}
+                      {{ user.address.streetNumber }}
+                    } @else {
+                      Adresa nije uneta
+                    }
+                  </strong>
+                </div>
+
+                @if (user.address.additionalInfo) {
+                  <div class="information-row description-row">
+                    <span class="row-icon">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M12 11v5M12 8h.01"></path>
+                      </svg>
+                    </span>
+
+                    <span class="row-label">
+                      Dodatne informacije
+                    </span>
+
+                    <p>{{ user.address.additionalInfo }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        }
+
         @if (user.sellerProfile) {
           <section class="profile-card seller-card">
             <div class="card-header">
@@ -397,12 +639,7 @@
                     type="button"
                     (click)="startSellerEditing()"
                   >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="m4 20 4.2-1 10.9-10.9a2.1 2.1 0 0 0-3-3L5.2 16Z"></path>
-                      <path d="m14.7 6.5 3 3"></path>
-                    </svg>
-
-                    <span>Uredi</span>
+                    Uredi
                   </button>
                 } @else {
                   <button
@@ -420,11 +657,7 @@
                     [disabled]="isSavingSeller()"
                     (click)="saveSellerProfile()"
                   >
-                    {{
-                      isSavingSeller()
-                        ? 'Čuvanje...'
-                        : 'Sačuvaj'
-                    }}
+                    {{ isSavingSeller() ? 'Čuvanje...' : 'Sačuvaj' }}
                   </button>
                 }
               </div>
@@ -437,9 +670,7 @@
                 (ngSubmit)="saveSellerProfile()"
               >
                 <div class="form-field">
-                  <label for="businessName">
-                    Naziv domaćinstva
-                  </label>
+                  <label for="businessName">Naziv domaćinstva</label>
 
                   <input
                     id="businessName"
@@ -475,9 +706,7 @@
 
                 <div class="form-field">
                   <div class="label-row">
-                    <label for="description">
-                      Opis domaćinstva
-                    </label>
+                    <label for="description">Opis domaćinstva</label>
 
                     <span>
                       {{ sellerForm.controls.description.value.length }}/500
@@ -500,6 +729,129 @@
                     }
                   </span>
                 </div>
+
+                <div class="form-field">
+                  <label for="sellerCity">Grad</label>
+
+                  <select
+                    id="sellerCity"
+                    formControlName="cityId"
+                  >
+                    <option value="" disabled>
+                      Izaberi grad
+                    </option>
+
+                    @for (city of cities(); track city.id) {
+                      <option [value]="city.id">
+                        {{ city.name }}
+                      </option>
+                    }
+                  </select>
+
+                  <span class="field-message field-error">
+                    @if (
+                      sellerForm.controls.cityId.touched &&
+                      sellerForm.controls.cityId.hasError('required')
+                    ) {
+                      Grad je obavezan.
+                    }
+                  </span>
+
+                  @if (isLoadingCities()) {
+                    <span class="field-message field-hint">
+                      Učitavanje gradova...
+                    </span>
+                  } @else if (citiesError()) {
+                    <span class="field-message field-error">
+                      {{ citiesError() }}
+                    </span>
+                  }
+                </div>
+
+                <div class="form-row seller-address-row">
+                  <div class="form-field">
+                    <label for="sellerStreet">Ulica</label>
+
+                    <input
+                      id="sellerStreet"
+                      type="text"
+                      formControlName="street"
+                      autocomplete="street-address"
+                    >
+
+                    <span class="field-message field-error">
+                      @if (
+                        sellerForm.controls.street.touched &&
+                        sellerForm.controls.street.hasError('required')
+                      ) {
+                        Ulica je obavezna.
+                      } @else if (
+                        sellerForm.controls.street.touched &&
+                        sellerForm.controls.street.hasError('minlength')
+                      ) {
+                        Ulica mora imati najmanje 2 karaktera.
+                      } @else if (
+                        sellerForm.controls.street.touched &&
+                        sellerForm.controls.street.hasError('maxlength')
+                      ) {
+                        Ulica može imati najviše 150 karaktera.
+                      }
+                    </span>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="sellerStreetNumber">Broj</label>
+
+                    <input
+                      id="sellerStreetNumber"
+                      type="text"
+                      formControlName="streetNumber"
+                    >
+
+                    <span class="field-message field-error">
+                      @if (
+                        sellerForm.controls.streetNumber.touched &&
+                        sellerForm.controls.streetNumber.hasError('required')
+                      ) {
+                        Broj je obavezan.
+                      } @else if (
+                        sellerForm.controls.streetNumber.touched &&
+                        sellerForm.controls.streetNumber.hasError('maxlength')
+                      ) {
+                        Broj može imati najviše 20 karaktera.
+                      }
+                    </span>
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <div class="label-row">
+                    <label for="sellerAdditionalInfo">
+                      Dodatne informacije
+                    </label>
+
+                    <span>
+                      {{ sellerForm.controls.additionalInfo.value.length }}/300
+                    </span>
+                  </div>
+
+                  <textarea
+                    id="sellerAdditionalInfo"
+                    rows="3"
+                    maxlength="300"
+                    formControlName="additionalInfo"
+                    placeholder="Na primer: ulaz iz dvorišta ili preuzimanje na kapiji"
+                  ></textarea>
+
+                  <span class="field-message field-error">
+                    @if (
+                      sellerForm.controls.additionalInfo.touched &&
+                      sellerForm.controls.additionalInfo.hasError('maxlength')
+                    ) {
+                      Dodatne informacije mogu imati najviše 300 karaktera.
+                    }
+                  </span>
+                </div>
               </form>
             } @else {
               <div class="information-list seller-list">
@@ -512,9 +864,7 @@
                     </svg>
                   </span>
 
-                  <span class="row-label">
-                    Naziv domaćinstva
-                  </span>
+                  <span class="row-label">Naziv domaćinstva</span>
 
                   <strong>
                     {{ user.sellerProfile.businessName }}
@@ -542,14 +892,78 @@
                 <div class="information-row">
                   <span class="row-icon">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z"></path>
+                      <circle cx="12" cy="10" r="2"></circle>
+                    </svg>
+                  </span>
+
+                  <span class="row-label">Grad</span>
+
+                  <strong>
+                    {{
+                      user.sellerProfile.city?.name ||
+                      'Grad nije unet'
+                    }}
+                  </strong>
+                </div>
+
+                <div class="information-row">
+                  <span class="row-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 11 12 4l9 7"></path>
+                      <path d="M5 10v10h14V10"></path>
+                    </svg>
+                  </span>
+
+                  <span class="row-label">
+                    Lokacija preuzimanja
+                  </span>
+
+                  <strong>
+                    @if (
+                      user.sellerProfile.pickupAddress.street &&
+                      user.sellerProfile.pickupAddress.streetNumber
+                    ) {
+                      {{ user.sellerProfile.pickupAddress.street }}
+                      {{ user.sellerProfile.pickupAddress.streetNumber }}
+                    } @else {
+                      Lokacija nije uneta
+                    }
+                  </strong>
+                </div>
+
+                @if (
+                  user.sellerProfile.pickupAddress.additionalInfo
+                ) {
+                  <div class="information-row description-row">
+                    <span class="row-icon">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M12 11v5M12 8h.01"></path>
+                      </svg>
+                    </span>
+
+                    <span class="row-label">
+                      Dodatne informacije
+                    </span>
+
+                    <p>
+                      {{
+                        user.sellerProfile.pickupAddress.additionalInfo
+                      }}
+                    </p>
+                  </div>
+                }
+
+                <div class="information-row">
+                  <span class="row-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M12 3 20 7v5c0 5-3.4 8-8 9-4.6-1-8-4-8-9V7z"></path>
                       <path d="m9 12 2 2 4-4"></path>
                     </svg>
                   </span>
 
-                  <span class="row-label">
-                    Status prodavca
-                  </span>
+                  <span class="row-label">Status prodavca</span>
 
                   <strong>
                     <span

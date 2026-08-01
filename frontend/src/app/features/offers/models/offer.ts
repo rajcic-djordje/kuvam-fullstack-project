@@ -1,7 +1,17 @@
+export interface OfferCity {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
 export interface OfferSeller {
   _id: string;
   businessName: string;
+  slug: string | null;
   description: string;
+  profileImageUrl: string | null;
+  coverImageUrl: string | null;
+  city: OfferCity | null;
   approvalStatus: string;
 }
 

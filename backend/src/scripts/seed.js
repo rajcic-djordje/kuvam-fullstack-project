@@ -9,6 +9,7 @@ import Seller from "../models/seller.js"
 import Offer from "../models/offer.js"
 import Order from "../models/order.js"
 import Report from "../models/report.js"
+import City from "../models/city.js"
 import {
   USER_ROLES,
   USER_STATUS
@@ -29,10 +30,7 @@ import {
 
 const passwordHash = await bcrypt.hash("Test1234", 12)
 
-const adminPasswordHash = await bcrypt.hash(
-  env.adminPassword,
-  12
-)
+const adminPasswordHash = await bcrypt.hash(env.adminPassword, 12)
 
 const adminData = {
   firstName: env.adminFirstName,
@@ -40,11 +38,44 @@ const adminData = {
   email: env.adminEmail
 }
 
+const cityData = [
+  {
+    name: "Beograd",
+    slug: "beograd"
+  },
+  {
+    name: "Novi Sad",
+    slug: "novi-sad"
+  },
+  {
+    name: "Niš",
+    slug: "nis"
+  },
+  {
+    name: "Kragujevac",
+    slug: "kragujevac"
+  },
+  {
+    name: "Čačak",
+    slug: "cacak"
+  },
+  {
+    name: "Kraljevo",
+    slug: "kraljevo"
+  }
+]
+
 const userData = [
   {
     firstName: "Nikola",
     lastName: "Simić",
     email: "nikola.seed@kuvam.rs",
+    citySlug: "kragujevac",
+    address: {
+      street: "Kralja Aleksandra I Karađorđevića",
+      streetNumber: "42",
+      additionalInfo: "Stan 8, drugi sprat"
+    },
     status: USER_STATUS.ACTIVE,
     reportsCount: 0,
     offences: 0,
@@ -56,6 +87,29 @@ const userData = [
     firstName: "Sofija",
     lastName: "Milošević",
     email: "sofija.seed@kuvam.rs",
+    citySlug: "cacak",
+    address: {
+      street: "Gospodar Jovanova",
+      streetNumber: "18",
+      additionalInfo: null
+    },
+    status: USER_STATUS.ACTIVE,
+    reportsCount: 0,
+    offences: 0,
+    suspensionReason: null,
+    suspendedAt: null,
+    banReason: null
+  },
+  {
+    firstName: "Mina",
+    lastName: "Lazić",
+    email: "mina.nolocation@kuvam.rs",
+    citySlug: null,
+    address: {
+      street: null,
+      streetNumber: null,
+      additionalInfo: null
+    },
     status: USER_STATUS.ACTIVE,
     reportsCount: 0,
     offences: 0,
@@ -67,11 +121,16 @@ const userData = [
     firstName: "Ana",
     lastName: "Marković",
     email: "ana.suspended@kuvam.rs",
+    citySlug: "beograd",
+    address: {
+      street: "Bulevar kralja Aleksandra",
+      streetNumber: "125",
+      additionalInfo: null
+    },
     status: USER_STATUS.SUSPENDED,
     reportsCount: 2,
     offences: 1,
-    suspensionReason:
-      "Višestruko neprimereno ponašanje prema prodavcima.",
+    suspensionReason: "Višestruko neprimereno ponašanje prema prodavcima.",
     suspendedAt: new Date("2026-07-27T12:00:00.000Z"),
     banReason: null
   },
@@ -79,11 +138,16 @@ const userData = [
     firstName: "Petar",
     lastName: "Đorđević",
     email: "petar.suspended@kuvam.rs",
+    citySlug: "novi-sad",
+    address: {
+      street: "Futoška",
+      streetNumber: "73",
+      additionalInfo: null
+    },
     status: USER_STATUS.SUSPENDED,
     reportsCount: 3,
     offences: 2,
-    suspensionReason:
-      "Zloupotreba sistema porudžbina i lažne rezervacije.",
+    suspensionReason: "Zloupotreba sistema porudžbina i lažne rezervacije.",
     suspendedAt: new Date("2026-07-29T16:30:00.000Z"),
     banReason: null
   },
@@ -91,13 +155,18 @@ const userData = [
     firstName: "Luka",
     lastName: "Stojanović",
     email: "luka.banned@kuvam.rs",
+    citySlug: "nis",
+    address: {
+      street: "Vožda Karađorđa",
+      streetNumber: "31",
+      additionalInfo: null
+    },
     status: USER_STATUS.BANNED,
     reportsCount: 4,
     offences: 3,
     suspensionReason: null,
     suspendedAt: null,
-    banReason:
-      "Nalog je banovan nakon više potvrđenih prekršaja."
+    banReason: "Nalog je banovan nakon više potvrđenih prekršaja."
   }
 ]
 
@@ -107,32 +176,90 @@ const sellerData = [
     lastName: "Jovanović",
     email: "milica.seed@kuvam.rs",
     businessName: "Miličina domaća kuhinja",
-    description:
-      "Domaća kuvana jela, pite i kolači po porudžbini."
+    slug: "milicina-domaca-kuhinja",
+    description: "Domaća kuvana jela, pite i kolači po porudžbini.",
+    citySlug: "kragujevac",
+    pickupAddress: {
+      street: "Svetozara Markovića",
+      streetNumber: "27",
+      additionalInfo: "Preuzimanje na ulazu iz dvorišta"
+    },
+    approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
   },
   {
     firstName: "Dragan",
     lastName: "Petrović",
     email: "dragan.seed@kuvam.rs",
     businessName: "Ukusi Šumadije",
-    description:
-      "Tradicionalna jela, roštilj i domaće salate."
+    slug: "ukusi-sumadije",
+    description: "Tradicionalna jela, roštilj i domaće salate.",
+    citySlug: "kragujevac",
+    pickupAddress: {
+      street: "Kneza Miloša",
+      streetNumber: "64",
+      additionalInfo: "Preuzimanje na kapiji"
+    },
+    approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
   },
   {
     firstName: "Jelena",
     lastName: "Nikolić",
     email: "jelena.seed@kuvam.rs",
     businessName: "Jelenina slatka radionica",
-    description:
-      "Torte, kolači, peciva i domaći deserti."
+    slug: "jelenina-slatka-radionica",
+    description: "Torte, kolači, peciva i domaći deserti.",
+    citySlug: "cacak",
+    pickupAddress: {
+      street: "Župana Stracimira",
+      streetNumber: "15",
+      additionalInfo: "Lokal u prizemlju"
+    },
+    approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
   },
   {
     firstName: "Marko",
     lastName: "Ilić",
     email: "marko.seed@kuvam.rs",
     businessName: "Iz bakinog špajza",
-    description:
-      "Zimnica, sokovi i domaći proizvodi."
+    slug: "iz-bakinog-spajza",
+    description: "Zimnica, sokovi i domaći proizvodi.",
+    citySlug: "cacak",
+    pickupAddress: {
+      street: "Bate Jankovića",
+      streetNumber: "39",
+      additionalInfo: null
+    },
+    approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
+  },
+  {
+    firstName: "Vesna",
+    lastName: "Pavlović",
+    email: "vesna.seed@kuvam.rs",
+    businessName: "Vesnina trpeza",
+    slug: "vesnina-trpeza",
+    description: "Domaća jela pripremljena po tradicionalnim porodičnim receptima.",
+    citySlug: "kraljevo",
+    pickupAddress: {
+      street: "Omladinska",
+      streetNumber: "21",
+      additionalInfo: "Pozvati po dolasku"
+    },
+    approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
+  },
+  {
+    firstName: "Marija",
+    lastName: "Ristić",
+    email: "marija.pending@kuvam.rs",
+    businessName: "Marijini domaći ukusi",
+    slug: "marijini-domaci-ukusi",
+    description: "Domaća peciva i kuvana jela.",
+    citySlug: "kragujevac",
+    pickupAddress: {
+      street: "Zmaj Jovina",
+      streetNumber: "11",
+      additionalInfo: null
+    },
+    approvalStatus: SELLER_APPROVAL_STATUS.PENDING
   }
 ]
 
@@ -140,212 +267,272 @@ const offerData = [
   {
     sellerEmail: "milica.seed@kuvam.rs",
     name: "Domaća sarma",
-    description:
-      "Porcija domaće sarme sa pire krompirom.",
+    description: "Porcija domaće sarme sa pire krompirom.",
     category: OFFER_CATEGORIES.COOKED_MEALS,
     price: 720,
     availableQuantity: 12,
-    unit: "porcija"
+    unit: "porcija",
+    isActive: true
   },
   {
     sellerEmail: "milica.seed@kuvam.rs",
     name: "Punjene paprike",
-    description:
-      "Punjene paprike u domaćem paradajz sosu.",
+    description: "Punjene paprike u domaćem paradajz sosu.",
     category: OFFER_CATEGORIES.COOKED_MEALS,
     price: 680,
     availableQuantity: 10,
-    unit: "porcija"
+    unit: "porcija",
+    isActive: true
   },
   {
     sellerEmail: "milica.seed@kuvam.rs",
     name: "Teleća čorba",
-    description:
-      "Gusta domaća teleća čorba sa povrćem.",
+    description: "Gusta domaća teleća čorba sa povrćem.",
     category: OFFER_CATEGORIES.SOUPS_AND_STEWS,
     price: 390,
     availableQuantity: 15,
-    unit: "porcija"
+    unit: "porcija",
+    isActive: true
   },
   {
     sellerEmail: "milica.seed@kuvam.rs",
     name: "Gibanica sa sirom",
-    description:
-      "Domaća gibanica pripremljena sa svežim sirom.",
+    description: "Domaća gibanica pripremljena sa svežim sirom.",
     category: OFFER_CATEGORIES.BAKERY_AND_PIES,
     price: 850,
     availableQuantity: 8,
-    unit: "tepsija"
+    unit: "tepsija",
+    isActive: true
   },
   {
     sellerEmail: "milica.seed@kuvam.rs",
     name: "Projice sa sirom",
-    description:
-      "Mekane projice sa domaćim sirom.",
+    description: "Mekane projice sa domaćim sirom.",
     category: OFFER_CATEGORIES.BREAKFAST_AND_SNACKS,
     price: 420,
     availableQuantity: 20,
-    unit: "pakovanje"
+    unit: "pakovanje",
+    isActive: true
+  },
+  {
+    sellerEmail: "milica.seed@kuvam.rs",
+    name: "Rasprodata musaka",
+    description: "Domaća musaka sa krompirom i mlevenim mesom.",
+    category: OFFER_CATEGORIES.COOKED_MEALS,
+    price: 650,
+    availableQuantity: 0,
+    unit: "porcija",
+    isActive: true
   },
   {
     sellerEmail: "dragan.seed@kuvam.rs",
     name: "Mešano meso sa roštilja",
-    description:
-      "Ćevapi, kobasica, pileći file i svinjski vrat.",
+    description: "Ćevapi, kobasica, pileći file i svinjski vrat.",
     category: OFFER_CATEGORIES.GRILLED_AND_ROASTED,
     price: 1350,
     availableQuantity: 10,
-    unit: "porcija"
+    unit: "porcija",
+    isActive: true
   },
   {
     sellerEmail: "dragan.seed@kuvam.rs",
     name: "Pečena svinjetina",
-    description:
-      "Sporo pečena svinjetina sa domaćim krompirom.",
+    description: "Sporo pečena svinjetina sa domaćim krompirom.",
     category: OFFER_CATEGORIES.GRILLED_AND_ROASTED,
     price: 1100,
     availableQuantity: 9,
-    unit: "porcija"
+    unit: "porcija",
+    isActive: true
   },
   {
     sellerEmail: "dragan.seed@kuvam.rs",
     name: "Pasulj sa kobasicom",
-    description:
-      "Domaći pasulj sa dimljenom kobasicom.",
+    description: "Domaći pasulj sa dimljenom kobasicom.",
     category: OFFER_CATEGORIES.SOUPS_AND_STEWS,
     price: 620,
     availableQuantity: 14,
-    unit: "porcija"
+    unit: "porcija",
+    isActive: true
   },
   {
     sellerEmail: "dragan.seed@kuvam.rs",
     name: "Šopska salata",
-    description:
-      "Paradajz, krastavac, paprika, luk i domaći sir.",
+    description: "Paradajz, krastavac, paprika, luk i domaći sir.",
     category: OFFER_CATEGORIES.SALADS_AND_SIDES,
     price: 360,
     availableQuantity: 18,
-    unit: "porcija"
+    unit: "porcija",
+    isActive: true
   },
   {
     sellerEmail: "dragan.seed@kuvam.rs",
     name: "Prebranac",
-    description:
-      "Zapečeni pasulj sa crnim lukom i začinima.",
+    description: "Zapečeni pasulj sa crnim lukom i začinima.",
     category: OFFER_CATEGORIES.SALADS_AND_SIDES,
     price: 450,
     availableQuantity: 12,
-    unit: "porcija"
+    unit: "porcija",
+    isActive: true
   },
   {
     sellerEmail: "jelena.seed@kuvam.rs",
     name: "Reforma torta",
-    description:
-      "Čokoladna torta sa orasima i bogatim filom.",
+    description: "Čokoladna torta sa orasima i bogatim filom.",
     category: OFFER_CATEGORIES.DESSERTS,
     price: 2800,
     availableQuantity: 4,
-    unit: "torta"
+    unit: "torta",
+    isActive: true
   },
   {
     sellerEmail: "jelena.seed@kuvam.rs",
     name: "Vanilice",
-    description:
-      "Tradicionalne vanilice sa domaćim džemom.",
+    description: "Tradicionalne vanilice sa domaćim džemom.",
     category: OFFER_CATEGORIES.DESSERTS,
     price: 750,
     availableQuantity: 15,
-    unit: "kilogram"
+    unit: "kilogram",
+    isActive: true
   },
   {
     sellerEmail: "jelena.seed@kuvam.rs",
     name: "Pita sa višnjama",
-    description:
-      "Hrskava pita sa višnjama i šećerom u prahu.",
+    description: "Hrskava pita sa višnjama i šećerom u prahu.",
     category: OFFER_CATEGORIES.BAKERY_AND_PIES,
     price: 950,
     availableQuantity: 7,
-    unit: "tepsija"
+    unit: "tepsija",
+    isActive: true
   },
   {
     sellerEmail: "jelena.seed@kuvam.rs",
     name: "Domaće krofne",
-    description:
-      "Mekane krofne punjene kremom ili džemom.",
+    description: "Mekane krofne punjene kremom ili džemom.",
     category: OFFER_CATEGORIES.DESSERTS,
     price: 600,
     availableQuantity: 20,
-    unit: "pakovanje"
+    unit: "pakovanje",
+    isActive: true
   },
   {
     sellerEmail: "jelena.seed@kuvam.rs",
     name: "Slani štapići",
-    description:
-      "Domaći hrskavi štapići sa susamom.",
+    description: "Domaći hrskavi štapići sa susamom.",
     category: OFFER_CATEGORIES.BREAKFAST_AND_SNACKS,
     price: 430,
     availableQuantity: 16,
-    unit: "pakovanje"
+    unit: "pakovanje",
+    isActive: true
   },
   {
     sellerEmail: "marko.seed@kuvam.rs",
     name: "Domaći ajvar",
-    description:
-      "Blagi domaći ajvar od pečene crvene paprike.",
+    description: "Blagi domaći ajvar od pečene crvene paprike.",
     category: OFFER_CATEGORIES.PRESERVED_FOOD,
     price: 780,
     availableQuantity: 25,
-    unit: "tegla"
+    unit: "tegla",
+    isActive: true
   },
   {
     sellerEmail: "marko.seed@kuvam.rs",
     name: "Ljutenica",
-    description:
-      "Pikantna domaća ljutenica sa pečenom paprikom.",
+    description: "Pikantna domaća ljutenica sa pečenom paprikom.",
     category: OFFER_CATEGORIES.PRESERVED_FOOD,
     price: 720,
     availableQuantity: 18,
-    unit: "tegla"
+    unit: "tegla",
+    isActive: true
   },
   {
     sellerEmail: "marko.seed@kuvam.rs",
     name: "Kiseli krastavci",
-    description:
-      "Domaći hrskavi kiseli krastavci.",
+    description: "Domaći hrskavi kiseli krastavci.",
     category: OFFER_CATEGORIES.PRESERVED_FOOD,
     price: 520,
     availableQuantity: 22,
-    unit: "tegla"
+    unit: "tegla",
+    isActive: true
   },
   {
     sellerEmail: "marko.seed@kuvam.rs",
     name: "Sok od zove",
-    description:
-      "Domaći sirup od cveta zove.",
+    description: "Domaći sirup od cveta zove.",
     category: OFFER_CATEGORIES.DRINKS,
     price: 650,
     availableQuantity: 20,
-    unit: "litar"
+    unit: "litar",
+    isActive: true
   },
   {
     sellerEmail: "marko.seed@kuvam.rs",
     name: "Sok od maline",
-    description:
-      "Gusti domaći sok od maline bez veštačkih dodataka.",
+    description: "Gusti domaći sok od maline bez veštačkih dodataka.",
     category: OFFER_CATEGORIES.DRINKS,
     price: 800,
     availableQuantity: 16,
-    unit: "litar"
+    unit: "litar",
+    isActive: true
   },
   {
     sellerEmail: "marko.seed@kuvam.rs",
     name: "Domaći med",
-    description:
-      "Prirodni livadski med lokalnog porekla.",
+    description: "Prirodni livadski med lokalnog porekla.",
     category: OFFER_CATEGORIES.OTHER,
     price: 1100,
     availableQuantity: 14,
-    unit: "tegla"
+    unit: "tegla",
+    isActive: true
+  },
+  {
+    sellerEmail: "vesna.seed@kuvam.rs",
+    name: "Juneći gulaš",
+    description: "Sporo kuvani juneći gulaš sa domaćim začinima.",
+    category: OFFER_CATEGORIES.COOKED_MEALS,
+    price: 790,
+    availableQuantity: 11,
+    unit: "porcija",
+    isActive: true
+  },
+  {
+    sellerEmail: "vesna.seed@kuvam.rs",
+    name: "Domaća supa",
+    description: "Bistra pileća supa sa domaćim rezancima.",
+    category: OFFER_CATEGORIES.SOUPS_AND_STEWS,
+    price: 320,
+    availableQuantity: 16,
+    unit: "porcija",
+    isActive: true
+  },
+  {
+    sellerEmail: "vesna.seed@kuvam.rs",
+    name: "Pita sa krompirom",
+    description: "Domaća pita sa krompirom i tankim korama.",
+    category: OFFER_CATEGORIES.BAKERY_AND_PIES,
+    price: 820,
+    availableQuantity: 6,
+    unit: "tepsija",
+    isActive: true
+  },
+  {
+    sellerEmail: "vesna.seed@kuvam.rs",
+    name: "Domaći kompot",
+    description: "Kompot od sezonskog voća.",
+    category: OFFER_CATEGORIES.DRINKS,
+    price: 480,
+    availableQuantity: 10,
+    unit: "tegla",
+    isActive: false
+  },
+  {
+    sellerEmail: "marija.pending@kuvam.rs",
+    name: "Domaća pita sa sirom",
+    description: "Pita sa domaćim sirom i ručno razvijenim korama.",
+    category: OFFER_CATEGORIES.BAKERY_AND_PIES,
+    price: 900,
+    availableQuantity: 7,
+    unit: "tepsija",
+    isActive: true
   }
 ]
 
@@ -358,8 +545,7 @@ const reportData = [
     offerName: "Domaća sarma",
     quantity: 2,
     reason: REPORT_REASONS.FOOD_QUALITY_OR_SAFETY,
-    description:
-      "Hrana je stigla u lošem stanju i nije delovala bezbedno za konzumaciju.",
+    description: "Hrana je stigla u lošem stanju i nije delovala bezbedno za konzumaciju.",
     status: REPORT_STATUS.PENDING,
     adminNote: null,
     createdAt: new Date("2026-07-29T18:30:00.000Z")
@@ -372,8 +558,7 @@ const reportData = [
     offerName: "Mešano meso sa roštilja",
     quantity: 1,
     reason: REPORT_REASONS.MISLEADING_INFORMATION,
-    description:
-      "Dobijena porcija se značajno razlikovala od opisa i prikazane ponude.",
+    description: "Dobijena porcija se značajno razlikovala od opisa i prikazane ponude.",
     status: REPORT_STATUS.PENDING,
     adminNote: null,
     createdAt: new Date("2026-07-30T08:15:00.000Z")
@@ -386,8 +571,7 @@ const reportData = [
     offerName: "Punjene paprike",
     quantity: 3,
     reason: REPORT_REASONS.NO_SHOW,
-    description:
-      "Kupac se nije pojavio u dogovoreno vreme i nije odgovarao na poruke.",
+    description: "Kupac se nije pojavio u dogovoreno vreme i nije odgovarao na poruke.",
     status: REPORT_STATUS.PENDING,
     adminNote: null,
     createdAt: new Date("2026-07-28T15:45:00.000Z")
@@ -400,11 +584,9 @@ const reportData = [
     offerName: "Reforma torta",
     quantity: 1,
     reason: REPORT_REASONS.INAPPROPRIATE_BEHAVIOR,
-    description:
-      "Prodavac je tokom komunikacije koristio uvredljiv i neprimeren način obraćanja.",
+    description: "Prodavac je tokom komunikacije koristio uvredljiv i neprimeren način obraćanja.",
     status: REPORT_STATUS.APPROVED,
-    adminNote:
-      "Prijava je potvrđena na osnovu dostavljenih informacija.",
+    adminNote: "Prijava je potvrđena na osnovu dostavljenih informacija.",
     createdAt: new Date("2026-07-26T12:20:00.000Z")
   },
   {
@@ -415,11 +597,9 @@ const reportData = [
     offerName: "Pasulj sa kobasicom",
     quantity: 2,
     reason: REPORT_REASONS.INAPPROPRIATE_BEHAVIOR,
-    description:
-      "Kupac je prilikom preuzimanja vređao prodavca i druge prisutne osobe.",
+    description: "Kupac je prilikom preuzimanja vređao prodavca i druge prisutne osobe.",
     status: REPORT_STATUS.APPROVED,
-    adminNote:
-      "Opis događaja je potvrđen i prijava je odobrena.",
+    adminNote: "Opis događaja je potvrđen i prijava je odobrena.",
     createdAt: new Date("2026-07-25T10:00:00.000Z")
   },
   {
@@ -430,202 +610,159 @@ const reportData = [
     offerName: "Domaći ajvar",
     quantity: 2,
     reason: REPORT_REASONS.PAYMENT_ISSUE,
-    description:
-      "Kupac je prijavio problem sa iznosom, ali podaci porudžbine potvrđuju ispravnu cenu.",
+    description: "Kupac je prijavio problem sa iznosom, ali podaci porudžbine potvrđuju ispravnu cenu.",
     status: REPORT_STATUS.REJECTED,
-    adminNote:
-      "Nisu pronađene nepravilnosti u ceni ili obračunu porudžbine.",
+    adminNote: "Nisu pronađene nepravilnosti u ceni ili obračunu porudžbine.",
     createdAt: new Date("2026-07-24T14:10:00.000Z")
   }
 ]
+
+const getRequiredMapValue = (map, key, entityName) => {
+  const value = map.get(key)
+
+  if (!value) {
+    throw new Error(`${entityName} not found for key: ${key}.`)
+  }
+
+  return value
+}
 
 const seed = async () => {
   try {
     await connectToDatabase()
 
-    const admin = await User.findOneAndUpdate(
-      {
-        email: adminData.email
-      },
-      {
-        $set: {
-          firstName: adminData.firstName,
-          lastName: adminData.lastName,
-          passwordHash: adminPasswordHash,
-          role: USER_ROLES.ADMIN,
-          status: USER_STATUS.ACTIVE,
-          reportsCount: 0,
-          offences: 0,
-          suspensionReason: null,
-          suspendedAt: null,
-          banReason: null
-        }
-      },
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true
-      }
+    await Report.deleteMany({})
+    await Order.deleteMany({})
+    await Offer.deleteMany({})
+    await Seller.deleteMany({})
+    await User.deleteMany({})
+    await City.deleteMany({})
+
+    const createdCities = await City.insertMany(
+      cityData.map(city => ({
+        name: city.name,
+        slug: city.slug,
+        isActive: true
+      }))
     )
+
+    const citiesBySlug = new Map(createdCities.map(city => [city.slug, city]))
+
+    const admin = await User.create({
+      firstName: adminData.firstName,
+      lastName: adminData.lastName,
+      email: adminData.email,
+      passwordHash: adminPasswordHash,
+      role: USER_ROLES.ADMIN,
+      status: USER_STATUS.ACTIVE,
+      city: null,
+      address: {
+        street: null,
+        streetNumber: null,
+        additionalInfo: null
+      },
+      reportsCount: 0,
+      offences: 0,
+      suspensionReason: null,
+      suspendedAt: null,
+      banReason: null
+    })
 
     const usersByEmail = new Map()
 
     usersByEmail.set(admin.email, admin)
 
-    for(const data of userData) {
-      const user = await User.findOneAndUpdate(
-        {
-          email: data.email
-        },
-        {
-          $set: {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            passwordHash,
-            role: USER_ROLES.BUYER,
-            status: data.status,
-            reportsCount: data.reportsCount,
-            offences: data.offences,
-            suspensionReason: data.suspensionReason,
-            suspendedAt: data.suspendedAt,
-            banReason: data.banReason
-          }
-        },
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true
-        }
-      )
+    for (const data of userData) {
+      const city = data.citySlug ? getRequiredMapValue(citiesBySlug, data.citySlug, "City") : null
+
+      const user = await User.create({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        passwordHash,
+        role: USER_ROLES.BUYER,
+        status: data.status,
+        city: city?._id ?? null,
+        address: data.address,
+        reportsCount: data.reportsCount,
+        offences: data.offences,
+        suspensionReason: data.suspensionReason,
+        suspendedAt: data.suspendedAt,
+        banReason: data.banReason
+      })
 
       usersByEmail.set(data.email, user)
     }
 
     const sellersByEmail = new Map()
 
-    for(const data of sellerData) {
-      const user = await User.findOneAndUpdate(
-        {
-          email: data.email
+    for (const data of sellerData) {
+      const city = getRequiredMapValue(citiesBySlug, data.citySlug, "City")
+
+      const user = await User.create({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        passwordHash,
+        role: USER_ROLES.SELLER,
+        status: USER_STATUS.ACTIVE,
+        city: null,
+        address: {
+          street: null,
+          streetNumber: null,
+          additionalInfo: null
         },
-        {
-          $set: {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            passwordHash,
-            role: USER_ROLES.SELLER,
-            status: USER_STATUS.ACTIVE,
-            reportsCount: 0,
-            offences: 0,
-            suspensionReason: null,
-            suspendedAt: null,
-            banReason: null
-          }
-        },
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true
-        }
-      )
+        reportsCount: 0,
+        offences: 0,
+        suspensionReason: null,
+        suspendedAt: null,
+        banReason: null
+      })
 
       usersByEmail.set(data.email, user)
 
-      const seller = await Seller.findOneAndUpdate(
-        {
-          user: user._id
-        },
-        {
-          $set: {
-            businessName: data.businessName,
-            description: data.description,
-            approvalStatus:
-              SELLER_APPROVAL_STATUS.APPROVED,
-            rejectionReason: null
-          }
-        },
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true
-        }
-      )
+      const seller = await Seller.create({
+        user: user._id,
+        businessName: data.businessName,
+        slug: data.slug,
+        description: data.description,
+        profileImageUrl: null,
+        coverImageUrl: null,
+        city: city._id,
+        pickupAddress: data.pickupAddress,
+        approvalStatus: data.approvalStatus,
+        rejectionReason: null
+      })
 
       sellersByEmail.set(data.email, seller)
     }
 
-    const seededSellers = [
-      ...sellersByEmail.values()
-    ]
+    const offers = offerData.map(data => {
+      const seller = getRequiredMapValue(sellersByEmail, data.sellerEmail, "Seller")
 
-    await Report.deleteMany({})
-    await Order.deleteMany({})
-
-    await Offer.deleteMany({
-      seller: {
-        $in: seededSellers.map(
-          seller => seller._id
-        )
+      return {
+        seller: seller._id,
+        name: data.name,
+        description: data.description,
+        category: data.category,
+        price: data.price,
+        availableQuantity: data.availableQuantity,
+        unit: data.unit,
+        imageUrl: null,
+        isActive: data.isActive
       }
     })
 
-    const offers = offerData.map(data => ({
-      seller: sellersByEmail.get(
-        data.sellerEmail
-      )._id,
-      name: data.name,
-      description: data.description,
-      category: data.category,
-      price: data.price,
-      availableQuantity: data.availableQuantity,
-      unit: data.unit,
-      imageUrl: null,
-      isActive: true
-    }))
+    const createdOffers = await Offer.insertMany(offers)
 
-    const createdOffers = await Offer.insertMany(
-      offers
-    )
+    const offersByName = new Map(createdOffers.map(offer => [offer.name, offer]))
 
-    const offersByName = new Map(
-      createdOffers.map(offer => [
-        offer.name,
-        offer
-      ])
-    )
-
-    for(const data of reportData) {
-      const reporter = usersByEmail.get(
-        data.reporterEmail
-      )
-
-      const reportedUser = usersByEmail.get(
-        data.reportedUserEmail
-      )
-
-      const buyer = usersByEmail.get(
-        data.buyerEmail
-      )
-
-      const seller = sellersByEmail.get(
-        data.sellerEmail
-      )
-
-      const offer = offersByName.get(
-        data.offerName
-      )
-
-      if(
-        !reporter ||
-        !reportedUser ||
-        !buyer ||
-        !seller ||
-        !offer
-      ) {
-        throw new Error(
-          `Missing seed data for report involving ${data.reporterEmail}.`
-        )
-      }
+    for (const data of reportData) {
+      const reporter = getRequiredMapValue(usersByEmail, data.reporterEmail, "Reporter")
+      const reportedUser = getRequiredMapValue(usersByEmail, data.reportedUserEmail, "Reported user")
+      const buyer = getRequiredMapValue(usersByEmail, data.buyerEmail, "Buyer")
+      const seller = getRequiredMapValue(sellersByEmail, data.sellerEmail, "Seller")
+      const offer = getRequiredMapValue(offersByName, data.offerName, "Offer")
 
       const order = await Order.create({
         buyer: buyer._id,
@@ -633,8 +770,7 @@ const seed = async () => {
         offer: offer._id,
         quantity: data.quantity,
         unitPrice: offer.price,
-        totalPrice:
-          offer.price * data.quantity,
+        totalPrice: offer.price * data.quantity,
         status: ORDER_STATUS.COMPLETED,
         buyerNote: "",
         rejectionReason: null,
@@ -642,8 +778,7 @@ const seed = async () => {
         updatedAt: data.createdAt
       })
 
-      const isReviewed =
-        data.status !== REPORT_STATUS.PENDING
+      const isReviewed = data.status !== REPORT_STATUS.PENDING
 
       await Report.create({
         reporter: reporter._id,
@@ -652,22 +787,23 @@ const seed = async () => {
         reason: data.reason,
         description: data.description,
         status: data.status,
-        reviewedBy:
-          isReviewed
-            ? admin._id
-            : null,
-        adminNote:
-          isReviewed
-            ? data.adminNote
-            : null,
-        reviewedAt:
-          isReviewed
-            ? data.createdAt
-            : null,
+        reviewedBy: isReviewed ? admin._id : null,
+        adminNote: isReviewed ? data.adminNote : null,
+        reviewedAt: isReviewed ? data.createdAt : null,
         createdAt: data.createdAt,
         updatedAt: data.createdAt
       })
     }
+
+    await User.updateMany(
+      {},
+      {
+        $set: {
+          reportsCount: 0,
+          offences: 0
+        }
+      }
+    )
 
     const reportCounts = await Report.aggregate([
       {
@@ -694,7 +830,7 @@ const seed = async () => {
       }
     ])
 
-    for(const result of reportCounts) {
+    for (const result of reportCounts) {
       await User.findByIdAndUpdate(
         result._id,
         {
@@ -706,40 +842,42 @@ const seed = async () => {
       )
     }
 
-    const reportsCount =
-      await Report.countDocuments()
-
-    const pendingReportsCount =
-      await Report.countDocuments({
-        status: REPORT_STATUS.PENDING
-      })
+    const citiesCount = await City.countDocuments()
+    const usersCount = await User.countDocuments()
+    const sellersCount = await Seller.countDocuments()
+    const approvedSellersCount = await Seller.countDocuments({
+      approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
+    })
+    const offersCount = await Offer.countDocuments()
+    const publicOffersCount = await Offer.countDocuments({
+      isActive: true,
+      availableQuantity: {
+        $gt: 0
+      }
+    })
+    const ordersCount = await Order.countDocuments()
+    const reportsCount = await Report.countDocuments()
+    const pendingReportsCount = await Report.countDocuments({
+      status: REPORT_STATUS.PENDING
+    })
 
     const suspendedUsers = await User.find({
       status: USER_STATUS.SUSPENDED
     })
-      .select(
-        "firstName lastName email suspendedAt"
-      )
+      .select("firstName lastName email suspendedAt")
       .lean()
 
-    console.log(
-      `Seed completed: ${sellerData.length} sellers and ` +
-      `${createdOffers.length} offers created.`
-    )
-
-    console.log(
-      `Reports created: ${reportsCount}, ` +
-      `pending: ${pendingReportsCount}.`
-    )
-
-    console.log(
-      `Suspended users created: ${suspendedUsers.length}`
-    )
-
+    console.log(`Cities seeded: ${citiesCount}.`)
+    console.log(`Users seeded: ${usersCount}.`)
+    console.log(`Sellers seeded: ${sellersCount}, approved: ${approvedSellersCount}.`)
+    console.log(`Offers seeded: ${offersCount}, active and available: ${publicOffersCount}.`)
+    console.log(`Orders created: ${ordersCount}.`)
+    console.log(`Reports created: ${reportsCount}, pending: ${pendingReportsCount}.`)
+    console.log(`Suspended users created: ${suspendedUsers.length}.`)
     console.log(suspendedUsers)
     console.log("Seed user password: Test1234")
     console.log(`Seed admin email: ${env.adminEmail}`)
-  } catch(error) {
+  } catch (error) {
     console.error("Seed failed.")
     console.error(error)
     process.exitCode = 1

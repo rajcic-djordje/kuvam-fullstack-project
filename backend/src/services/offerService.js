@@ -97,43 +97,69 @@ const updateSellerOffer = async (userId, offerId, updateData) => {
     return offer
 }
 
-const getPublicOffers = async (query) => {
+const getPublicOffers = async (query, cityId) => {
     const search = query.search
     const category = query.category
 
-    const approvedSellers = await Seller.find({
-        approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
-    })
+    const sellerFilter = {
+        approvalStatus: SELLER_APPROVAL_STATUS.APPROVED,
+        city: {$ne: null},
+        "pickupAddress.street": {$nin: [null, ""]},
+        "pickupAddress.streetNumber": {$nin: [null, ""]}
+    }
+
+    if (cityId)
+        sellerFilter.city = cityId
+
+    const approvedSellers = await Seller.find(sellerFilter)
 
     const approvedSellerIds = approvedSellers.map((seller) => seller._id)
 
     const filter = {
         isActive: true,
-        availableQuantity: { $gt: 0 },
-        seller: { $in: approvedSellerIds }
+        availableQuantity: {$gt: 0},
+        seller: {$in: approvedSellerIds}
     }
 
     if (search) {
         filter.$or = [
-            { name: { $regex: search, $options: "i" } },
-            { description: { $regex: search, $options: "i" } }
+            {name: {$regex: search, $options: "i"}},
+            {description: {$regex: search, $options: "i"}}
         ]
     }
 
-    if (category) filter.category = category
+    if (category)
+        filter.category = category
 
-    const offers = await Offer.find(filter).sort({ createdAt: -1 }).populate({
-        path: "seller",
-        select: "businessName description approvalStatus"
-    })
+    const offers = await Offer.find(filter)
+        .sort({createdAt: -1})
+        .limit(10)
+        .populate({
+    path: "seller",
+    select: "businessName slug description profileImageUrl coverImageUrl city approvalStatus",
+    populate: {
+        path: "city",
+        select: "name slug"
+    }
+})
 
     return offers
 }
 
 const getPublicOfferById = async (offerId) => {
 
-    const offer = await Offer.findOne({_id: offerId, isActive: true, availableQuantity: {$gt: 0}}).populate({path: "seller", select: "businessName description approvalStatus"})
-
+    const offer = await Offer.findOne({
+    _id: offerId,
+    isActive: true,
+    availableQuantity: {$gt: 0}
+}).populate({
+    path: "seller",
+    select: "businessName slug description profileImageUrl coverImageUrl city approvalStatus",
+    populate: {
+        path: "city",
+        select: "name slug"
+    }
+})
     if(!offer)
         throw new AppError("Offer not found.", 404, "OFFER_NOT_FOUND")
 

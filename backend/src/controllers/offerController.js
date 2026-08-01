@@ -76,7 +76,10 @@ const updateOfferListing = async (req, res) => {
 }
 
 const getAvailableOffers = async (req, res) => {
-    const offers = await getPublicOffers(req.queryData)
+    const offers = await getPublicOffers(
+        req.queryData,
+        req.auth?.cityId
+    )
 
     return res.status(200).json({
         message: "Available offers retrieved successfully.",

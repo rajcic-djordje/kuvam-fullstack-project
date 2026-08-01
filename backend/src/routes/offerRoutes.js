@@ -8,6 +8,7 @@ import { createOfferSchema, updateOfferSchema } from '../validators/offerValidat
 import { validateObjectId } from "../middleware/validateObjectId.js"
 import { validateQuery } from "../middleware/validateQuery.js"
 import { offerQuerySchema } from "../validators/queryValidator.js"
+import {optionalAuthenticate} from "../middleware/optionalAuthenticate.js"
 
 const router = express.Router()
 
@@ -54,6 +55,7 @@ router.patch(
 
 router.get(
     "/",
+    optionalAuthenticate,
     validateQuery(offerQuerySchema),
     getAvailableOffers
 )

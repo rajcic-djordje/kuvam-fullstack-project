@@ -2,9 +2,6 @@ import z from "zod"
 
 const NAME_PATTERN = /^[\p{L}]+(?:[ '\-][\p{L}]+)*$/u
 
-const BUSINESS_NAME_PATTERN =
-    /^(?=.*\p{L})[\p{L}\p{N} .,'&()\-]+$/u
-
 const updateProfileSchema = z.object({
     firstName: z
         .string()
@@ -26,23 +23,6 @@ const updateProfileSchema = z.object({
             NAME_PATTERN,
             "Last name can contain letters, spaces, apostrophes and hyphens only."
         )
-        .optional(),
-
-    businessName: z
-        .string()
-        .trim()
-        .min(2)
-        .max(100)
-        .regex(
-            BUSINESS_NAME_PATTERN,
-            "Business name must contain at least one letter and cannot contain unsupported characters."
-        )
-        .optional(),
-
-    description: z
-        .string()
-        .trim()
-        .max(500)
         .optional()
 }).refine(
     (data) => Object.keys(data).length > 0,
@@ -50,7 +30,6 @@ const updateProfileSchema = z.object({
         message: "At least one field must be provided."
     }
 )
-
 const changePasswordSchema = z.object({
     currentPassword: z
         .string()
@@ -68,7 +47,33 @@ const changePasswordSchema = z.object({
     }
 )
 
+const updateLocationSchema = z.object({
+    cityId: z
+        .string()
+        .trim()
+        .min(1),
+
+    street: z
+        .string()
+        .trim()
+        .min(2)
+        .max(150),
+
+    streetNumber: z
+        .string()
+        .trim()
+        .min(1)
+        .max(20),
+
+    additionalInfo: z
+        .string()
+        .trim()
+        .max(300)
+        .optional()
+})
+
 export {
     updateProfileSchema,
-    changePasswordSchema
+    changePasswordSchema,
+    updateLocationSchema
 }

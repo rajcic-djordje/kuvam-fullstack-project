@@ -1,6 +1,10 @@
-
 <app-navbar />
 
-
+@if (isLocationModalOpen()) {
+  <app-location-modal
+    (saved)="locationSaved($event)"
+    (dismissed)="locationDismissed()"
+  />
+}
 
 <router-outlet />

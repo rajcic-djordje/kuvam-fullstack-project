@@ -17,12 +17,17 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth';
+import { City } from '../../../location/models/location';
+import { CityService } from '../../../location/services/city';
 import {
   ChangePasswordRequest,
+  UpdateLocationRequest,
   UpdateProfileRequest,
+  UpdateSellerProfileRequest,
   UserProfile
 } from '../../models/profile';
 import { ProfileService } from '../../services/profile';
+import { SellerProfileService } from '../../services/seller-profile';
 
 const NAME_PATTERN = /^[\p{L}]+(?:[ '\-][\p{L}]+)*$/u;
 
@@ -77,6 +82,8 @@ type ToastType = 'success' | 'error';
 export class ProfilePage implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly profileService = inject(ProfileService);
+  private readonly sellerProfileService = inject(SellerProfileService);
+  private readonly cityService = inject(CityService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -86,11 +93,17 @@ export class ProfilePage implements OnInit, OnDestroy {
   readonly isLoading = signal(true);
   readonly loadError = signal('');
 
+  readonly cities = signal<City[]>([]);
+  readonly isLoadingCities = signal(false);
+  readonly citiesError = signal('');
+
   readonly isPersonalEditing = signal(false);
   readonly isSellerEditing = signal(false);
+  readonly isLocationEditing = signal(false);
 
   readonly isSavingPersonal = signal(false);
   readonly isSavingSeller = signal(false);
+  readonly isSavingLocation = signal(false);
   readonly isChangingPassword = signal(false);
   readonly isDeactivating = signal(false);
 
@@ -150,6 +163,63 @@ export class ProfilePage implements OnInit, OnDestroy {
       [
         Validators.maxLength(500)
       ]
+    ],
+    cityId: [
+      '',
+      [
+        Validators.required
+      ]
+    ],
+    street: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(150)
+      ]
+    ],
+    streetNumber: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(20)
+      ]
+    ],
+    additionalInfo: [
+      '',
+      [
+        Validators.maxLength(300)
+      ]
+    ]
+  });
+
+  readonly locationForm = this.formBuilder.nonNullable.group({
+    cityId: [
+      '',
+      [
+        Validators.required
+      ]
+    ],
+    street: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(150)
+      ]
+    ],
+    streetNumber: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(20)
+      ]
+    ],
+    additionalInfo: [
+      '',
+      [
+        Validators.maxLength(300)
+      ]
     ]
   });
 
@@ -183,6 +253,7 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadProfile();
+    this.loadCities();
   }
 
   ngOnDestroy(): void {
@@ -275,16 +346,28 @@ export class ProfilePage implements OnInit, OnDestroy {
 
     const values = this.sellerForm.getRawValue();
 
-    const request: UpdateProfileRequest = {
+    const request: UpdateSellerProfileRequest = {
       businessName: values.businessName.trim(),
-      description: values.description.trim()
+      description: values.description.trim(),
+      cityId: values.cityId,
+      street: values.street.trim(),
+      streetNumber: values.streetNumber.trim(),
+      additionalInfo:
+        values.additionalInfo.trim() || null
     };
 
     this.isSavingSeller.set(true);
 
-    this.profileService.updateProfile(request).subscribe({
+    this.sellerProfileService.updateSellerProfile(request).subscribe({
       next: response => {
-        this.updateProfileState(response.user);
+        const currentProfile = this.profile();
+
+        if (currentProfile) {
+          this.updateProfileState({
+            ...currentProfile,
+            sellerProfile: response.seller
+          });
+        }
 
         this.isSellerEditing.set(false);
         this.isSavingSeller.set(false);
@@ -296,6 +379,63 @@ export class ProfilePage implements OnInit, OnDestroy {
       },
       error: error => {
         this.isSavingSeller.set(false);
+        this.handleProfileError(error);
+      }
+    });
+  }
+
+  startLocationEditing(): void {
+    const user = this.profile();
+
+    if (!user || user.role !== 'buyer') {
+      return;
+    }
+
+    this.populateLocationForm(user);
+    this.isLocationEditing.set(true);
+  }
+
+  cancelLocationEditing(): void {
+    const user = this.profile();
+
+    if (user) {
+      this.populateLocationForm(user);
+    }
+
+    this.isLocationEditing.set(false);
+  }
+
+  saveLocation(): void {
+    if (this.locationForm.invalid) {
+      this.locationForm.markAllAsTouched();
+      return;
+    }
+
+    const values = this.locationForm.getRawValue();
+
+    const request: UpdateLocationRequest = {
+      cityId: values.cityId,
+      street: values.street.trim(),
+      streetNumber: values.streetNumber.trim(),
+      additionalInfo: values.additionalInfo.trim()
+    };
+
+    this.isSavingLocation.set(true);
+
+    this.profileService.updateLocation(request).subscribe({
+      next: response => {
+        this.updateProfileState(response.user);
+
+        this.isLocationEditing.set(false);
+        this.isSavingLocation.set(false);
+
+        this.showToast(
+          'Lokacija je uspešno sačuvana.',
+          'success'
+        );
+      },
+      error: error => {
+        this.isSavingLocation.set(false);
         this.handleProfileError(error);
       }
     });
@@ -385,12 +525,12 @@ export class ProfilePage implements OnInit, OnDestroy {
             this.router.navigate(['/login']);
           }
         });
-  },
-  error: error => {
-    this.isDeactivating.set(false);
-    this.handleDeactivateError(error);
-  }
-});
+      },
+      error: error => {
+        this.isDeactivating.set(false);
+        this.handleDeactivateError(error);
+      }
+    });
   }
 
   toggleCurrentPassword(): void {
@@ -477,11 +617,30 @@ export class ProfilePage implements OnInit, OnDestroy {
     });
   }
 
+  private loadCities(): void {
+    this.isLoadingCities.set(true);
+    this.citiesError.set('');
+
+    this.cityService.getCities().subscribe({
+      next: response => {
+        this.cities.set(response.cities);
+        this.isLoadingCities.set(false);
+      },
+      error: () => {
+        this.citiesError.set(
+          'Gradovi trenutno nisu dostupni.'
+        );
+        this.isLoadingCities.set(false);
+      }
+    });
+  }
+
   private updateProfileState(user: UserProfile): void {
     this.profile.set(user);
 
     this.populatePersonalForm(user);
     this.populateSellerForm(user);
+    this.populateLocationForm(user);
 
     this.authService.updateCurrentUser(user);
   }
@@ -497,13 +656,40 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   private populateSellerForm(user: UserProfile): void {
+    const seller = user.sellerProfile;
+
+    if (!seller) {
+      return;
+    }
+
     this.sellerForm.setValue({
-      businessName: user.sellerProfile?.businessName ?? '',
-      description: user.sellerProfile?.description ?? ''
+      businessName: seller.businessName,
+      description: seller.description,
+      cityId: seller.city?.id ?? '',
+      street: seller.pickupAddress.street ?? '',
+      streetNumber: seller.pickupAddress.streetNumber ?? '',
+      additionalInfo:
+        seller.pickupAddress.additionalInfo ?? ''
     });
 
     this.sellerForm.markAsPristine();
     this.sellerForm.markAsUntouched();
+  }
+
+  private populateLocationForm(user: UserProfile): void {
+    if (user.role !== 'buyer') {
+      return;
+    }
+
+    this.locationForm.setValue({
+      cityId: user.city?.id ?? '',
+      street: user.address?.street ?? '',
+      streetNumber: user.address?.streetNumber ?? '',
+      additionalInfo: user.address?.additionalInfo ?? ''
+    });
+
+    this.locationForm.markAsPristine();
+    this.locationForm.markAsUntouched();
   }
 
   private showToast(
@@ -541,6 +727,15 @@ export class ProfilePage implements OnInit, OnDestroy {
     if (code === 'SELLER_PROFILE_NOT_FOUND') {
       this.showToast(
         'Profil prodavca nije pronađen.',
+        'error'
+      );
+
+      return;
+    }
+
+    if (code === 'CITY_NOT_FOUND') {
+      this.showToast(
+        'Izabrani grad nije dostupan.',
         'error'
       );
 

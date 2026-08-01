@@ -1,4 +1,9 @@
-import { UserRole } from '../../auth/models/auth';
+import { AuthUser } from '../../auth/models/auth';
+import {
+  Address,
+  City,
+  UpdateLocationRequest
+} from '../../location/models/location';
 
 export type UserStatus =
   | 'active'
@@ -15,17 +20,24 @@ export type SellerApprovalStatus =
 export interface SellerProfile {
   id: string;
   businessName: string;
+  slug: string | null;
   description: string;
+  profileImageUrl: string | null;
+  coverImageUrl: string | null;
+  city: City | null;
+  pickupAddress: Address;
   approvalStatus: SellerApprovalStatus;
+  rejectionReason?: string | null;
+  isProfileComplete: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface UserProfile {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: UserRole;
+export interface UserProfile extends AuthUser {
   status: UserStatus;
+  city: City | null;
+  address: Address;
+  hasLocation: boolean;
   reportsCount: number;
   offences: number;
   createdAt: string;
@@ -37,11 +49,28 @@ export interface ProfileResponse {
   user: UserProfile;
 }
 
+export interface SellerProfileResponse {
+  message: string;
+  seller: SellerProfile;
+}
+
 export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
+}
+
+export interface UpdateSellerProfileRequest {
   businessName?: string;
   description?: string;
+  cityId?: string;
+  street?: string;
+  streetNumber?: string;
+  additionalInfo?: string | null;
+}
+
+export interface UpdateLocationResponse {
+  message: string;
+  user: UserProfile;
 }
 
 export interface ChangePasswordRequest {
@@ -60,3 +89,5 @@ export interface DeactivateAccountResponse {
     status: UserStatus;
   };
 }
+
+export type { UpdateLocationRequest };

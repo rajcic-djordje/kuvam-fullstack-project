@@ -1,3 +1,5 @@
+import { Address, City } from '../../location/models/location';
+
 export type UserRole = 'buyer' | 'seller' | 'admin';
 
 export interface AuthUser {
@@ -8,6 +10,9 @@ export interface AuthUser {
   role: UserRole;
   status: string;
   createdAt?: string;
+  city?: City | null;
+  address?: Address;
+  hasLocation?: boolean;
 }
 
 export interface RegisterRequest {
@@ -31,7 +36,6 @@ export interface ApiErrorResponse {
     message: string;
   };
 }
-
 
 export interface LoginRequest {
   email: string;

@@ -14,6 +14,8 @@ import reportRoutes from "./routes/reportRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
 import adminAuthRoutes from "./routes/adminAuthRoutes.js"
 import adminDashboardRoutes from "./routes/adminDashboardRoutes.js"
+import cityRoutes from "./routes/cityRoutes.js"
+import sellerRoutes from "./routes/sellerRoutes.js"
 
 const app = express()
 
@@ -40,8 +42,10 @@ app.use("/api/v1/orders", orderRoutes)
 app.use("/api/v1/reviews", reviewRoutes)
 app.use("/api/v1/reports", reportRoutes)
 app.use("/api/v1/users", userRoutes)
+app.use("/api/v1/sellers", sellerRoutes)
 app.use("/api/v1/admin/auth", adminAuthRoutes)
 app.use("/api/v1/admin", adminDashboardRoutes)
+app.use("/api/v1/cities", cityRoutes)
 
 app.use((req, res) => {
     return res.status(404).json({

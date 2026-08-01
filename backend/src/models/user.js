@@ -15,7 +15,13 @@ const userSchema = new mongoose.Schema({
     offencesSinceLastBan: {type: Number,default: 0,min: 0},
     suspensionReason: {type:String, trim: true, maxlength: 500, default:null},
     suspendedAt: {type: Date, default: null},
-    banReason: {type: String, trim: true, maxlength: 500, default: null}
+    banReason: {type: String, trim: true, maxlength: 500, default: null},
+    city: {type: mongoose.Schema.Types.ObjectId, ref: "City", default: null},
+    address: {
+    street: {type: String, trim: true, maxlength: 150, default: null},
+    streetNumber: {type: String, trim: true, maxlength: 20, default: null},
+    additionalInfo: {type: String, trim: true, maxlength: 300, default: null}
+},
 }, {timestamps: true})
 
 
