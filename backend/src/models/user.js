@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     status: {type: String, required: true, enum: Object.values(USER_STATUS), default: USER_STATUS.ACTIVE},
     reportsCount: {type: Number, default: 0, min: 0},
     offences: {type: Number, default: 0, min:0},
+    offencesSinceLastBan: {type: Number,default: 0,min: 0},
     suspensionReason: {type:String, trim: true, maxlength: 500, default:null},
     suspendedAt: {type: Date, default: null},
     banReason: {type: String, trim: true, maxlength: 500, default: null}

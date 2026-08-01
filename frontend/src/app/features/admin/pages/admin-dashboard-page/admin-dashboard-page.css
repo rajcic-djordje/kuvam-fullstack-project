@@ -349,21 +349,73 @@
   border-radius: 13px;
 }
 
+.avatar-wrapper {
+  position: relative;
+  flex: 0 0 auto;
+}
+
 .activity-avatar {
   width: 46px;
   height: 46px;
   display: grid;
   place-items: center;
-  color: #ffffff;
-  background: #579565;
+  color: #315d3a;
+  background:
+    radial-gradient(
+      circle at 35% 25%,
+      #ffffff,
+      #e7f0df
+    );
+  border: 1px solid #dce7d7;
   border-radius: 50%;
-  font-size: 11px;
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 4px #ebe8df;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
   font-weight: 700;
 }
 
+.report-avatar {
+  color: #5f3732;
+  background:
+    radial-gradient(
+      circle at 35% 25%,
+      #ffffff,
+      #f2e9e4
+    );
+  border-color: #e9d8d1;
+}
+
 .seller-avatar {
-  color: #9a5a17;
-  background: #ffead2;
+  color: #77451c;
+  background:
+    radial-gradient(
+      circle at 35% 25%,
+      #fffdfa,
+      #f6e9d8
+    );
+  border-color: #eedbc2;
+}
+
+.avatar-status {
+  width: 11px;
+  height: 11px;
+  position: absolute;
+  right: -1px;
+  bottom: 1px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+}
+
+.report-status {
+  background: #d89524;
+  box-shadow: 0 1px 4px rgb(71 48 24 / 18%);
+}
+
+.seller-status {
+  background: #e28723;
+  box-shadow: 0 1px 4px rgb(79 48 20 / 18%);
 }
 
 .activity-content {
@@ -528,7 +580,6 @@
   font-size: 10px;
   line-height: 1.45;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .recent-activity-content time {

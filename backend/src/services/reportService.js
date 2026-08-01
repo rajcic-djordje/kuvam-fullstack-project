@@ -95,10 +95,15 @@ const approveReport = async (adminId, reportId, adminNote) => {
         throw new AppError("Reported user not found.",404,"REPORTED_USER_NOT_FOUND")
 
     reportedUser.offences += 1
+    reportedUser.offencesSinceLastBan += 1
 
-    if (reportedUser.offences >= AUTO_BAN_OFFENCE_THRESHOLD) {
+    if (
+        reportedUser.offencesSinceLastBan >=
+        AUTO_BAN_OFFENCE_THRESHOLD
+    ) {
         reportedUser.status = USER_STATUS.BANNED
-        reportedUser.banReason =`Account automatically banned after ${reportedUser.offences} confirmed offences.`
+        reportedUser.banReason =
+            `Account automatically banned after ${AUTO_BAN_OFFENCE_THRESHOLD} new confirmed offences.`
         reportedUser.suspensionReason = null
         reportedUser.suspendedAt = null
     }
@@ -120,6 +125,7 @@ const approveReport = async (adminId, reportId, adminNote) => {
         reportedUser: {
             id: reportedUser._id,
             offences: reportedUser.offences,
+            offencesSinceLastBan: reportedUser.offencesSinceLastBan,
             status: reportedUser.status,
             banReason: reportedUser.banReason
         }

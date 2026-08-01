@@ -1,11 +1,20 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal
+} from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink
+} from '@angular/router';
 import {
   ApiErrorResponse,
   LoginRequest
@@ -14,46 +23,62 @@ import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-login-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink
+  ],
   templateUrl: './login-page.html',
   styleUrl: './login-page.css'
 })
 export class LoginPage implements OnInit {
-  private readonly formBuilder = inject(FormBuilder);
-  private readonly authService = inject(AuthService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly formBuilder =
+    inject(FormBuilder);
 
-  private toastTimer?: ReturnType<typeof setTimeout>;
+  private readonly authService =
+    inject(AuthService);
+
+  private readonly route =
+    inject(ActivatedRoute);
+
+  private readonly router =
+    inject(Router);
+
+  private toastTimer?:
+    ReturnType<typeof setTimeout>;
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal('');
   readonly successMessage = signal('');
   readonly showPassword = signal(false);
 
-  readonly loginForm = this.formBuilder.nonNullable.group({
-    email: [
-      '',
-      [
-        Validators.required,
-        Validators.email
+  readonly loginForm =
+    this.formBuilder.nonNullable.group({
+      email: [
+        '',
+        [
+          Validators.required,
+          Validators.email
+        ]
+      ],
+      password: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(8)
+        ]
       ]
-    ],
-    password: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(8)
-      ]
-    ]
-  });
+    });
 
   ngOnInit(): void {
     const registered =
-      this.route.snapshot.queryParamMap.get('registered');
+      this.route.snapshot.queryParamMap.get(
+        'registered'
+      );
 
     const email =
-      this.route.snapshot.queryParamMap.get('email');
+      this.route.snapshot.queryParamMap.get(
+        'email'
+      );
 
     if (registered === 'true') {
       this.successMessage.set(
@@ -62,12 +87,16 @@ export class LoginPage implements OnInit {
     }
 
     if (email) {
-      this.loginForm.controls.email.setValue(email);
+      this.loginForm.controls.email.setValue(
+        email
+      );
     }
   }
 
   togglePassword(): void {
-    this.showPassword.update(value => !value);
+    this.showPassword.update(
+      value => !value
+    );
   }
 
   login(): void {
@@ -83,10 +112,13 @@ export class LoginPage implements OnInit {
       return;
     }
 
-    const values = this.loginForm.getRawValue();
+    const values =
+      this.loginForm.getRawValue();
 
     const request: LoginRequest = {
-      email: values.email.trim().toLowerCase(),
+      email: values.email
+        .trim()
+        .toLowerCase(),
       password: values.password
     };
 
@@ -95,7 +127,9 @@ export class LoginPage implements OnInit {
     this.authService.login(request).subscribe({
       next: () => {
         const returnUrl =
-          this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
+          this.route.snapshot.queryParamMap.get(
+            'returnUrl'
+          ) ?? '/';
 
         this.router.navigateByUrl(returnUrl);
       },
@@ -128,11 +162,22 @@ export class LoginPage implements OnInit {
     }, 4500);
   }
 
-  private handleError(error: HttpErrorResponse): void {
+  private handleError(
+    error: HttpErrorResponse
+  ): void {
     const response =
       error.error as ApiErrorResponse | undefined;
 
-    const code = response?.error?.code;
+    const code =
+      response?.error?.code;
+
+    if (code === 'ADMIN_LOGIN_REQUIRED') {
+      this.showError(
+        'Nalog nije moguće prijaviti putem korisničke prijave.'
+      );
+
+      return;
+    }
 
     if (
       code === 'INVALID_CREDENTIALS' ||
@@ -142,16 +187,22 @@ export class LoginPage implements OnInit {
       this.showError(
         'Email adresa ili lozinka nisu ispravni.'
       );
+
       return;
     }
 
     if (
+      code === 'ACCOUNT_SUSPENDED' ||
+      code === 'ACCOUNT_BANNED' ||
+      code === 'ACCOUNT_DEACTIVATED' ||
       code === 'ACCOUNT_DISABLED' ||
       code === 'USER_INACTIVE'
     ) {
       this.showError(
+        response?.error?.message ??
         'Ovaj nalog trenutno nije aktivan.'
       );
+
       return;
     }
 
@@ -159,6 +210,7 @@ export class LoginPage implements OnInit {
       this.showError(
         'Proveri unete podatke i pokušaj ponovo.'
       );
+
       return;
     }
 

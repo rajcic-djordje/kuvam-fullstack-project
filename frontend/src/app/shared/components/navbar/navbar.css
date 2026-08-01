@@ -1,3 +1,13 @@
+:host {
+  display: block;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 .navbar {
   position: relative;
   z-index: 100;
@@ -43,6 +53,7 @@
   color: var(--color-text);
   font-size: 15px;
   font-weight: 500;
+  text-decoration: none;
   transition: color 160ms ease;
 }
 
@@ -77,6 +88,7 @@
   color: var(--color-text);
   font-size: 15px;
   font-weight: 500;
+  text-decoration: none;
   transition: color 160ms ease;
 }
 
@@ -90,12 +102,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 9px;
   color: #ffffff;
   background: var(--color-primary);
   border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
+  text-decoration: none;
   white-space: nowrap;
   box-shadow: 0 5px 14px rgb(47 125 74 / 18%);
   transition:
@@ -108,13 +121,8 @@
   transform: translateY(-1px);
 }
 
-.user-icon {
-  width: 18px;
-  height: 18px;
-  display: block;
-  flex-shrink: 0;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
+.register-button svg {
+  flex: 0 0 auto;
 }
 
 .profile-menu {
@@ -123,7 +131,7 @@
 
 .profile-trigger {
   min-height: 42px;
-  padding: 4px 13px 4px 5px;
+  padding: 4px 12px 4px 5px;
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -157,13 +165,10 @@
   height: 32px;
   display: grid;
   place-items: center;
+  flex: 0 0 auto;
+  color: #ffffff;
   background: rgb(255 255 255 / 16%);
   border-radius: 8px;
-}
-
-.profile-avatar .user-icon {
-  width: 17px;
-  height: 17px;
 }
 
 .profile-name {
@@ -174,26 +179,21 @@
 }
 
 .profile-chevron {
-  width: 7px;
-  height: 7px;
-  margin-left: 2px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: translateY(-2px) rotate(45deg);
+  flex: 0 0 auto;
   transition: transform 160ms ease;
 }
 
-.profile-trigger.open .profile-chevron {
-  transform: translateY(2px) rotate(225deg);
+.profile-chevron.rotated {
+  transform: rotate(180deg);
 }
 
 .profile-dropdown {
+  width: 260px;
+  padding: 8px;
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
   z-index: 200;
-  width: 260px;
-  padding: 8px;
   background: #ffffff;
   border: 1px solid #e2e6df;
   border-radius: 15px;
@@ -207,22 +207,23 @@
   gap: 4px;
 }
 
-.profile-summary strong {
+.profile-summary strong,
+.profile-summary span {
   overflow: hidden;
-  color: var(--color-text);
-  font-size: 14px;
-  line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.profile-summary strong {
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
 .profile-summary span {
-  overflow: hidden;
   color: var(--color-text-muted);
   font-size: 11px;
   line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .dropdown-divider {
@@ -246,6 +247,7 @@
   font-size: 13px;
   font-weight: 600;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
   transition:
     color 150ms ease,
@@ -257,19 +259,8 @@
   background: #f1f7f1;
 }
 
-.dropdown-item img {
-  width: 17px;
-  height: 17px;
-  object-fit: contain;
-  filter:
-    brightness(0)
-    saturate(100%)
-    invert(41%)
-    sepia(20%)
-    saturate(1356%)
-    hue-rotate(87deg)
-    brightness(89%)
-    contrast(89%);
+.dropdown-icon {
+  flex: 0 0 auto;
 }
 
 .logout-item {
@@ -279,38 +270,6 @@
 .logout-item:hover {
   color: #93452f;
   background: #fff3ed;
-}
-
-.logout-icon {
-  position: relative;
-  width: 17px;
-  height: 17px;
-  border: 1.7px solid currentColor;
-  border-right: 0;
-  border-radius: 4px 0 0 4px;
-}
-
-.logout-icon::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: -6px;
-  width: 9px;
-  height: 1.7px;
-  background: currentColor;
-  transform: translateY(-50%);
-}
-
-.logout-icon::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: -6px;
-  width: 6px;
-  height: 6px;
-  border-top: 1.7px solid currentColor;
-  border-right: 1.7px solid currentColor;
-  transform: translateY(-50%) rotate(45deg);
 }
 
 @keyframes dropdown-enter {
@@ -382,11 +341,6 @@
     width: 29px;
     height: 29px;
   }
-
-  .user-icon {
-    width: 17px;
-    height: 17px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -413,7 +367,7 @@
 
   .profile-trigger {
     min-height: 36px;
-    padding: 3px 10px 3px 4px;
+    padding: 3px 9px 3px 4px;
     gap: 7px;
   }
 
@@ -428,16 +382,11 @@
   }
 
   .profile-dropdown {
+    width: auto;
     position: fixed;
     top: 72px;
     right: 14px;
     left: 14px;
-    width: auto;
-  }
-
-  .user-icon {
-    width: 16px;
-    height: 16px;
   }
 }
 

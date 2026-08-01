@@ -7,24 +7,35 @@ import {
   signal
 } from '@angular/core';
 import {
+  LucideAlertTriangle,
   LucideCalendarDays,
   LucideDynamicIcon,
   LucideEllipsis,
+  LucideEye,
+  LucideFlag,
+  LucideMail,
   LucideScanSearch,
   LucideShieldAlert,
   LucideShieldCheck,
   LucideStore,
+  LucideUserCheck,
+  LucideUserRound,
+  LucideX,
   type LucideIcon
 } from '@lucide/angular';
 import {
+  AdminUser,
+  AdminUsersRoleFilter,
   AdminUsersSort
 } from '../../models/admin-user';
 import {
-  AdminSuspendedUser
-} from '../../models/admin-suspended-user';
-import {
   AdminUserService
 } from '../../services/admin-user';
+
+type SuspensionModalMode =
+  | 'profile'
+  | 'unsuspend'
+  | null;
 
 @Component({
   selector: 'app-admin-suspensions-page',
@@ -42,12 +53,28 @@ export class AdminSuspensionsPage
 
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
-  readonly users = signal<AdminSuspendedUser[]>([]);
+  readonly users = signal<AdminUser[]>([]);
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
   readonly searchTerm = signal('');
+
+  readonly selectedRole =
+    signal<AdminUsersRoleFilter>('all');
+
   readonly selectedSort =
     signal<AdminUsersSort>('newest');
+
+  readonly openedMenuUserId =
+    signal<string | null>(null);
+
+  readonly selectedUser =
+    signal<AdminUser | null>(null);
+
+  readonly modalMode =
+    signal<SuspensionModalMode>(null);
+
+  readonly modalError = signal('');
+  readonly isSubmitting = signal(false);
 
   readonly suspensionIcon: LucideIcon =
     LucideShieldAlert;
@@ -67,6 +94,27 @@ export class AdminSuspensionsPage
   readonly sellerIcon: LucideIcon =
     LucideStore;
 
+  readonly viewIcon: LucideIcon =
+    LucideEye;
+
+  readonly unsuspendIcon: LucideIcon =
+    LucideUserCheck;
+
+  readonly closeIcon: LucideIcon =
+    LucideX;
+
+  readonly profileIcon: LucideIcon =
+    LucideUserRound;
+
+  readonly warningIcon: LucideIcon =
+    LucideAlertTriangle;
+
+  readonly emailIcon: LucideIcon =
+    LucideMail;
+
+  readonly reportsIcon: LucideIcon =
+    LucideFlag;
+
   ngOnInit(): void {
     this.loadUsers();
   }
@@ -79,6 +127,7 @@ export class AdminSuspensionsPage
 
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
+    this.closeActionsMenu();
 
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
@@ -89,6 +138,17 @@ export class AdminSuspensionsPage
     }, 350);
   }
 
+  onRoleChange(value: string): void {
+    const role: AdminUsersRoleFilter =
+      value === 'buyer' || value === 'seller'
+        ? value
+        : 'all';
+
+    this.selectedRole.set(role);
+    this.closeActionsMenu();
+    this.loadUsers();
+  }
+
   onSortChange(value: string): void {
     const sort: AdminUsersSort =
       value === 'oldest'
@@ -96,15 +156,19 @@ export class AdminSuspensionsPage
         : 'newest';
 
     this.selectedSort.set(sort);
+    this.closeActionsMenu();
     this.loadUsers();
   }
 
   loadUsers(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
+    this.closeActionsMenu();
 
-    this.adminUserService.getSuspendedUsers(
+    this.adminUserService.getUsers(
       this.searchTerm(),
+      this.selectedRole(),
+      'suspended',
       this.selectedSort()
     ).subscribe({
       next: response => {
@@ -125,7 +189,77 @@ export class AdminSuspensionsPage
     });
   }
 
-  getUserInitials(user: AdminSuspendedUser): string {
+  toggleActionsMenu(userId: string): void {
+    this.openedMenuUserId.update(currentId =>
+      currentId === userId
+        ? null
+        : userId
+    );
+  }
+
+  closeActionsMenu(): void {
+    this.openedMenuUserId.set(null);
+  }
+
+  openProfile(user: AdminUser): void {
+    this.openModal('profile', user);
+  }
+
+  openUnsuspendUser(user: AdminUser): void {
+    this.openModal('unsuspend', user);
+  }
+
+  openModal(
+    mode: Exclude<SuspensionModalMode, null>,
+    user: AdminUser
+  ): void {
+    this.closeActionsMenu();
+    this.selectedUser.set(user);
+    this.modalMode.set(mode);
+    this.modalError.set('');
+  }
+
+  closeModal(): void {
+    if (this.isSubmitting()) {
+      return;
+    }
+
+    this.modalMode.set(null);
+    this.selectedUser.set(null);
+    this.modalError.set('');
+  }
+
+  confirmUnsuspend(): void {
+    const user = this.selectedUser();
+
+    if (!user || this.modalMode() !== 'unsuspend') {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.modalError.set('');
+
+    this.adminUserService.unsuspendUser(
+      user._id
+    ).subscribe({
+      next: () => {
+        this.isSubmitting.set(false);
+        this.closeModal();
+        this.loadUsers();
+      },
+      error: error => {
+        this.modalError.set(
+          error.error?.error?.message ??
+          error.error?.message ??
+          'Došlo je do greške pri ukidanju suspenzije.'
+        );
+
+        this.isSubmitting.set(false);
+      }
+    });
+  }
+
+  getUserInitials(user: AdminUser): string {
     return (
       user.firstName.charAt(0) +
       user.lastName.charAt(0)
@@ -133,10 +267,10 @@ export class AdminSuspensionsPage
   }
 
   getRoleLabel(
-    role: AdminSuspendedUser['role']
+    role: AdminUser['role']
   ): string {
     const labels: Record<
-      AdminSuspendedUser['role'],
+      AdminUser['role'],
       string
     > = {
       buyer: 'Kupac',
@@ -147,7 +281,7 @@ export class AdminSuspensionsPage
   }
 
   getRoleIcon(
-    role: AdminSuspendedUser['role']
+    role: AdminUser['role']
   ): LucideIcon {
     return role === 'seller'
       ? this.sellerIcon

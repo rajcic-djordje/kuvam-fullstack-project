@@ -2,17 +2,15 @@ import { approveSeller, getPendingSellers, rejectSeller } from "../services/admi
 
 
 const getPendingSellerApplications = async(req, res) => {
-    const search =
-        typeof req.query.search === "string"
-            ? req.query.search.trim()
-            : ""
+    const {
+        search = "",
+        sort = "newest"
+    } = req.queryData
 
-    const sort =
-        req.query.sort === "oldest"
-            ? "oldest"
-            : "newest"
-
-    const sellers = await getPendingSellers(search, sort)
+    const sellers = await getPendingSellers(
+        search,
+        sort
+    )
 
     return res.status(200).json({
         sellers

@@ -7,20 +7,33 @@ import {
   signal
 } from '@angular/core';
 import {
+  LucideAlertTriangle,
   LucideCalendarDays,
   LucideDynamicIcon,
   LucideEllipsis,
+  LucideEye,
+  LucideFlag,
+  LucideMail,
   LucideScanSearch,
   LucideShieldCheck,
+  LucideShieldX,
   LucideStore,
+  LucideUserRound,
   LucideUserRoundX,
+  LucideX,
   type LucideIcon
 } from '@lucide/angular';
 import {
   AdminUser,
+  AdminUsersRoleFilter,
   AdminUsersSort
 } from '../../models/admin-user';
 import { AdminUserService } from '../../services/admin-user';
+
+type BannedUserModalMode =
+  | 'profile'
+  | 'unban'
+  | null;
 
 @Component({
   selector: 'app-admin-banned-users-page',
@@ -32,7 +45,8 @@ import { AdminUserService } from '../../services/admin-user';
   styleUrl: './admin-banned-users-page.css'
 })
 export class AdminBannedUsersPage implements OnInit, OnDestroy {
-  private readonly adminUserService = inject(AdminUserService);
+  private readonly adminUserService =
+    inject(AdminUserService);
 
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
@@ -40,14 +54,63 @@ export class AdminBannedUsersPage implements OnInit, OnDestroy {
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
   readonly searchTerm = signal('');
-  readonly selectedSort = signal<AdminUsersSort>('newest');
 
-  readonly bannedUsersIcon: LucideIcon = LucideUserRoundX;
-  readonly searchIcon: LucideIcon = LucideScanSearch;
-  readonly actionsIcon: LucideIcon = LucideEllipsis;
-  readonly calendarIcon: LucideIcon = LucideCalendarDays;
-  readonly buyerIcon: LucideIcon = LucideShieldCheck;
-  readonly sellerIcon: LucideIcon = LucideStore;
+  readonly selectedRole =
+    signal<AdminUsersRoleFilter>('all');
+
+  readonly selectedSort =
+    signal<AdminUsersSort>('newest');
+
+  readonly openedMenuUserId =
+    signal<string | null>(null);
+
+  readonly selectedUser =
+    signal<AdminUser | null>(null);
+
+  readonly modalMode =
+    signal<BannedUserModalMode>(null);
+
+  readonly modalError = signal('');
+  readonly isSubmitting = signal(false);
+
+  readonly bannedUsersIcon: LucideIcon =
+    LucideUserRoundX;
+
+  readonly searchIcon: LucideIcon =
+    LucideScanSearch;
+
+  readonly actionsIcon: LucideIcon =
+    LucideEllipsis;
+
+  readonly calendarIcon: LucideIcon =
+    LucideCalendarDays;
+
+  readonly buyerIcon: LucideIcon =
+    LucideShieldCheck;
+
+  readonly sellerIcon: LucideIcon =
+    LucideStore;
+
+  readonly viewIcon: LucideIcon =
+    LucideEye;
+
+  readonly unbanIcon: LucideIcon =
+    LucideShieldX;
+
+  readonly closeIcon: LucideIcon =
+    LucideX;
+
+  readonly profileIcon: LucideIcon =
+    LucideUserRound;
+
+  readonly warningIcon: LucideIcon =
+    LucideAlertTriangle;
+
+  readonly emailIcon: LucideIcon =
+    LucideMail;
+
+  readonly reportsIcon: LucideIcon =
+    LucideFlag;
 
   ngOnInit(): void {
     this.loadUsers();
@@ -61,6 +124,7 @@ export class AdminBannedUsersPage implements OnInit, OnDestroy {
 
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
+    this.closeActionsMenu();
 
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
@@ -71,6 +135,17 @@ export class AdminBannedUsersPage implements OnInit, OnDestroy {
     }, 350);
   }
 
+  onRoleChange(value: string): void {
+    const role: AdminUsersRoleFilter =
+      value === 'buyer' || value === 'seller'
+        ? value
+        : 'all';
+
+    this.selectedRole.set(role);
+    this.closeActionsMenu();
+    this.loadUsers();
+  }
+
   onSortChange(value: string): void {
     const sort: AdminUsersSort =
       value === 'oldest'
@@ -78,23 +153,23 @@ export class AdminBannedUsersPage implements OnInit, OnDestroy {
         : 'newest';
 
     this.selectedSort.set(sort);
+    this.closeActionsMenu();
     this.loadUsers();
   }
 
   loadUsers(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
+    this.closeActionsMenu();
 
     this.adminUserService.getUsers(
       this.searchTerm(),
+      this.selectedRole(),
+      'banned',
       this.selectedSort()
     ).subscribe({
       next: response => {
-        const bannedUsers = response.users.filter(
-          user => user.status === 'banned'
-        );
-
-        this.users.set(bannedUsers);
+        this.users.set(response.users ?? []);
         this.isLoading.set(false);
       },
       error: error => {
@@ -107,6 +182,74 @@ export class AdminBannedUsersPage implements OnInit, OnDestroy {
         );
 
         this.isLoading.set(false);
+      }
+    });
+  }
+
+  toggleActionsMenu(userId: string): void {
+    this.openedMenuUserId.update(currentId =>
+      currentId === userId
+        ? null
+        : userId
+    );
+  }
+
+  closeActionsMenu(): void {
+    this.openedMenuUserId.set(null);
+  }
+
+  openProfile(user: AdminUser): void {
+    this.openModal('profile', user);
+  }
+
+  openUnbanUser(user: AdminUser): void {
+    this.openModal('unban', user);
+  }
+
+  openModal(
+    mode: Exclude<BannedUserModalMode, null>,
+    user: AdminUser
+  ): void {
+    this.closeActionsMenu();
+    this.selectedUser.set(user);
+    this.modalMode.set(mode);
+    this.modalError.set('');
+  }
+
+  closeModal(): void {
+    if (this.isSubmitting()) {
+      return;
+    }
+
+    this.selectedUser.set(null);
+    this.modalMode.set(null);
+    this.modalError.set('');
+  }
+
+  confirmUnban(): void {
+    const user = this.selectedUser();
+
+    if (!user || this.modalMode() !== 'unban') {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.modalError.set('');
+
+    this.adminUserService.unbanUser(user._id).subscribe({
+      next: () => {
+        this.isSubmitting.set(false);
+        this.closeModal();
+        this.loadUsers();
+      },
+      error: error => {
+        this.modalError.set(
+          error.error?.error?.message ??
+          error.error?.message ??
+          'Došlo je do greške pri ukidanju bana.'
+        );
+
+        this.isSubmitting.set(false);
       }
     });
   }

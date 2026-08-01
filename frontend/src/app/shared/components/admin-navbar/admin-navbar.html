@@ -15,11 +15,12 @@
           (click)="toggleProfileMenu()"
         >
           <span class="profile-avatar">
-            <img
-              class="user-icon"
-              src="/icons/person.svg"
-              alt=""
-            >
+            <svg
+              [lucideIcon]="userIcon"
+              [size]="19"
+              [strokeWidth]="1.9"
+              aria-hidden="true"
+            ></svg>
           </span>
 
           <span class="profile-content">
@@ -31,7 +32,14 @@
             <small>Administrator</small>
           </span>
 
-          <span class="profile-chevron" aria-hidden="true"></span>
+          <svg
+            class="profile-chevron"
+            [class.rotated]="isProfileMenuOpen()"
+            [lucideIcon]="chevronIcon"
+            [size]="15"
+            [strokeWidth]="2"
+            aria-hidden="true"
+          ></svg>
         </button>
 
         @if (isProfileMenuOpen()) {
@@ -51,7 +59,39 @@
 
             <div class="dropdown-divider"></div>
 
-            
+            <button
+              class="dropdown-item"
+              type="button"
+              role="menuitem"
+              (click)="openAccountModal()"
+            >
+              <svg
+                class="dropdown-icon"
+                [lucideIcon]="editIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <span>Promeni podatke</span>
+            </button>
+
+            <a
+              class="dropdown-item"
+              routerLink="/"
+              role="menuitem"
+              (click)="closeProfileMenu()"
+            >
+              <svg
+                class="dropdown-icon"
+                [lucideIcon]="homeIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <span>Vrati se na sajt</span>
+            </a>
 
             <button
               class="dropdown-item logout-item"
@@ -59,7 +99,14 @@
               role="menuitem"
               (click)="logout()"
             >
-              <span class="logout-icon" aria-hidden="true"></span>
+              <svg
+                class="dropdown-icon"
+                [lucideIcon]="logoutIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
               <span>Odjava</span>
             </button>
           </div>
@@ -68,3 +115,8 @@
     </div>
   </div>
 </header>
+
+<app-admin-account-modal
+  [isOpen]="isAccountModalOpen()"
+  (closed)="closeAccountModal()"
+/>

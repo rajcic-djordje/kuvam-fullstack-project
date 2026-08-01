@@ -16,6 +16,10 @@ import { AdminBannedUsersPage } from './features/admin/pages/admin-banned-users-
 import { AdminPendingSellersPage } from './features/admin/pages/admin-pending-sellers-page/admin-pending-sellers-page';
 import { AdminSuspensionsPage} from './features/admin/pages/admin-suspensions-page/admin-suspensions-page';
 import { AdminReportsPage } from './features/admin/pages/admin-reports-page/admin-reports-page';
+import { userGuard } from './core/guards/user-guard';
+import { OffersPage } from './features/offers/pages/offers-page/offers-page';
+
+
 export const routes: Routes = [
   {
     path: '',
@@ -28,8 +32,12 @@ export const routes: Routes = [
       {
         path: 'profile',
         component: ProfilePage,
-        canActivate: [authGuard]
-      }
+        canActivate: [authGuard, userGuard]
+      },
+      {
+        path: 'offers',
+        component: OffersPage
+      },
     ]
   },
   {

@@ -12,12 +12,17 @@
       >
     </a>
 
-    <nav class="nav-links" aria-label="Glavna navigacija">
+    <nav
+      class="nav-links"
+      aria-label="Glavna navigacija"
+    >
       <a
         class="nav-link"
         routerLink="/"
         routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
+        [routerLinkActiveOptions]="{
+          exact: true
+        }"
       >
         Početna
       </a>
@@ -38,53 +43,106 @@
             class="profile-trigger"
             type="button"
             [class.open]="isProfileMenuOpen()"
-            [attr.aria-expanded]="isProfileMenuOpen()"
+            [attr.aria-expanded]="
+              isProfileMenuOpen()
+            "
             aria-haspopup="menu"
             (click)="toggleProfileMenu()"
           >
             <span class="profile-avatar">
-              <img
-                class="user-icon"
-                src="/icons/person.svg"
-                alt=""
-              >
+              <svg
+                [lucideIcon]="userIcon"
+                [size]="18"
+                [strokeWidth]="1.9"
+                aria-hidden="true"
+              ></svg>
             </span>
 
             <span class="profile-name">
-              {{ authService.currentUser()?.firstName }}
+              {{
+                authService.currentUser()
+                  ?.firstName
+              }}
             </span>
 
-            <span class="profile-chevron" aria-hidden="true"></span>
+            <svg
+              class="profile-chevron"
+              [class.rotated]="
+                isProfileMenuOpen()
+              "
+              [lucideIcon]="chevronIcon"
+              [size]="15"
+              [strokeWidth]="2"
+              aria-hidden="true"
+            ></svg>
           </button>
 
           @if (isProfileMenuOpen()) {
-            <div class="profile-dropdown" role="menu">
+            <div
+              class="profile-dropdown"
+              role="menu"
+            >
               <div class="profile-summary">
                 <strong>
-                  {{ authService.currentUser()?.firstName }}
-                  {{ authService.currentUser()?.lastName }}
+                  {{
+                    authService.currentUser()
+                      ?.firstName
+                  }}
+
+                  {{
+                    authService.currentUser()
+                      ?.lastName
+                  }}
                 </strong>
 
                 <span>
-                  {{ authService.currentUser()?.email }}
+                  {{
+                    authService.currentUser()
+                      ?.email
+                  }}
                 </span>
               </div>
 
               <div class="dropdown-divider"></div>
 
-              <a
-                class="dropdown-item"
-                routerLink="/profile"
-                role="menuitem"
-                (click)="closeProfileMenu()"
-              >
-                <img
-                  src="/icons/person.svg"
-                  alt=""
+              @if (
+                authService.currentUser()
+                  ?.role === 'admin'
+              ) {
+                <a
+                  class="dropdown-item"
+                  routerLink="/admin/dashboard"
+                  role="menuitem"
+                  (click)="closeProfileMenu()"
                 >
+                  <svg
+                    class="dropdown-icon"
+                    [lucideIcon]="dashboardIcon"
+                    [size]="18"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
 
-                <span>Moj profil</span>
-              </a>
+                  <span>Admin panel</span>
+                </a>
+              } @else {
+                <a
+                  class="dropdown-item"
+                  routerLink="/profile"
+                  role="menuitem"
+                  (click)="closeProfileMenu()"
+                >
+                  <svg
+                    class="dropdown-icon"
+                    [lucideIcon]="userIcon"
+                    [size]="18"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <span>Moj profil</span>
+                </a>
+              }
 
               <button
                 class="dropdown-item logout-item"
@@ -92,7 +150,14 @@
                 role="menuitem"
                 (click)="logout()"
               >
-                <span class="logout-icon" aria-hidden="true"></span>
+                <svg
+                  class="dropdown-icon"
+                  [lucideIcon]="logoutIcon"
+                  [size]="18"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
                 <span>Odjava</span>
               </button>
             </div>
@@ -110,11 +175,12 @@
           class="register-button"
           routerLink="/register"
         >
-          <img
-            class="user-icon"
-            src="/icons/person.svg"
-            alt=""
-          >
+          <svg
+            [lucideIcon]="registerIcon"
+            [size]="18"
+            [strokeWidth]="1.9"
+            aria-hidden="true"
+          ></svg>
 
           <span>Registracija</span>
         </a>

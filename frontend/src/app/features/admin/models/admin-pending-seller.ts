@@ -1,9 +1,21 @@
+export type AdminPendingSellersSort =
+  | 'newest'
+  | 'oldest';
+
 export interface AdminPendingSellerUser {
   _id: string;
   firstName: string;
   lastName: string;
   email: string;
-  status: string;
+  role: 'seller';
+  status:
+    | 'active'
+    | 'suspended'
+    | 'banned'
+    | 'deactivated';
+  reportsCount: number;
+  offences: number;
+  createdAt: string;
 }
 
 export interface AdminPendingSeller {
@@ -21,4 +33,7 @@ export interface AdminPendingSellersResponse {
   sellers: AdminPendingSeller[];
 }
 
-export type AdminPendingSellersSort = 'newest' | 'oldest';
+export interface AdminPendingSellerActionResponse {
+  message: string;
+  seller: AdminPendingSeller;
+}

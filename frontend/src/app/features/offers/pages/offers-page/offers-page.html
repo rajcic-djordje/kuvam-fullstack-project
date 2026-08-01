@@ -1,0 +1,108 @@
+<main class="offers-page">
+  <section class="offers-hero">
+    <div class="container">
+      <div class="hero-content">
+        <span class="hero-eyebrow">
+          Domaća hrana na jednom mestu
+        </span>
+
+        <h1>
+          Pronađi ono što ti se danas jede
+        </h1>
+
+        <p>
+          Pretraži ponude domaće hrane ili pronađi radnju koja ti odgovara.
+        </p>
+      </div>
+
+      <div class="offers-controls">
+        <div class="search-field">
+          <svg
+            class="search-icon"
+            [lucideIcon]="searchIcon"
+            [size]="20"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+
+          <input
+            type="search"
+            aria-label="Pretraži hranu ili radnje"
+            placeholder="Pretraži hranu ili radnje..."
+            autocomplete="off"
+            [value]="searchTerm()"
+            (input)="updateSearch($event)"
+          >
+
+          @if (searchTerm()) {
+            <button
+              class="clear-search"
+              type="button"
+              aria-label="Obriši pretragu"
+              (click)="clearSearch()"
+            >
+              <svg
+                [lucideIcon]="clearIcon"
+                [size]="18"
+                [strokeWidth]="1.9"
+                aria-hidden="true"
+              ></svg>
+            </button>
+          }
+        </div>
+
+        <div class="category-section">
+          <div class="category-heading">
+            <h2>Kategorije</h2>
+
+            <p>
+              Izaberi vrstu hrane koju tražiš.
+            </p>
+          </div>
+
+          <div
+            class="category-list"
+            role="group"
+            aria-label="Kategorije hrane"
+          >
+            @for (category of categories; track category.value) {
+              <button
+                class="category-button"
+                type="button"
+                [class.active]="
+                  selectedCategory() === category.value
+                "
+                [attr.aria-pressed]="
+                  selectedCategory() === category.value
+                "
+                (click)="selectCategory(category.value)"
+              >
+                {{ category.label }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stores-section">
+    <div class="container">
+      <div class="stores-heading">
+        <div>
+          <span class="section-eyebrow">
+            Ponuda domaćina
+          </span>
+
+          <h2>Radnje i njihove ponude</h2>
+        </div>
+      </div>
+
+      <div class="stores-placeholder">
+        <p>
+          Ovde će biti prikazane radnje koje odgovaraju pretrazi i izabranoj kategoriji.
+        </p>
+      </div>
+    </div>
+  </section>
+</main>

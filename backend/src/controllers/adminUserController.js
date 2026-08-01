@@ -1,4 +1,4 @@
-import { getUsers, suspendUser, unsuspendUser, getSuspendedUsers} from "../services/adminUserService.js"
+import { getUsers, suspendUser, unsuspendUser, getSuspendedUsers, banUser, unbanUser} from "../services/adminUserService.js"
 
 
 
@@ -29,17 +29,17 @@ const unsuspendUserAccount = async(req,res) => {
 }
 
 const getUserAccounts = async(req, res) => {
-    const search =
-        typeof req.query.search === "string"
-            ? req.query.search.trim()
-            : ""
+    const search = req.queryData.search ?? ""
+    const role = req.queryData.role
+    const status = req.queryData.status
+    const sort = req.queryData.sort ?? "newest"
 
-    const sort =
-        req.query.sort === "oldest"
-            ? "oldest"
-            : "newest"
-
-    const users = await getUsers(search, sort)
+    const users = await getUsers(
+        search,
+        role,
+        status,
+        sort
+    )
 
     return res.status(200).json({
         users
@@ -57,5 +57,28 @@ const getSuspendedUserAccounts = async(req, res) => {
     })
 }
 
+const banUserAccount = async(req, res) => {
+    const userId = req.params.userId
+    const reason = req.body.reason
 
-export {suspendUserAccount, unsuspendUserAccount, getUserAccounts, getSuspendedUserAccounts}
+    const user = await banUser(userId, reason)
+
+    return res.status(200).json({
+        message: "User banned successfully.",
+        user
+    })
+}
+
+const unbanUserAccount = async(req, res) => {
+    const userId = req.params.userId
+
+    const user = await unbanUser(userId)
+
+    return res.status(200).json({
+        message: "User unbanned successfully.",
+        user
+    })
+}
+
+
+export {banUserAccount, unbanUserAccount, suspendUserAccount, unsuspendUserAccount, getUserAccounts, getSuspendedUserAccounts}

@@ -73,16 +73,15 @@ export class AdminDashboardPage implements OnInit {
 
   getReportReasonLabel(reason: string): string {
     const labels: Record<string, string> = {
-      inappropriate_content: 'Neprimeren sadržaj',
-      fraud: 'Prevara',
-      false_information: 'Lažne informacije',
-      harassment: 'Uznemiravanje',
-      food_safety: 'Kvalitet ili bezbednost hrane',
+      no_show: 'Nedolazak',
+      inappropriate_behavior: 'Neprimereno ponašanje',
+      misleading_information: 'Obmanjujuće informacije',
       food_quality_or_safety: 'Kvalitet ili bezbednost hrane',
-      other: 'Drugo'
+      payment_issue: 'Problem sa plaćanjem',
+      other: 'Drugi razlog'
     };
 
-    return labels[reason] ?? reason;
+    return labels[reason] ?? 'Nepoznat razlog';
   }
 
   getActivityIcon(type: AdminActivityType): LucideIcon {

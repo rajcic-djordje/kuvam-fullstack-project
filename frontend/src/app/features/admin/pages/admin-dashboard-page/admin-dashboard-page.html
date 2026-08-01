@@ -159,10 +159,16 @@
               track report._id
             ) {
               <article class="activity-item">
-                <div class="activity-avatar">
-                  {{ report.reportedUser.firstName.charAt(0) }}
-                  {{ report.reportedUser.lastName.charAt(0) }}
-                </div>
+                <div class="avatar-wrapper">
+                    <div class="activity-avatar report-avatar">
+                      {{ report.reportedUser.firstName.charAt(0) }}{{ report.reportedUser.lastName.charAt(0) }}
+                    </div>
+
+                    <span
+                      class="avatar-status report-status"
+                      aria-hidden="true"
+                    ></span>
+                  </div>
 
                 <div class="activity-content">
                   <div class="activity-title-row">
@@ -230,8 +236,15 @@
               track seller._id
             ) {
               <article class="activity-item">
-                <div class="activity-avatar seller-avatar">
-                  {{ seller.businessName.charAt(0) }}
+                <div class="avatar-wrapper">
+                  <div class="activity-avatar seller-avatar">
+                    {{ seller.user.firstName.charAt(0) }}{{ seller.user.lastName.charAt(0) }}
+                  </div>
+
+                  <span
+                    class="avatar-status seller-status"
+                    aria-hidden="true"
+                  ></span>
                 </div>
 
                 <div class="activity-content">
