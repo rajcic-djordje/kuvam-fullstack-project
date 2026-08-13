@@ -71,7 +71,6 @@ const updateLocationSchema = z.object({
         .max(300)
         .optional()
 })
-
 export {
     updateProfileSchema,
     changePasswordSchema,

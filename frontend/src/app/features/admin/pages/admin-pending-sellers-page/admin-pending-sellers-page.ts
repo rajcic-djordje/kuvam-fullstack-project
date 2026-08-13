@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DOCUMENT } from '@angular/common';
 import {
   Component,
   inject,
@@ -25,14 +25,13 @@ import {
   type LucideIcon
 } from '@lucide/angular';
 import { Observable } from 'rxjs';
+import { FormDraftService } from '../../../../shared/services/form-draft';
 import {
   AdminPendingSeller,
   AdminPendingSellerActionResponse,
   AdminPendingSellersSort
 } from '../../models/admin-pending-seller';
-import {
-  AdminPendingSellerService
-} from '../../services/admin-pending-seller';
+import { AdminPendingSellerService } from '../../services/admin-pending-seller';
 
 type PendingSellerModalMode =
   | 'profile'
@@ -40,6 +39,10 @@ type PendingSellerModalMode =
   | 'approve'
   | 'reject'
   | null;
+
+interface RejectSellerDraft {
+  reason: string;
+}
 
 @Component({
   selector: 'app-admin-pending-sellers-page',
@@ -50,17 +53,29 @@ type PendingSellerModalMode =
   templateUrl: './admin-pending-sellers-page.html',
   styleUrl: './admin-pending-sellers-page.css'
 })
-export class AdminPendingSellersPage
-  implements OnInit, OnDestroy {
+export class AdminPendingSellersPage implements OnInit, OnDestroy {
   private readonly adminPendingSellerService =
     inject(AdminPendingSellerService);
 
+  private readonly formDraftService =
+    inject(FormDraftService);
+
+  private readonly document =
+    inject(DOCUMENT);
+
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
-  readonly sellers = signal<AdminPendingSeller[]>([]);
-  readonly isLoading = signal(true);
-  readonly errorMessage = signal('');
-  readonly searchTerm = signal('');
+  readonly sellers =
+    signal<AdminPendingSeller[]>([]);
+
+  readonly isLoading =
+    signal(true);
+
+  readonly errorMessage =
+    signal('');
+
+  readonly searchTerm =
+    signal('');
 
   readonly selectedSort =
     signal<AdminPendingSellersSort>('newest');
@@ -74,9 +89,14 @@ export class AdminPendingSellersPage
   readonly modalMode =
     signal<PendingSellerModalMode>(null);
 
-  readonly rejectionReason = signal('');
-  readonly modalError = signal('');
-  readonly isSubmitting = signal(false);
+  readonly rejectionReason =
+    signal('');
+
+  readonly modalError =
+    signal('');
+
+  readonly isSubmitting =
+    signal(false);
 
   readonly sellersIcon: LucideIcon =
     LucideStore;
@@ -134,6 +154,10 @@ export class AdminPendingSellersPage
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
     }
+
+    this.document.body.classList.remove(
+      'modal-open'
+    );
   }
 
   onSearchChange(value: string): void {
@@ -156,6 +180,7 @@ export class AdminPendingSellersPage
         : 'newest';
 
     this.selectedSort.set(sort);
+
     this.closeActionsMenu();
     this.loadSellers();
   }
@@ -163,35 +188,44 @@ export class AdminPendingSellersPage
   loadSellers(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
+
     this.closeActionsMenu();
 
-    this.adminPendingSellerService.getPendingSellers(
-      this.searchTerm(),
-      this.selectedSort()
-    ).subscribe({
-      next: response => {
-        this.sellers.set(response.sellers ?? []);
-        this.isLoading.set(false);
-      },
-      error: error => {
-        this.sellers.set([]);
+    this.adminPendingSellerService
+      .getPendingSellers(
+        this.searchTerm(),
+        this.selectedSort()
+      )
+      .subscribe({
+        next: response => {
+          this.sellers.set(
+            response.sellers ?? []
+          );
 
-        this.errorMessage.set(
-          error.error?.error?.message ??
-          error.error?.message ??
-          'Došlo je do greške pri učitavanju prijava prodavaca.'
-        );
+          this.isLoading.set(false);
+        },
 
-        this.isLoading.set(false);
-      }
-    });
+        error: error => {
+          this.sellers.set([]);
+
+          this.errorMessage.set(
+            error.error?.error?.message ??
+            error.error?.message ??
+            'Došlo je do greške pri učitavanju prijava domaćina.'
+          );
+
+          this.isLoading.set(false);
+        }
+      });
   }
 
   toggleActionsMenu(sellerId: string): void {
-    this.openedMenuSellerId.update(currentId =>
-      currentId === sellerId
-        ? null
-        : sellerId
+    this.openedMenuSellerId.update(
+      currentId => {
+        return currentId === sellerId
+          ? null
+          : sellerId;
+      }
     );
   }
 
@@ -200,19 +234,31 @@ export class AdminPendingSellersPage
   }
 
   openProfile(seller: AdminPendingSeller): void {
-    this.openModal('profile', seller);
+    this.openModal(
+      'profile',
+      seller
+    );
   }
 
   openStore(seller: AdminPendingSeller): void {
-    this.openModal('store', seller);
+    this.openModal(
+      'store',
+      seller
+    );
   }
 
   openApprove(seller: AdminPendingSeller): void {
-    this.openModal('approve', seller);
+    this.openModal(
+      'approve',
+      seller
+    );
   }
 
   openReject(seller: AdminPendingSeller): void {
-    this.openModal('reject', seller);
+    this.openModal(
+      'reject',
+      seller
+    );
   }
 
   openModal(
@@ -220,10 +266,27 @@ export class AdminPendingSellersPage
     seller: AdminPendingSeller
   ): void {
     this.closeActionsMenu();
+
     this.selectedSeller.set(seller);
     this.modalMode.set(mode);
-    this.rejectionReason.set('');
     this.modalError.set('');
+
+    if (mode === 'reject') {
+      const draft =
+        this.formDraftService.load<RejectSellerDraft>(
+          this.rejectDraftKey(seller._id)
+        );
+
+      this.rejectionReason.set(
+        draft?.reason ?? ''
+      );
+    } else {
+      this.rejectionReason.set('');
+    }
+
+    this.document.body.classList.add(
+      'modal-open'
+    );
   }
 
   closeModal(): void {
@@ -235,10 +298,29 @@ export class AdminPendingSellersPage
     this.selectedSeller.set(null);
     this.rejectionReason.set('');
     this.modalError.set('');
+
+    this.document.body.classList.remove(
+      'modal-open'
+    );
   }
 
   onRejectionReasonChange(value: string): void {
     this.rejectionReason.set(value);
+
+    const seller =
+      this.selectedSeller();
+
+    if (
+      seller &&
+      this.modalMode() === 'reject'
+    ) {
+      this.formDraftService.save(
+        this.rejectDraftKey(seller._id),
+        {
+          reason: value
+        } satisfies RejectSellerDraft
+      );
+    }
 
     if (this.modalError()) {
       this.modalError.set('');
@@ -246,18 +328,29 @@ export class AdminPendingSellersPage
   }
 
   confirmApplicationAction(): void {
-    const seller = this.selectedSeller();
-    const mode = this.modalMode();
-    const reason = this.rejectionReason().trim();
+    const seller =
+      this.selectedSeller();
+
+    const mode =
+      this.modalMode();
+
+    const reason =
+      this.rejectionReason().trim();
 
     if (
       !seller ||
-      (mode !== 'approve' && mode !== 'reject')
+      (
+        mode !== 'approve' &&
+        mode !== 'reject'
+      )
     ) {
       return;
     }
 
-    if (mode === 'reject' && reason.length < 3) {
+    if (
+      mode === 'reject' &&
+      reason.length < 3
+    ) {
       this.modalError.set(
         'Razlog odbijanja mora imati najmanje 3 karaktera.'
       );
@@ -270,15 +363,17 @@ export class AdminPendingSellersPage
 
     if (mode === 'approve') {
       request =
-        this.adminPendingSellerService.approveSeller(
-          seller._id
-        );
+        this.adminPendingSellerService
+          .approveSeller(
+            seller._id
+          );
     } else {
       request =
-        this.adminPendingSellerService.rejectSeller(
-          seller._id,
-          reason
-        );
+        this.adminPendingSellerService
+          .rejectSeller(
+            seller._id,
+            reason
+          );
     }
 
     this.isSubmitting.set(true);
@@ -286,10 +381,18 @@ export class AdminPendingSellersPage
 
     request.subscribe({
       next: () => {
+        this.formDraftService.clear(
+          this.rejectDraftKey(
+            seller._id
+          )
+        );
+
         this.isSubmitting.set(false);
+
         this.closeModal();
         this.loadSellers();
       },
+
       error: error => {
         this.modalError.set(
           error.error?.error?.message ??
@@ -309,13 +412,9 @@ export class AdminPendingSellersPage
   getSellerInitials(
     seller: AdminPendingSeller
   ): string {
-    const firstName =
-      seller.user?.firstName?.charAt(0) ?? '';
-
-    const lastName =
-      seller.user?.lastName?.charAt(0) ?? '';
-
-    return `${firstName}${lastName}`.toUpperCase();
+    return (
+      `${seller.user.firstName.charAt(0)}${seller.user.lastName.charAt(0)}`
+    ).toUpperCase();
   }
 
   getStoreInitials(
@@ -325,7 +424,9 @@ export class AdminPendingSellersPage
       .trim()
       .split(/\s+/)
       .slice(0, 2)
-      .map(word => word.charAt(0))
+      .map(word => {
+        return word.charAt(0);
+      })
       .join('')
       .toUpperCase();
   }
@@ -333,12 +434,9 @@ export class AdminPendingSellersPage
   getOwnerName(
     seller: AdminPendingSeller
   ): string {
-    return [
-      seller.user?.firstName,
-      seller.user?.lastName
-    ]
-      .filter(Boolean)
-      .join(' ');
+    return (
+      `${seller.user.firstName} ${seller.user.lastName}`
+    ).trim();
   }
 
   getUserStatusLabel(
@@ -355,5 +453,13 @@ export class AdminPendingSellersPage
     };
 
     return labels[status];
+  }
+
+  private rejectDraftKey(
+    sellerId: string
+  ): string {
+    return (
+      `admin-reject-seller:${sellerId}`
+    );
   }
 }

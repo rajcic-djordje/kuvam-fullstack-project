@@ -5,12 +5,19 @@ import AppError from "../errors/appError.js"
 import { USER_ROLES, USER_STATUS } from "../constants/user.js"
 import {revokeAllUserSessions} from "./refreshSessionService.js"
 import City from "../models/city.js"
+import { geocodeAddress } from "./geocodingService.js"
+
 
 const getCurrentUserProfile = async (userId) => {
-    const user = await User.findById(userId).populate("city", "name slug")
+    const user = await User.findById(userId)
+        .populate("city", "name slug")
 
     if (!user)
-        throw new AppError("User not found.",404,"USER_NOT_FOUND")
+        throw new AppError(
+            "User not found.",
+            404,
+            "USER_NOT_FOUND"
+        )
 
     const result = {
         id: user._id,
@@ -29,31 +36,46 @@ const getCurrentUserProfile = async (userId) => {
                 slug: user.city.slug
             }
             : null,
-
         address: {
             street: user.address?.street ?? null,
-            streetNumber: user.address?.streetNumber ?? null,
-            additionalInfo: user.address?.additionalInfo ?? null
-        },
+            streetNumber:
+                user.address?.streetNumber ?? null,
+            additionalInfo:
+                user.address?.additionalInfo ?? null,
 
+                latitude: user.address?.latitude ?? null,
+longitude: user.address?.longitude ?? null
+        },
         hasLocation: Boolean(
-            user.city &&
-            user.address?.street &&
-            user.address?.streetNumber
-        ),
+    user.city &&
+    user.address?.street &&
+    user.address?.streetNumber &&
+    user.address?.latitude !== null &&
+    user.address?.latitude !== undefined &&
+    user.address?.longitude !== null &&
+    user.address?.longitude !== undefined
+)
     }
 
     if (user.role === USER_ROLES.SELLER) {
-        const seller = await Seller.findOne({user: user._id}).populate("city", "name slug")
+        const seller = await Seller.findOne({
+            user: user._id
+        }).populate("city", "name slug")
 
         result.sellerProfile = seller
             ? {
                 id: seller._id,
-                businessName: seller.businessName,
+                businessName:
+                    seller.businessName,
                 slug: seller.slug,
-                description: seller.description,
-                profileImageUrl: seller.profileImageUrl,
-                coverImageUrl: seller.coverImageUrl,
+                description:
+                    seller.description,
+                profileImageUrl:
+                    seller.profileImageUrl,
+                coverImageUrl:
+                    seller.coverImageUrl,
+                isOpen:
+                    seller.isOpen,
                 city: seller.city
                     ? {
                         id: seller.city._id,
@@ -62,18 +84,46 @@ const getCurrentUserProfile = async (userId) => {
                     }
                     : null,
                 pickupAddress: {
-                    street: seller.pickupAddress?.street ?? null,
-                    streetNumber: seller.pickupAddress?.streetNumber ?? null,
-                    additionalInfo: seller.pickupAddress?.additionalInfo ?? null
+                    street:
+                        seller.pickupAddress?.street ??
+                        null,
+                    streetNumber:
+                        seller.pickupAddress
+                            ?.streetNumber ?? null,
+                    additionalInfo:
+                        seller.pickupAddress
+                            ?.additionalInfo ?? null,
+                    latitude:
+                        seller.pickupAddress?.latitude ??
+                        null,
+                    longitude:
+                        seller.pickupAddress?.longitude ??
+                        null
                 },
-                approvalStatus: seller.approvalStatus,
+                approvalStatus:
+                    seller.approvalStatus,
+                rejectionReason:
+                    seller.rejectionReason,
                 isProfileComplete: Boolean(
                     seller.businessName &&
                     seller.description &&
                     seller.city &&
                     seller.pickupAddress?.street &&
-                    seller.pickupAddress?.streetNumber
-                )
+                    seller.pickupAddress
+                        ?.streetNumber &&
+                    seller.pickupAddress
+                        ?.latitude !== null &&
+                    seller.pickupAddress
+                        ?.latitude !== undefined &&
+                    seller.pickupAddress
+                        ?.longitude !== null &&
+                    seller.pickupAddress
+                        ?.longitude !== undefined
+                ),
+                createdAt:
+                    seller.createdAt,
+                updatedAt:
+                    seller.updatedAt
             }
             : null
     }
@@ -81,12 +131,18 @@ const getCurrentUserProfile = async (userId) => {
     return result
 }
 
-
-const updateCurrentUserProfile = async (userId, updateData) => {
+const updateCurrentUserProfile = async (
+    userId,
+    updateData
+) => {
     const user = await User.findById(userId)
 
     if (!user)
-        throw new AppError("User not found.",404,"USER_NOT_FOUND")
+        throw new AppError(
+            "User not found.",
+            404,
+            "USER_NOT_FOUND"
+        )
 
     if (updateData.firstName !== undefined)
         user.firstName = updateData.firstName
@@ -104,17 +160,30 @@ const changeCurrentUserPassword = async (
     currentPassword,
     newPassword
 ) => {
-    const user = await User.findById(userId).select("+passwordHash")
+    const user = await User.findById(userId)
+        .select("+passwordHash")
 
     if (!user)
-        throw new AppError("User not found.",404,"USER_NOT_FOUND")
+        throw new AppError(
+            "User not found.",
+            404,
+            "USER_NOT_FOUND"
+        )
 
-    const passwordMatch = await bcrypt.compare(currentPassword,user.passwordHash)
+    const passwordMatch = await bcrypt.compare(
+        currentPassword,
+        user.passwordHash
+    )
 
     if (!passwordMatch)
-        throw new AppError("Current password is incorrect.",401,"INVALID_CURRENT_PASSWORD")
+        throw new AppError(
+            "Current password is incorrect.",
+            401,
+            "INVALID_CURRENT_PASSWORD"
+        )
 
-    user.passwordHash = await bcrypt.hash(newPassword, 12)
+    user.passwordHash =
+        await bcrypt.hash(newPassword, 12)
 
     await user.save()
 
@@ -123,18 +192,29 @@ const changeCurrentUserPassword = async (
     return true
 }
 
-
 const deactivateCurrentUser = async (userId) => {
     const user = await User.findById(userId)
 
     if (!user)
-        throw new AppError("User not found.",404,"USER_NOT_FOUND")
+        throw new AppError(
+            "User not found.",
+            404,
+            "USER_NOT_FOUND"
+        )
 
     if (user.status === USER_STATUS.DEACTIVATED)
-        throw new AppError("Account is already deactivated.",409,"ACCOUNT_ALREADY_DEACTIVATED")
+        throw new AppError(
+            "Account is already deactivated.",
+            409,
+            "ACCOUNT_ALREADY_DEACTIVATED"
+        )
 
     if (user.status === USER_STATUS.BANNED)
-        throw new AppError("Banned accounts cannot be deactivated through this endpoint.",409,"BANNED_ACCOUNT_CANNOT_BE_DEACTIVATED")
+        throw new AppError(
+            "Banned accounts cannot be deactivated through this endpoint.",
+            409,
+            "BANNED_ACCOUNT_CANNOT_BE_DEACTIVATED"
+        )
 
     user.status = USER_STATUS.DEACTIVATED
     user.suspensionReason = null
@@ -150,11 +230,18 @@ const deactivateCurrentUser = async (userId) => {
     }
 }
 
-const updateCurrentUserLocation = async (userId, locationData) => {
+const updateCurrentUserLocation = async (
+    userId,
+    locationData
+) => {
     const user = await User.findById(userId)
 
     if (!user)
-        throw new AppError("User not found.",404,"USER_NOT_FOUND")
+        throw new AppError(
+            "User not found.",
+            404,
+            "USER_NOT_FOUND"
+        )
 
     if (user.role !== USER_ROLES.BUYER)
         throw new AppError(
@@ -169,13 +256,27 @@ const updateCurrentUserLocation = async (userId, locationData) => {
     })
 
     if (!city)
-        throw new AppError("City not found or inactive.",404,"CITY_NOT_FOUND")
+        throw new AppError(
+            "City not found or inactive.",
+            404,
+            "CITY_NOT_FOUND"
+        )
+
+    const coordinates = await geocodeAddress(
+        city.name,
+        locationData.street,
+        locationData.streetNumber
+    )
 
     user.city = city._id
+
     user.address = {
         street: locationData.street,
         streetNumber: locationData.streetNumber,
-        additionalInfo: locationData.additionalInfo || null
+        additionalInfo:
+            locationData.additionalInfo || null,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude
     }
 
     await user.save()
@@ -183,4 +284,10 @@ const updateCurrentUserLocation = async (userId, locationData) => {
     return getCurrentUserProfile(user._id)
 }
 
-export {getCurrentUserProfile,updateCurrentUserProfile,changeCurrentUserPassword,deactivateCurrentUser, updateCurrentUserLocation}
+export {
+    getCurrentUserProfile,
+    updateCurrentUserProfile,
+    changeCurrentUserPassword,
+    deactivateCurrentUser,
+    updateCurrentUserLocation
+}

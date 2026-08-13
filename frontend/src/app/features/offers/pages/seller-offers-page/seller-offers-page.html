@@ -1,0 +1,439 @@
+<main class="seller-offers-page">
+  <div class="container">
+    <header class="page-header">
+      <div class="header-content">
+        <span class="page-eyebrow">
+          Domaćin
+        </span>
+
+        <h1>
+          Moje ponude
+        </h1>
+
+        <p>
+          Pregledaj svoje ponude i upravljaj
+          njihovom dostupnošću.
+        </p>
+      </div>
+
+      <a
+        class="create-offer-link"
+        routerLink="/seller/offers/new"
+      >
+        <svg
+          [lucideIcon]="addIcon"
+          [size]="18"
+          [strokeWidth]="1.9"
+          aria-hidden="true"
+        ></svg>
+
+        <span>
+          Nova ponuda
+        </span>
+      </a>
+    </header>
+
+    <nav
+      class="offer-filters"
+      aria-label="Filter ponuda"
+      appHorizontalScroll
+    >
+      @for (
+        option of filterOptions;
+        track option.value
+      ) {
+        <button
+          type="button"
+          [class.active]="
+            selectedFilter() ===
+            option.value
+          "
+          [attr.aria-pressed]="
+            selectedFilter() ===
+            option.value
+          "
+          (click)="
+            selectFilter(
+              option.value
+            )
+          "
+        >
+          {{ option.label }}
+        </button>
+      }
+    </nav>
+
+    @if (
+      isLoading()
+    ) {
+      <section class="state-card">
+        <div
+          class="loader"
+          aria-hidden="true"
+        ></div>
+
+        <div>
+          <h2>
+            Učitavanje ponuda
+          </h2>
+
+          <p>
+            Prikupljamo tvoje ponude.
+          </p>
+        </div>
+      </section>
+    } @else if (
+      loadError()
+    ) {
+      <section class="state-card">
+        <span
+          class="error-mark"
+          aria-hidden="true"
+        >
+          !
+        </span>
+
+        <div>
+          <h2>
+            Ponude nisu dostupne
+          </h2>
+
+          <p>
+            {{ loadError() }}
+          </p>
+        </div>
+
+        <button
+          class="retry-button"
+          type="button"
+          (click)="retry()"
+        >
+          <svg
+            [lucideIcon]="retryIcon"
+            [size]="17"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+
+          <span>
+            Pokušaj ponovo
+          </span>
+        </button>
+      </section>
+    } @else if (
+      filteredOffers().length === 0
+    ) {
+      <section class="empty-state">
+        <svg
+          [lucideIcon]="addIcon"
+          [size]="45"
+          [strokeWidth]="1.4"
+          aria-hidden="true"
+        ></svg>
+
+        <h2>
+          Nema ponuda
+        </h2>
+
+        @if (
+          selectedFilter() === 'all'
+        ) {
+          <p>
+            Još uvek nisi napravio nijednu
+            ponudu.
+          </p>
+
+          <a
+            class="empty-create-link"
+            routerLink="/seller/offers/new"
+          >
+            Napravi prvu ponudu
+          </a>
+        } @else {
+          <p>
+            Za izabrani filter trenutno nema
+            ponuda.
+          </p>
+        }
+      </section>
+    } @else {
+      <section class="offers-grid">
+        @for (
+          offer of filteredOffers();
+          track offer._id
+        ) {
+          @let category =
+            categoryConfig(
+              offer.category
+            );
+
+          <article
+            class="offer-card"
+            [style.--category-color]="
+              category.iconColor
+            "
+            [style.--category-soft]="
+              category.softColor
+            "
+          >
+            <div class="offer-image-wrapper">
+              @if (
+                offer.imageUrl
+              ) {
+                <img
+                  [src]="offer.imageUrl"
+                  [alt]="offer.name"
+                  loading="lazy"
+                  decoding="async"
+                >
+              } @else {
+                <span
+                  class="
+                    image-branch
+                    image-branch-top
+                  "
+                  aria-hidden="true"
+                ></span>
+
+                <span
+                  class="
+                    image-branch
+                    image-branch-bottom
+                  "
+                  aria-hidden="true"
+                ></span>
+
+                <div class="image-placeholder">
+                  <svg
+                    [lucideIcon]="
+                      category.icon
+                    "
+                    [size]="42"
+                    [strokeWidth]="1.4"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <span>
+                    Slika ponude nije dostupna
+                  </span>
+                </div>
+              }
+
+              <span
+                class="status-badge"
+                [class.active]="
+                  offer.isActive
+                "
+              >
+                <span
+                  class="status-dot"
+                  aria-hidden="true"
+                ></span>
+
+                {{
+                  offer.isActive
+                    ? 'Aktivna'
+                    : 'Neaktivna'
+                }}
+              </span>
+            </div>
+
+            <div class="offer-content">
+              <span class="offer-category">
+                <svg
+                  [lucideIcon]="category.icon"
+                  [size]="15"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                {{ category.name }}
+              </span>
+
+              <h2 [title]="offer.name">
+                {{ offer.name }}
+              </h2>
+
+              <p class="offer-description">
+                {{ offer.description }}
+              </p>
+
+              <div class="offer-details">
+                <div>
+                  <span>
+                    Cena
+                  </span>
+
+                  <strong>
+                    {{ offer.price }}
+                    RSD
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    Dostupno
+                  </span>
+
+                  <strong>
+                    {{
+                      offer.availableQuantity
+                    }}
+                    {{ offer.unit }}
+                  </strong>
+                </div>
+              </div>
+
+              <div class="offer-date">
+                Kreirana
+                {{
+                  formatDate(
+                    offer.createdAt
+                  )
+                }}
+              </div>
+
+              <div class="offer-actions">
+                @if (
+                  offer.isActive &&
+                  offer.availableQuantity > 0
+                ) {
+                  <a
+                    class="secondary-action"
+                    [routerLink]="[
+                      '/offers',
+                      offer._id
+                    ]"
+                  >
+                    <svg
+                      [lucideIcon]="viewIcon"
+                      [size]="16"
+                      [strokeWidth]="1.8"
+                      aria-hidden="true"
+                    ></svg>
+
+                    <span>
+                      Pregled
+                    </span>
+                  </a>
+                }
+
+                <a
+                  class="secondary-action"
+                  [routerLink]="[
+                    '/seller/offers',
+                    offer._id,
+                    'edit'
+                  ]"
+                >
+                  Izmeni
+                </a>
+
+                @if (
+                  offer.isActive
+                ) {
+                  <button
+                    class="
+                      status-action
+                      deactivate
+                    "
+                    type="button"
+                    [disabled]="
+                      actionOfferId() !== null ||
+                      deletingOfferId() !==
+                        null
+                    "
+                    (click)="
+                      deactivateOffer(
+                        offer._id
+                      )
+                    "
+                  >
+                    <svg
+                      [lucideIcon]="deactivateIcon"
+                      [size]="16"
+                      [strokeWidth]="1.8"
+                      aria-hidden="true"
+                    ></svg>
+
+                    @if (
+                      actionOfferId() ===
+                      offer._id
+                    ) {
+                      Deaktiviranje...
+                    } @else {
+                      Deaktiviraj
+                    }
+                  </button>
+                } @else {
+                  <button
+                    class="
+                      status-action
+                      activate
+                    "
+                    type="button"
+                    [disabled]="
+                      actionOfferId() !== null ||
+                      deletingOfferId() !==
+                        null
+                    "
+                    (click)="
+                      activateOffer(
+                        offer._id
+                      )
+                    "
+                  >
+                    <svg
+                      [lucideIcon]="activateIcon"
+                      [size]="16"
+                      [strokeWidth]="1.8"
+                      aria-hidden="true"
+                    ></svg>
+
+                    @if (
+                      actionOfferId() ===
+                      offer._id
+                    ) {
+                      Aktiviranje...
+                    } @else {
+                      Aktiviraj
+                    }
+                  </button>
+                }
+
+                <button
+                  class="delete-action"
+                  type="button"
+                  [disabled]="
+                    deletingOfferId() !==
+                      null ||
+                    actionOfferId() !== null
+                  "
+                  (click)="
+                    deleteOffer(offer)
+                  "
+                >
+                  <svg
+                    [lucideIcon]="deleteIcon"
+                    [size]="16"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  @if (
+                    deletingOfferId() ===
+                    offer._id
+                  ) {
+                    Brisanje...
+                  } @else {
+                    Obriši
+                  }
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </section>
+    }
+  </div>
+</main>

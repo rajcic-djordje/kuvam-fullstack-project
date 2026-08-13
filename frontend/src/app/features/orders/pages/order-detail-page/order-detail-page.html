@@ -1,0 +1,991 @@
+<main class="order-detail-page">
+  <div class="container">
+    <a
+      class="back-link"
+      routerLink="/orders"
+    >
+      <svg
+        [lucideIcon]="backIcon"
+        [size]="17"
+        [strokeWidth]="1.8"
+        aria-hidden="true"
+      ></svg>
+
+      <span>
+        Nazad na moje porudžbine
+      </span>
+    </a>
+
+    @if (isLoading()) {
+      <section class="state-card">
+        <div
+          class="loader"
+          aria-hidden="true"
+        ></div>
+
+        <div>
+          <h1>
+            Učitavanje porudžbine
+          </h1>
+
+          <p>
+            Prikupljamo podatke o porudžbini.
+          </p>
+        </div>
+      </section>
+    } @else if (loadError()) {
+      <section class="state-card">
+        <span
+          class="error-mark"
+          aria-hidden="true"
+        >
+          !
+        </span>
+
+        <div>
+          <h1>
+            Porudžbina nije dostupna
+          </h1>
+
+          <p>
+            {{ loadError() }}
+          </p>
+        </div>
+
+        <button
+          class="retry-button"
+          type="button"
+          (click)="retry()"
+        >
+          Pokušaj ponovo
+        </button>
+      </section>
+    } @else if (
+      order();
+      as currentOrder
+    ) {
+      <header class="page-header">
+        <div class="header-content">
+          <span class="page-eyebrow">
+            Porudžbina
+            #{{
+              currentOrder._id
+                .slice(-6)
+                .toUpperCase()
+            }}
+          </span>
+
+          <h1>
+            Porudžbina kod
+            {{
+              currentOrder.seller
+                .businessName
+            }}
+          </h1>
+
+          <div class="header-meta">
+            <span>
+              Kreirana
+              {{
+                formatDate(
+                  currentOrder.createdAt
+                )
+              }}
+            </span>
+
+            <span aria-hidden="true">
+              •
+            </span>
+
+            <span>
+              {{
+                currentOrder.items.length
+              }}
+
+              {{
+                currentOrder.items.length === 1
+                  ? 'stavka'
+                  : 'stavki'
+              }}
+            </span>
+
+            <span aria-hidden="true">
+              •
+            </span>
+
+            <strong>
+              {{
+                currentOrder.totalPrice
+              }}
+              RSD
+            </strong>
+          </div>
+        </div>
+
+        <span
+          class="status-badge"
+          [attr.data-status]="
+            currentOrder.status
+          "
+        >
+          <span
+            class="status-dot"
+            aria-hidden="true"
+          ></span>
+
+          {{
+            statusLabel(
+              currentOrder.status
+            )
+          }}
+        </span>
+      </header>
+
+      <section class="detail-layout">
+        <div class="main-column">
+          @if (
+            currentOrder.status ===
+              'ready' &&
+            currentOrder.pickupCode
+          ) {
+            <section
+              class="
+                detail-card
+                pickup-code-card
+              "
+            >
+              <div class="pickup-code-heading">
+                <div class="heading-icon">
+                  <svg
+                    [lucideIcon]="codeIcon"
+                    [size]="21"
+                    [strokeWidth]="1.7"
+                    aria-hidden="true"
+                  ></svg>
+                </div>
+
+                <div>
+                  <span>
+                    Preuzimanje porudžbine
+                  </span>
+
+                  <h2>
+                    Kod za preuzimanje
+                  </h2>
+                </div>
+              </div>
+
+              <div class="pickup-code-content">
+                <p>
+                  Pokaži kod domaćinu tek kada
+                  preuzmeš celu porudžbinu.
+                </p>
+
+                <strong class="pickup-code">
+                  {{
+                    currentOrder.pickupCode
+                  }}
+                </strong>
+              </div>
+
+              @if (
+                currentOrder.buyerOnTheWayAt
+              ) {
+                <div class="on-the-way-confirmation">
+                  <svg
+                    [lucideIcon]="navigationIcon"
+                    [size]="18"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <div>
+                    <strong>
+                      Domaćin je obavešten da si
+                      krenuo
+                    </strong>
+
+                    <span>
+                      Obavešten
+                      {{
+                        formatDate(
+                          currentOrder
+                            .buyerOnTheWayAt
+                        )
+                      }}
+                    </span>
+                  </div>
+                </div>
+              } @else {
+                <button
+                  class="on-the-way-button"
+                  type="button"
+                  [disabled]="
+                    isMarkingOnTheWay()
+                  "
+                  (click)="
+                    markAsOnTheWay()
+                  "
+                >
+                  <svg
+                    [lucideIcon]="navigationIcon"
+                    [size]="17"
+                    [strokeWidth]="1.9"
+                    aria-hidden="true"
+                  ></svg>
+
+                  @if (
+                    isMarkingOnTheWay()
+                  ) {
+                    Obaveštavanje...
+                  } @else {
+                    Krenuo sam po porudžbinu
+                  }
+                </button>
+              }
+            </section>
+          }
+
+          <section
+            class="
+              detail-card
+              order-items-card
+            "
+          >
+            <div class="card-heading">
+              <div class="heading-icon">
+                <svg
+                  [lucideIcon]="orderIcon"
+                  [size]="21"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div>
+                <span>
+                  Sadržaj porudžbine
+                </span>
+
+                <h2>
+                  Poručene stavke
+                </h2>
+              </div>
+            </div>
+
+            <div class="information-list">
+              @for (
+                item of currentOrder.items;
+                track $index
+              ) {
+                <div class="information-row">
+                  <div class="item-information">
+                    <strong>
+                      {{ item.name }}
+                    </strong>
+
+                    <span>
+                      {{ item.quantity }}
+                      {{ item.unit }}
+                      ×
+                      {{ item.unitPrice }}
+                      RSD
+                    </span>
+                  </div>
+
+                  <strong class="item-price">
+                    {{ item.totalPrice }}
+                    RSD
+                  </strong>
+                </div>
+              }
+
+              <div class="information-total">
+                <span>
+                  Ukupna cena
+                </span>
+
+                <strong>
+                  {{
+                    currentOrder.totalPrice
+                  }}
+                  RSD
+                </strong>
+              </div>
+            </div>
+
+            @if (
+              currentOrder.buyerNote
+            ) {
+              <div class="note-box">
+                <span>
+                  Napomena domaćinu
+                </span>
+
+                <p>
+                  {{
+                    currentOrder.buyerNote
+                  }}
+                </p>
+              </div>
+            }
+
+            @if (
+              currentOrder.status ===
+                'rejected' &&
+              currentOrder.rejectionReason
+            ) {
+              <div
+                class="
+                  note-box
+                  rejection-box
+                "
+              >
+                <span>
+                  Razlog odbijanja
+                </span>
+
+                <p>
+                  {{
+                    currentOrder
+                      .rejectionReason
+                  }}
+                </p>
+              </div>
+            }
+          </section>
+
+          <section
+            class="
+              detail-card
+              seller-card
+            "
+          >
+            <div class="card-heading">
+              <div class="heading-icon">
+                <svg
+                  [lucideIcon]="sellerIcon"
+                  [size]="21"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div>
+                <span>
+                  Domaćin
+                </span>
+
+                <h2>
+                  Podaci o domaćinu
+                </h2>
+              </div>
+            </div>
+
+            <div class="seller-information">
+              <strong>
+                {{
+                  currentOrder.seller
+                    .businessName
+                }}
+              </strong>
+
+              @if (
+                currentOrder.seller
+                  .description
+              ) {
+                <p>
+                  {{
+                    currentOrder.seller
+                      .description
+                  }}
+                </p>
+              }
+            </div>
+
+            @if (
+              currentOrder.status ===
+              'completed'
+            ) {
+              <div class="seller-completed-actions">
+                <button
+                  class="review-button"
+                  type="button"
+                  (click)="
+                    openReviewModal()
+                  "
+                >
+                  <svg
+                    [lucideIcon]="starIcon"
+                    [size]="17"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  Oceni domaćina
+                </button>
+
+                <button
+                  class="report-button"
+                  type="button"
+                  (click)="
+                    openReportModal()
+                  "
+                >
+                  <svg
+                    [lucideIcon]="reportIcon"
+                    [size]="17"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  Prijavi domaćina
+                </button>
+              </div>
+            }
+          </section>
+        </div>
+
+        <aside class="side-column">
+          <section
+            class="
+              detail-card
+              location-card
+            "
+          >
+            <div class="card-heading">
+              <div class="heading-icon">
+                <svg
+                  [lucideIcon]="locationIcon"
+                  [size]="21"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div>
+                <span>
+                  Lično preuzimanje
+                </span>
+
+                <h2>
+                  Mesto preuzimanja
+                </h2>
+              </div>
+            </div>
+
+            @if (
+              currentOrder.estimatedPickupAt &&
+              (
+                currentOrder.status ===
+                  'accepted' ||
+                currentOrder.status ===
+                  'ready'
+              )
+            ) {
+              <div class="pickup-estimate">
+                <svg
+                  [lucideIcon]="pendingIcon"
+                  [size]="18"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <div>
+                  <span>
+                    Procena vremena preuzimanja
+                  </span>
+
+                  <strong>
+                    {{
+                      formatDate(
+                        currentOrder
+                          .estimatedPickupAt
+                      )
+                    }}
+                  </strong>
+                </div>
+              </div>
+            }
+
+            @if (
+              canShowPickupAddress(
+                currentOrder
+              ) &&
+              currentOrder.seller
+                .pickupAddress
+            ) {
+              <div class="pickup-address">
+                @if (
+                  currentOrder.seller.city
+                ) {
+                  <span class="city-name">
+                    {{
+                      currentOrder.seller
+                        .city.name
+                    }}
+                  </span>
+                }
+
+                <strong>
+                  {{
+                    currentOrder.seller
+                      .pickupAddress.street
+                  }}
+                  {{
+                    currentOrder.seller
+                      .pickupAddress
+                      .streetNumber
+                  }}
+                </strong>
+
+                @if (
+                  currentOrder.seller
+                    .pickupAddress
+                    .additionalInfo
+                ) {
+                  <p>
+                    {{
+                      currentOrder.seller
+                        .pickupAddress
+                        .additionalInfo
+                    }}
+                  </p>
+                }
+
+                <div class="map-wrapper">
+                  <app-order-route-map
+                    [pickupAddress]="
+                      currentOrder.seller
+                        .pickupAddress
+                    "
+                  />
+                </div>
+              </div>
+            } @else {
+              <div class="locked-location">
+                <svg
+                  [lucideIcon]="pendingIcon"
+                  [size]="24"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+
+                <strong>
+                  Adresa još nije dostupna
+                </strong>
+
+                <p>
+                  Mesto preuzimanja će biti
+                  prikazano kada domaćin prihvati
+                  porudžbinu.
+                </p>
+              </div>
+            }
+          </section>
+        </aside>
+      </section>
+    }
+
+    @if (
+      isReviewModalOpen()
+    ) {
+      <div
+        class="review-modal-backdrop"
+        (click)="closeReviewModal()"
+      >
+        <section
+          class="review-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reviewModalTitle"
+          (click)="
+            $event.stopPropagation()
+          "
+        >
+          <button
+            class="review-modal-close"
+            type="button"
+            aria-label="Zatvori ocenjivanje"
+            [disabled]="
+              isSubmittingReview()
+            "
+            (click)="closeReviewModal()"
+          >
+            <svg
+              [lucideIcon]="closeIcon"
+              [size]="21"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
+          </button>
+
+          <header class="review-modal-header">
+            <div
+              class="review-modal-symbol"
+              aria-hidden="true"
+            >
+              <svg
+                [lucideIcon]="starIcon"
+                [size]="54"
+                [strokeWidth]="1.4"
+              ></svg>
+            </div>
+
+            <div class="review-modal-heading">
+              <h2 id="reviewModalTitle">
+                Oceni domaćina
+              </h2>
+
+              <p>
+                Kako si zadovoljan ovom
+                porudžbinom? Tvoja ocena pomaže
+                drugim kupcima pri izboru
+                domaćina.
+              </p>
+            </div>
+
+            <div
+              class="modal-heading-decoration"
+              aria-hidden="true"
+            >
+              <span></span>
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="M5 15c6 0 10-4 12-10"
+                ></path>
+
+                <path
+                  d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"
+                ></path>
+
+                <path
+                  d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"
+                ></path>
+              </svg>
+
+              <span></span>
+            </div>
+          </header>
+
+          <div class="rating-field">
+            <span class="rating-label">
+              Tvoja ocena
+            </span>
+
+            <div
+              class="rating-stars"
+              role="radiogroup"
+              aria-label="Ocena domaćina"
+            >
+              @for (
+                rating of ratingOptions;
+                track rating
+              ) {
+                <button
+                  class="rating-star"
+                  type="button"
+                  role="radio"
+                  [class.active]="
+                    rating <=
+                    reviewRating()
+                  "
+                  [attr.aria-checked]="
+                    reviewRating() ===
+                    rating
+                  "
+                  [attr.aria-label]="
+                    rating + ' od 5'
+                  "
+                  [disabled]="
+                    isSubmittingReview()
+                  "
+                  (click)="
+                    selectRating(rating)
+                  "
+                >
+                  <svg
+                    [lucideIcon]="starIcon"
+                    [size]="34"
+                    [strokeWidth]="1.5"
+                    aria-hidden="true"
+                  ></svg>
+                </button>
+              }
+            </div>
+
+            @if (
+              reviewRating() > 0
+            ) {
+              <span class="rating-value">
+                {{ reviewRating() }}/5
+              </span>
+            } @else {
+              <span class="rating-hint">
+                Izaberi od 1 do 5 zvezdica
+              </span>
+            }
+          </div>
+
+          <div class="review-field">
+            <div class="review-label-row">
+              <label for="reviewComment">
+                Komentar
+                <span>
+                  opciono
+                </span>
+              </label>
+
+              <span>
+                {{
+                  reviewComment().length
+                }}/1000
+              </span>
+            </div>
+
+            <textarea
+              id="reviewComment"
+              rows="5"
+              maxlength="1000"
+              placeholder="Podeli svoje iskustvo sa ovim domaćinom..."
+              [ngModel]="reviewComment()"
+              (ngModelChange)="
+                updateReviewComment(
+                  $event
+                )
+              "
+            ></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button
+              class="modal-cancel-button"
+              type="button"
+              [disabled]="
+                isSubmittingReview()
+              "
+              (click)="closeReviewModal()"
+            >
+              Otkaži
+            </button>
+
+            <button
+              class="modal-submit-button"
+              type="button"
+              [disabled]="
+                isSubmittingReview() ||
+                reviewRating() === 0
+              "
+              (click)="submitReview()"
+            >
+              @if (
+                isSubmittingReview()
+              ) {
+                Slanje...
+              } @else {
+                Pošalji ocenu
+              }
+            </button>
+          </div>
+        </section>
+      </div>
+    }
+
+    @if (
+      isReportModalOpen()
+    ) {
+      <div
+        class="report-modal-backdrop"
+        (click)="closeReportModal()"
+      >
+        <section
+          class="report-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reportModalTitle"
+          (click)="
+            $event.stopPropagation()
+          "
+        >
+          <button
+            class="report-modal-close"
+            type="button"
+            aria-label="Zatvori prijavu"
+            [disabled]="
+              isSubmittingReport()
+            "
+            (click)="closeReportModal()"
+          >
+            <svg
+              [lucideIcon]="closeIcon"
+              [size]="21"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
+          </button>
+
+          <header class="report-modal-header">
+            <div
+              class="report-modal-symbol"
+              aria-hidden="true"
+            >
+              <svg
+                [lucideIcon]="reportIcon"
+                [size]="52"
+                [strokeWidth]="1.45"
+              ></svg>
+            </div>
+
+            <div class="report-modal-heading">
+              <h2 id="reportModalTitle">
+                Prijavi domaćina
+              </h2>
+
+              <p>
+                Prijava će biti poslata
+                administratoru na pregled.
+                Ukratko opiši problem koji se
+                dogodio.
+              </p>
+            </div>
+
+            <div
+              class="modal-heading-decoration"
+              aria-hidden="true"
+            >
+              <span></span>
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="M5 15c6 0 10-4 12-10"
+                ></path>
+
+                <path
+                  d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"
+                ></path>
+
+                <path
+                  d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"
+                ></path>
+              </svg>
+
+              <span></span>
+            </div>
+          </header>
+
+          <div class="report-field">
+            <label for="reportReason">
+              Razlog prijave
+            </label>
+
+            <select
+              id="reportReason"
+              [ngModel]="reportReason()"
+              (ngModelChange)="
+                updateReportReason(
+                  $event
+                )
+              "
+            >
+              <option
+                value=""
+                disabled
+              >
+                Izaberi razlog
+              </option>
+
+              @for (
+                option of
+                  reportReasonOptions;
+                track option.value
+              ) {
+                <option
+                  [value]="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="report-field">
+            <div class="report-label-row">
+              <label
+                for="reportDescription"
+              >
+                Opis problema
+              </label>
+
+              <span>
+                {{
+                  reportDescription()
+                    .length
+                }}/1000
+              </span>
+            </div>
+
+            <textarea
+              id="reportDescription"
+              rows="5"
+              maxlength="1000"
+              placeholder="Ukratko objasni šta se dogodilo..."
+              [ngModel]="
+                reportDescription()
+              "
+              (ngModelChange)="
+                updateReportDescription(
+                  $event
+                )
+              "
+            ></textarea>
+
+            <small>
+              Najmanje 10 karaktera.
+            </small>
+          </div>
+
+          <div class="modal-actions">
+            <button
+              class="modal-cancel-button"
+              type="button"
+              [disabled]="
+                isSubmittingReport()
+              "
+              (click)="closeReportModal()"
+            >
+              Otkaži
+            </button>
+
+            <button
+              class="modal-submit-button"
+              type="button"
+              [disabled]="
+                isSubmittingReport() ||
+                !reportReason() ||
+                reportDescription()
+                  .trim()
+                  .length < 10
+              "
+              (click)="submitReport()"
+            >
+              @if (
+                isSubmittingReport()
+              ) {
+                Slanje...
+              } @else {
+                Pošalji prijavu
+              }
+            </button>
+          </div>
+        </section>
+      </div>
+    }
+  </div>
+</main>

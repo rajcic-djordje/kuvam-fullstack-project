@@ -20,8 +20,10 @@ const userSchema = new mongoose.Schema({
     address: {
     street: {type: String, trim: true, maxlength: 150, default: null},
     streetNumber: {type: String, trim: true, maxlength: 20, default: null},
-    additionalInfo: {type: String, trim: true, maxlength: 300, default: null}
-},
+    additionalInfo: {type: String, trim: true, maxlength: 300, default: null},
+    latitude: {type: Number, min: -90, max: 90, default: null},
+    longitude: {type: Number, min: -180, max: 180, default: null}
+}
 }, {timestamps: true})
 
 

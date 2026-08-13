@@ -28,4 +28,26 @@ export class SellerProfileService {
       data
     );
   }
+
+  uploadProfileImage(file: File): Observable<SellerProfileResponse> {
+    const formData = new FormData();
+
+    formData.append('image', file);
+
+    return this.http.patch<SellerProfileResponse>(
+      `${this.sellerProfileUrl}/profile-image`,
+      formData
+    );
+  }
+
+  uploadCoverImage(file: File): Observable<SellerProfileResponse> {
+    const formData = new FormData();
+
+    formData.append('image', file);
+
+    return this.http.patch<SellerProfileResponse>(
+      `${this.sellerProfileUrl}/cover-image`,
+      formData
+    );
+  }
 }

@@ -261,14 +261,13 @@ export class AdminBannedUsersPage implements OnInit, OnDestroy {
     ).toUpperCase();
   }
 
-  getRoleLabel(role: AdminUser['role']): string {
-    const labels: Record<AdminUser['role'], string> = {
-      buyer: 'Kupac',
-      seller: 'Prodavac'
-    };
-
-    return labels[role];
+  getRoleLabel(role: 'buyer' | 'seller'): string {
+  if (role === 'seller') {
+    return 'Domaćin';
   }
+
+  return 'Kupac';
+}
 
   getRoleIcon(role: AdminUser['role']): LucideIcon {
     return role === 'seller'

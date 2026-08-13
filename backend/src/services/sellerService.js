@@ -2,8 +2,11 @@ import Seller from "../models/seller.js"
 import City from "../models/city.js"
 import AppError from "../errors/appError.js"
 import Offer from "../models/offer.js"
+import fs from "node:fs/promises"
+import path from "node:path"
 import {SELLER_APPROVAL_STATUS} from "../constants/seller.js"
 import {OFFER_CATEGORIES} from "../constants/offer.js"
+import {createPublicLocationZone} from "../utils/publicLocation.js"
 
 const createSellerSlug = (businessName) => {
     return businessName
@@ -32,6 +35,13 @@ const generateUniqueSellerSlug = async (businessName, sellerId) => {
     return slug
 }
 
+const roundPublicCoordinate = (coordinate) => {
+    if (coordinate === null || coordinate === undefined)
+        return null
+
+    return Math.round(coordinate * 100) / 100
+}
+
 const formatSellerProfile = (seller) => {
     return {
         id: seller._id,
@@ -40,6 +50,7 @@ const formatSellerProfile = (seller) => {
         description: seller.description,
         profileImageUrl: seller.profileImageUrl,
         coverImageUrl: seller.coverImageUrl,
+        isOpen: seller.isOpen,
         city: seller.city
             ? {
                 id: seller.city._id,
@@ -50,7 +61,9 @@ const formatSellerProfile = (seller) => {
         pickupAddress: {
             street: seller.pickupAddress?.street ?? null,
             streetNumber: seller.pickupAddress?.streetNumber ?? null,
-            additionalInfo: seller.pickupAddress?.additionalInfo ?? null
+            additionalInfo: seller.pickupAddress?.additionalInfo ?? null,
+            latitude: seller.pickupAddress?.latitude ?? null,
+            longitude: seller.pickupAddress?.longitude ?? null
         },
         approvalStatus: seller.approvalStatus,
         rejectionReason: seller.rejectionReason,
@@ -59,7 +72,11 @@ const formatSellerProfile = (seller) => {
             seller.description &&
             seller.city &&
             seller.pickupAddress?.street &&
-            seller.pickupAddress?.streetNumber
+            seller.pickupAddress?.streetNumber &&
+            seller.pickupAddress?.latitude !== null &&
+            seller.pickupAddress?.latitude !== undefined &&
+            seller.pickupAddress?.longitude !== null &&
+            seller.pickupAddress?.longitude !== undefined
         ),
         createdAt: seller.createdAt,
         updatedAt: seller.updatedAt
@@ -74,6 +91,7 @@ const formatPublicSellerProfile = (seller) => {
         description: seller.description,
         profileImageUrl: seller.profileImageUrl,
         coverImageUrl: seller.coverImageUrl,
+        isOpen: seller.isOpen,
         city: seller.city
             ? {
                 id: seller.city._id,
@@ -97,21 +115,32 @@ const formatPublicOffer = (offer) => {
     }
 }
 
-
 const getCurrentSellerProfile = async (userId) => {
-    const seller = await Seller.findOne({user: userId}).populate("city", "name slug")
+    const seller = await Seller.findOne({
+        user: userId
+    }).populate("city", "name slug")
 
     if (!seller)
-        throw new AppError("Seller profile not found.",404,"SELLER_PROFILE_NOT_FOUND")
+        throw new AppError(
+            "Seller profile not found.",
+            404,
+            "SELLER_PROFILE_NOT_FOUND"
+        )
 
     return formatSellerProfile(seller)
 }
 
 const updateCurrentSellerProfile = async (userId, updateData) => {
-    const seller = await Seller.findOne({user: userId})
+    const seller = await Seller.findOne({
+        user: userId
+    })
 
     if (!seller)
-        throw new AppError("Seller profile not found.",404,"SELLER_PROFILE_NOT_FOUND")
+        throw new AppError(
+            "Seller profile not found.",
+            404,
+            "SELLER_PROFILE_NOT_FOUND"
+        )
 
     if (updateData.businessName !== undefined) {
         seller.businessName = updateData.businessName
@@ -124,27 +153,41 @@ const updateCurrentSellerProfile = async (userId, updateData) => {
     if (updateData.description !== undefined)
         seller.description = updateData.description
 
-    const containsLocationData =
+    if (updateData.isOpen !== undefined)
+        seller.isOpen = updateData.isOpen
+
+    const containsAddressData =
         updateData.cityId !== undefined ||
         updateData.street !== undefined ||
         updateData.streetNumber !== undefined ||
         updateData.additionalInfo !== undefined
 
-    if (containsLocationData) {
+    if (containsAddressData) {
         const city = await City.findOne({
             _id: updateData.cityId,
             isActive: true
         })
 
         if (!city)
-            throw new AppError("City not found or inactive.",404,"CITY_NOT_FOUND")
+            throw new AppError(
+                "City not found or inactive.",
+                404,
+                "CITY_NOT_FOUND"
+            )
 
         seller.city = city._id
-        seller.pickupAddress = {
-            street: updateData.street,
-            streetNumber: updateData.streetNumber,
-            additionalInfo: updateData.additionalInfo || null
-        }
+        seller.pickupAddress.street = updateData.street
+        seller.pickupAddress.streetNumber = updateData.streetNumber
+        seller.pickupAddress.additionalInfo = updateData.additionalInfo || null
+    }
+
+    const containsCoordinates =
+        updateData.latitude !== undefined ||
+        updateData.longitude !== undefined
+
+    if (containsCoordinates) {
+        seller.pickupAddress.latitude = updateData.latitude
+        seller.pickupAddress.longitude = updateData.longitude
     }
 
     await seller.save()
@@ -152,7 +195,11 @@ const updateCurrentSellerProfile = async (userId, updateData) => {
     return getCurrentSellerProfile(userId)
 }
 
-const getPublicSellers = async ({search, category, cityId}) => {
+const getPublicSellers = async ({
+    search,
+    category,
+    cityId
+}) => {
     if (
         category &&
         !Object.values(OFFER_CATEGORIES).includes(category)
@@ -165,11 +212,12 @@ const getPublicSellers = async ({search, category, cityId}) => {
     }
 
     const sellerFilter = {
-        approvalStatus: SELLER_APPROVAL_STATUS.APPROVED,
-        city: {$ne: null},
-        "pickupAddress.street": {$nin: [null, ""]},
-        "pickupAddress.streetNumber": {$nin: [null, ""]}
-    }
+    approvalStatus: SELLER_APPROVAL_STATUS.APPROVED,
+    isOpen: true,
+    city: {$ne: null},
+    "pickupAddress.street": {$nin: [null, ""]},
+    "pickupAddress.streetNumber": {$nin: [null, ""]}
+}
 
     if (cityId)
         sellerFilter.city = cityId
@@ -178,7 +226,9 @@ const getPublicSellers = async ({search, category, cityId}) => {
         .populate("city", "name slug")
         .sort({createdAt: -1})
 
-    const sellerIds = sellers.map((seller) => seller._id)
+    const sellerIds = sellers.map((seller) => {
+        return seller._id
+    })
 
     const offerFilter = {
         seller: {$in: sellerIds},
@@ -189,9 +239,11 @@ const getPublicSellers = async ({search, category, cityId}) => {
     if (category)
         offerFilter.category = category
 
-    const offers = await Offer.find(offerFilter).sort({createdAt: -1})
+    const offers = await Offer.find(offerFilter)
+        .sort({createdAt: -1})
 
-    const normalizedSearch = search?.trim().toLowerCase() ?? ""
+    const normalizedSearch =
+        search?.trim().toLowerCase() ?? ""
 
     const sellersById = new Map(
         sellers.map((seller) => [
@@ -208,12 +260,18 @@ const getPublicSellers = async ({search, category, cityId}) => {
 
         const sellerMatches =
             !normalizedSearch ||
-            seller.businessName.toLowerCase().includes(normalizedSearch)
+            seller.businessName
+                .toLowerCase()
+                .includes(normalizedSearch)
 
         const offerMatches =
             !normalizedSearch ||
-            offer.name.toLowerCase().includes(normalizedSearch) ||
-            offer.description.toLowerCase().includes(normalizedSearch)
+            offer.name
+                .toLowerCase()
+                .includes(normalizedSearch) ||
+            offer.description
+                .toLowerCase()
+                .includes(normalizedSearch)
 
         if (!sellerMatches && !offerMatches)
             continue
@@ -221,31 +279,49 @@ const getPublicSellers = async ({search, category, cityId}) => {
         if (!offersBySeller.has(sellerId))
             offersBySeller.set(sellerId, [])
 
-        const sellerOffers = offersBySeller.get(sellerId)
+        const sellerOffers =
+            offersBySeller.get(sellerId)
 
         if (sellerOffers.length < 3)
             sellerOffers.push(formatPublicOffer(offer))
     }
 
     return sellers
-        .filter((seller) => offersBySeller.has(seller._id.toString()))
+        .filter((seller) => {
+            return offersBySeller.has(
+                seller._id.toString()
+            )
+        })
         .map((seller) => ({
             ...formatPublicSellerProfile(seller),
-            offers: offersBySeller.get(seller._id.toString())
+            offers: offersBySeller.get(
+                seller._id.toString()
+            )
         }))
 }
 
 const getPublicSellerBySlug = async (slug) => {
     const seller = await Seller.findOne({
-        slug,
-        approvalStatus: SELLER_APPROVAL_STATUS.APPROVED,
-        city: {$ne: null},
-        "pickupAddress.street": {$nin: [null, ""]},
-        "pickupAddress.streetNumber": {$nin: [null, ""]}
-    }).populate("city", "name slug")
+    slug,
+    approvalStatus: SELLER_APPROVAL_STATUS.APPROVED,
+    isOpen: true,
+    city: {$ne: null},
+    "pickupAddress.street": {$nin: [null, ""]},
+    "pickupAddress.streetNumber": {$nin: [null, ""]}
+}).populate("city", "name slug")
 
     if (!seller)
-        throw new AppError("Seller not found.",404,"SELLER_NOT_FOUND")
+        throw new AppError(
+            "Seller not found.",
+            404,
+            "SELLER_NOT_FOUND"
+        )
+
+    const publicLocationZone = createPublicLocationZone(
+        seller._id,
+        seller.pickupAddress?.latitude,
+        seller.pickupAddress?.longitude
+    )
 
     const offers = await Offer.find({
         seller: seller._id,
@@ -255,14 +331,87 @@ const getPublicSellerBySlug = async (slug) => {
 
     return {
         ...formatPublicSellerProfile(seller),
+        publicLocationZone,
         offers: offers.map(formatPublicOffer)
     }
 }
 
+const deleteSellerImage = async (imageUrl) => {
+    if (!imageUrl)
+        return
+
+    let imagePath = imageUrl
+
+    if (
+        imageUrl.startsWith("http://") ||
+        imageUrl.startsWith("https://")
+    ) {
+        imagePath = new URL(imageUrl).pathname
+    }
+
+    if (!imagePath.startsWith("/uploads/sellers/"))
+        return
+
+    const filePath = path.resolve(imagePath.slice(1))
+
+    try {
+        await fs.unlink(filePath)
+    }
+    catch (error) {
+        if (error.code !== "ENOENT")
+            throw error
+    }
+}
+
+const updateCurrentSellerProfileImage = async (userId, imageUrl) => {
+    const seller = await Seller.findOne({
+        user: userId
+    })
+
+    if (!seller)
+        throw new AppError(
+            "Seller profile not found.",
+            404,
+            "SELLER_PROFILE_NOT_FOUND"
+        )
+
+    const previousImageUrl = seller.profileImageUrl
+
+    seller.profileImageUrl = imageUrl
+
+    await seller.save()
+    await deleteSellerImage(previousImageUrl)
+
+    return getCurrentSellerProfile(userId)
+}
+
+const updateCurrentSellerCoverImage = async (userId, imageUrl) => {
+    const seller = await Seller.findOne({
+        user: userId
+    })
+
+    if (!seller)
+        throw new AppError(
+            "Seller profile not found.",
+            404,
+            "SELLER_PROFILE_NOT_FOUND"
+        )
+
+    const previousImageUrl = seller.coverImageUrl
+
+    seller.coverImageUrl = imageUrl
+
+    await seller.save()
+    await deleteSellerImage(previousImageUrl)
+
+    return getCurrentSellerProfile(userId)
+}
 
 export {
     getCurrentSellerProfile,
     updateCurrentSellerProfile,
     getPublicSellers,
-    getPublicSellerBySlug
+    getPublicSellerBySlug,
+    updateCurrentSellerProfileImage,
+    updateCurrentSellerCoverImage
 }

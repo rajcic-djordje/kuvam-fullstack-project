@@ -1,7 +1,10 @@
 <section class="admin-page">
   <header class="page-header">
     <div class="page-heading">
-      <span class="heading-decoration" aria-hidden="true">
+      <span
+        class="heading-decoration"
+        aria-hidden="true"
+      >
         <span></span>
         <span></span>
       </span>
@@ -86,21 +89,12 @@
       </label>
     </div>
 
-    @if (successMessage()) {
-      <div class="success-message">
-        <svg
-          [lucideIcon]="approvedIcon"
-          [strokeWidth]="1.9"
-          aria-hidden="true"
-        ></svg>
-
-        {{ successMessage() }}
-      </div>
-    }
-
     @if (isLoading()) {
       <div class="page-state">
-        <span class="loader" aria-hidden="true"></span>
+        <span
+          class="loader"
+          aria-hidden="true"
+        ></span>
 
         <strong>Učitavanje prijava</strong>
 
@@ -143,7 +137,10 @@
       </div>
     } @else {
       <div class="reports-list">
-        @for (report of reports(); track report._id) {
+        @for (
+          report of reports();
+          track report._id
+        ) {
           <article class="report-card">
             <div class="participants-section">
               <div class="participant">
@@ -166,7 +163,10 @@
                 </div>
               </div>
 
-              <span class="report-arrow" aria-hidden="true">
+              <span
+                class="report-arrow"
+                aria-hidden="true"
+              >
                 <svg
                   [lucideIcon]="arrowIcon"
                   [strokeWidth]="1.8"
@@ -194,7 +194,10 @@
               </div>
             </div>
 
-            <div class="card-divider" aria-hidden="true"></div>
+            <div
+              class="card-divider"
+              aria-hidden="true"
+            ></div>
 
             <div class="information-section reason-section">
               <span class="information-label">
@@ -210,7 +213,10 @@
               </p>
             </div>
 
-            <div class="card-divider" aria-hidden="true"></div>
+            <div
+              class="card-divider"
+              aria-hidden="true"
+            ></div>
 
             <div class="information-section">
               <span class="information-label">
@@ -219,9 +225,15 @@
 
               <span
                 class="status-badge"
-                [class.pending-status]="report.status === 'pending'"
-                [class.approved-status]="report.status === 'approved'"
-                [class.rejected-status]="report.status === 'rejected'"
+                [class.pending-status]="
+                  report.status === 'pending'
+                "
+                [class.approved-status]="
+                  report.status === 'approved'
+                "
+                [class.rejected-status]="
+                  report.status === 'rejected'
+                "
               >
                 <svg
                   [lucideIcon]="getStatusIcon(report.status)"
@@ -233,7 +245,10 @@
               </span>
             </div>
 
-            <div class="card-divider" aria-hidden="true"></div>
+            <div
+              class="card-divider"
+              aria-hidden="true"
+            ></div>
 
             <div class="information-section">
               <span class="information-label">
@@ -248,7 +263,10 @@
                 ></svg>
 
                 <time [attr.datetime]="report.createdAt">
-                  {{ report.createdAt | date:'dd.MM.yyyy.' }}
+                  {{
+                    report.createdAt
+                      | date:'dd.MM.yyyy.'
+                  }}
                 </time>
               </span>
             </div>
@@ -271,15 +289,24 @@
       </div>
 
       <footer class="list-footer">
-        <span class="footer-decoration" aria-hidden="true">
+        <span
+          class="footer-decoration"
+          aria-hidden="true"
+        >
           <span></span>
           <span></span>
         </span>
 
         <p>
           Prikazano
-          <strong>{{ reports().length }}</strong>
-          {{ reports().length === 1 ? 'prijava' : 'prijava' }}
+          <strong>
+            {{ reports().length }}
+          </strong>
+          {{
+            reports().length === 1
+              ? 'prijava'
+              : 'prijava'
+          }}
         </p>
       </footer>
     }
@@ -329,9 +356,15 @@
         <div class="modal-status-row">
           <span
             class="status-badge"
-            [class.pending-status]="report.status === 'pending'"
-            [class.approved-status]="report.status === 'approved'"
-            [class.rejected-status]="report.status === 'rejected'"
+            [class.pending-status]="
+              report.status === 'pending'
+            "
+            [class.approved-status]="
+              report.status === 'approved'
+            "
+            [class.rejected-status]="
+              report.status === 'rejected'
+            "
           >
             <svg
               [lucideIcon]="getStatusIcon(report.status)"
@@ -343,7 +376,10 @@
           </span>
 
           <time [attr.datetime]="report.createdAt">
-            {{ report.createdAt | date:'dd.MM.yyyy. HH:mm' }}
+            {{
+              report.createdAt
+                | date:'dd.MM.yyyy. HH:mm'
+            }}
           </time>
         </div>
 
@@ -360,16 +396,24 @@
                 {{ getFullName(report.reporter) }}
               </strong>
 
-              <small>{{ report.reporter.email }}</small>
+              <small>
+                {{ report.reporter.email }}
+              </small>
 
               <em>
                 <svg
-                  [lucideIcon]="getRoleIcon(report.reporter.role)"
+                  [lucideIcon]="
+                    getRoleIcon(report.reporter.role)
+                  "
                   [strokeWidth]="1.8"
                   aria-hidden="true"
                 ></svg>
 
-                {{ getRoleLabel(report.reporter.role) }}
+                {{
+                  getRoleLabel(
+                    report.reporter.role
+                  )
+                }}
               </em>
             </div>
           </article>
@@ -388,88 +432,125 @@
             </span>
 
             <div>
-              <span>Prijavljeni korisnik</span>
+              <span>
+                Prijavljeni korisnik
+              </span>
 
               <strong>
                 {{ getFullName(report.reportedUser) }}
               </strong>
 
-              <small>{{ report.reportedUser.email }}</small>
+              <small>
+                {{ report.reportedUser.email }}
+              </small>
 
               <em>
                 <svg
-                  [lucideIcon]="getRoleIcon(report.reportedUser.role)"
+                  [lucideIcon]="
+                    getRoleIcon(
+                      report.reportedUser.role
+                    )
+                  "
                   [strokeWidth]="1.8"
                   aria-hidden="true"
                 ></svg>
 
-                {{ getRoleLabel(report.reportedUser.role) }}
+                {{
+                  getRoleLabel(
+                    report.reportedUser.role
+                  )
+                }}
               </em>
             </div>
           </article>
         </div>
 
         <div class="details-grid">
-            <section class="detail-section description-card">
-                <span class="detail-title">
-                Opis prijave
-                </span>
+          <section class="detail-section description-card">
+            <span class="detail-title">
+              Opis prijave
+            </span>
 
-                <article class="detail-card">
-                <p>{{ report.description }}</p>
-                </article>
-            </section>
+            <article class="detail-card">
+              <p>
+                {{ report.description }}
+              </p>
+            </article>
+          </section>
 
-            <section class="detail-section">
-                <span class="detail-title">
-                Porudžbina
-                </span>
+          <section class="detail-section">
+            <span class="detail-title">
+              Porudžbina
+            </span>
 
-                <article class="detail-card">
-                <dl>
-                    <div>
-                    <dt>Količina</dt>
-                    <dd>{{ report.order.quantity }}</dd>
-                    </div>
+            <article class="detail-card">
+              <dl>
+                <div>
+                  <dt>Količina</dt>
+                  <dd>
+                    {{ report.order.quantity }}
+                  </dd>
+                </div>
 
-                    <div>
-                    <dt>Cena po jedinici</dt>
-                    <dd>{{ report.order.unitPrice }} RSD</dd>
-                    </div>
+                <div>
+                  <dt>Cena po jedinici</dt>
+                  <dd>
+                    {{ report.order.unitPrice }}
+                    RSD
+                  </dd>
+                </div>
 
-                    <div>
-                    <dt>Ukupno</dt>
-                    <dd>{{ report.order.totalPrice }} RSD</dd>
-                    </div>
-                </dl>
-                </article>
-            </section>
+                <div>
+                  <dt>Ukupno</dt>
+                  <dd>
+                    {{ report.order.totalPrice }}
+                    RSD
+                  </dd>
+                </div>
+              </dl>
+            </article>
+          </section>
 
-            <section class="detail-section">
-                <span class="detail-title">
-                Istorija korisnika
-                </span>
+          <section class="detail-section">
+            <span class="detail-title">
+              Istorija korisnika
+            </span>
 
-                <article class="detail-card">
-                <dl>
-                    <div>
-                    <dt>Broj prijava</dt>
-                    <dd>{{ report.reportedUser.reportsCount }}</dd>
-                    </div>
+            <article class="detail-card">
+              <dl>
+                <div>
+                  <dt>Broj prijava</dt>
+                  <dd>
+                    {{
+                      report.reportedUser
+                        .reportsCount
+                    }}
+                  </dd>
+                </div>
 
-                    <div>
-                    <dt>Potvrđeni prekršaji</dt>
-                    <dd>{{ report.reportedUser.offences }}</dd>
-                    </div>
+                <div>
+                  <dt>Potvrđeni prekršaji</dt>
+                  <dd>
+                    {{
+                      report.reportedUser
+                        .offences
+                    }}
+                  </dd>
+                </div>
 
-                    <div>
-                    <dt>Status naloga</dt>
-                    <dd>{{ report.reportedUser.status }}</dd>
-                    </div>
-                </dl>
-                </article>
-            </section>
-            </div>
+                <div>
+                  <dt>Status naloga</dt>
+                  <dd>
+                    {{
+                      report.reportedUser
+                        .status
+                    }}
+                  </dd>
+                </div>
+              </dl>
+            </article>
+          </section>
+        </div>
 
         @if (report.status === 'pending') {
           <label class="admin-note-field">
@@ -483,19 +564,17 @@
               placeholder="Unesi napomenu ili razlog odbijanja prijave..."
               [value]="adminNote()"
               [disabled]="isProcessing()"
-              (input)="onAdminNoteChange(adminNoteInput.value)"
+              (input)="
+                onAdminNoteChange(
+                  adminNoteInput.value
+                )
+              "
             ></textarea>
 
             <small>
               {{ adminNote().length }} / 1000
             </small>
           </label>
-
-          @if (actionErrorMessage()) {
-            <p class="action-error">
-              {{ actionErrorMessage() }}
-            </p>
-          }
 
           <footer class="modal-actions">
             <button
@@ -520,7 +599,10 @@
               (click)="approveSelectedReport()"
             >
               @if (isProcessing()) {
-                <span class="button-loader"></span>
+                <span
+                  class="button-loader"
+                  aria-hidden="true"
+                ></span>
               } @else {
                 <svg
                   [lucideIcon]="approvedIcon"
@@ -534,20 +616,32 @@
           </footer>
         } @else {
           <article class="review-card">
-            <span>Administratorska odluka</span>
+            <span>
+              Administratorska odluka
+            </span>
 
             <p>
-              {{ report.adminNote || 'Napomena nije navedena.' }}
+              {{
+                report.adminNote ||
+                  'Napomena nije navedena.'
+              }}
             </p>
 
             @if (report.reviewedBy) {
               <small>
                 Obradio:
-                {{ getFullName(report.reviewedBy) }}
+                {{
+                  getFullName(
+                    report.reviewedBy
+                  )
+                }}
 
                 @if (report.reviewedAt) {
                   ·
-                  {{ report.reviewedAt | date:'dd.MM.yyyy. HH:mm' }}
+                  {{
+                    report.reviewedAt
+                      | date:'dd.MM.yyyy. HH:mm'
+                  }}
                 }
               </small>
             }

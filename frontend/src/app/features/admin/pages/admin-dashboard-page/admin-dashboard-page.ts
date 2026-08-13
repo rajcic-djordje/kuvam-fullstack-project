@@ -3,6 +3,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   LucideBadgeCheck,
+  LucideChevronRight,
   LucideClipboardCheck,
   LucideClipboardList,
   LucideDynamicIcon,
@@ -46,6 +47,7 @@ export class AdminDashboardPage implements OnInit {
   readonly reportsPanelIcon: LucideIcon = LucideFlag;
   readonly sellersPanelIcon: LucideIcon = LucideClipboardList;
   readonly activityPanelIcon: LucideIcon = LucideClipboardCheck;
+  readonly chevronIcon: LucideIcon = LucideChevronRight;
 
   ngOnInit(): void {
     this.loadDashboard();

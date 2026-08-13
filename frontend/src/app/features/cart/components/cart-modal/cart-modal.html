@@ -1,0 +1,436 @@
+@if (cartService.isOpen()) {
+  <div
+    class="cart-backdrop"
+    (click)="close()"
+  >
+    <section
+      class="cart-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cartModalTitle"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        class="close-button"
+        type="button"
+        aria-label="Zatvori korpu"
+        [disabled]="isSubmitting()"
+        (click)="close()"
+      >
+        <svg
+          [lucideIcon]="closeIcon"
+          [size]="21"
+          [strokeWidth]="1.8"
+          aria-hidden="true"
+        ></svg>
+      </button>
+
+      <header class="modal-header">
+        <svg
+          class="modal-symbol"
+          [lucideIcon]="cartIcon"
+          [size]="54"
+          [strokeWidth]="1.45"
+          aria-hidden="true"
+        ></svg>
+
+        <h2 id="cartModalTitle">
+          Moja korpa
+        </h2>
+
+        @if (
+          cartService
+            .items()
+            .length > 0
+        ) {
+          <p>
+            Pregledaj stavke i potvrdi porudžbinu kod domaćina.
+          </p>
+        } @else {
+          <p>
+            Ovde će se prikazati ponude koje dodaš u korpu.
+          </p>
+        }
+
+        <div
+          class="heading-decoration"
+          aria-hidden="true"
+        >
+          <span></span>
+
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M5 15c6 0 10-4 12-10"
+            ></path>
+
+            <path
+              d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"
+            ></path>
+
+            <path
+              d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"
+            ></path>
+          </svg>
+
+          <span></span>
+        </div>
+      </header>
+
+      @if (error()) {
+        <div
+          class="message-box error-message"
+          role="alert"
+        >
+          <svg
+            [lucideIcon]="alertIcon"
+            [size]="19"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+
+          <p>
+            {{ error() }}
+          </p>
+        </div>
+      }
+
+      @if (refreshWarning()) {
+        <div
+          class="message-box warning-message"
+          role="status"
+        >
+          <svg
+            [lucideIcon]="infoIcon"
+            [size]="19"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+
+          <p>
+            {{ refreshWarning() }}
+          </p>
+        </div>
+      }
+
+      @if (
+        cartService
+          .items()
+          .length === 0
+      ) {
+        <div class="empty-cart">
+          <svg
+            [lucideIcon]="cartIcon"
+            [size]="46"
+            [strokeWidth]="1.4"
+            aria-hidden="true"
+          ></svg>
+
+          <h3>
+            Korpa je prazna
+          </h3>
+
+          <p>
+            Otvori neku ponudu i izaberi količinu koju želiš da poručiš.
+          </p>
+        </div>
+
+        <footer class="modal-actions empty-actions">
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="close()"
+          >
+            Nastavi pregled ponuda
+          </button>
+        </footer>
+      } @else {
+        <div class="seller-summary">
+          <svg
+            [lucideIcon]="storeIcon"
+            [size]="21"
+            [strokeWidth]="1.7"
+            aria-hidden="true"
+          ></svg>
+
+          <div>
+            <span>
+              Porudžbina kod domaćina
+            </span>
+
+            <strong>
+              {{
+                cartService
+                  .seller()
+                  ?.businessName
+              }}
+            </strong>
+          </div>
+
+          <small>
+            {{
+              cartService
+                .itemCount()
+            }}
+
+            {{
+              cartService.itemCount() === 1
+                ? 'proizvod'
+                : 'proizvoda'
+            }}
+          </small>
+        </div>
+
+        @if (isRefreshing()) {
+          <div class="refresh-state">
+            <span
+              class="refresh-spinner"
+              aria-hidden="true"
+            ></span>
+
+            <span>
+              Proveravamo trenutne cene i dostupnost...
+            </span>
+          </div>
+        }
+
+        <div class="cart-items">
+          @for (
+            item of cartService.items();
+            track item.offerId
+          ) {
+            <article class="cart-item">
+              <div class="cart-item-image">
+                @if (item.imageUrl) {
+                  <img
+                    [src]="item.imageUrl"
+                    [alt]="item.name"
+                    loading="lazy"
+                    decoding="async"
+                  >
+                } @else {
+                  <svg
+                    [lucideIcon]="cartIcon"
+                    [size]="27"
+                    [strokeWidth]="1.4"
+                    aria-hidden="true"
+                  ></svg>
+                }
+              </div>
+
+              <div class="cart-item-content">
+                <div class="cart-item-heading">
+                  <div>
+                    <h3>
+                      {{ item.name }}
+                    </h3>
+
+                    <span>
+                      {{ item.unitPrice }} RSD /
+                      {{ item.unit }}
+                    </span>
+                  </div>
+
+                  <button
+                    class="remove-button"
+                    type="button"
+                    aria-label="Ukloni stavku iz korpe"
+                    [disabled]="
+                      isSubmitting() ||
+                      isRefreshing()
+                    "
+                    (click)="
+                      remove(
+                        item.offerId
+                      )
+                    "
+                  >
+                    <svg
+                      [lucideIcon]="removeIcon"
+                      [size]="17"
+                      [strokeWidth]="1.8"
+                      aria-hidden="true"
+                    ></svg>
+                  </button>
+                </div>
+
+                <div class="cart-item-footer">
+                  <div class="quantity-area">
+                    <div class="quantity-control">
+                      <button
+                        type="button"
+                        aria-label="Smanji količinu"
+                        [disabled]="
+                          isSubmitting() ||
+                          isRefreshing()
+                        "
+                        (click)="
+                          decrease(
+                            item.offerId,
+                            item.quantity
+                          )
+                        "
+                      >
+                        <svg
+                          [lucideIcon]="minusIcon"
+                          [size]="15"
+                          [strokeWidth]="2"
+                          aria-hidden="true"
+                        ></svg>
+                      </button>
+
+                      <span>
+                        {{ item.quantity }}
+                      </span>
+
+                      <button
+                        type="button"
+                        aria-label="Povećaj količinu"
+                        [disabled]="
+                          isSubmitting() ||
+                          isRefreshing() ||
+                          item.quantity >=
+                            item.availableQuantity
+                        "
+                        (click)="
+                          increase(
+                            item.offerId,
+                            item.quantity
+                          )
+                        "
+                      >
+                        <svg
+                          [lucideIcon]="plusIcon"
+                          [size]="15"
+                          [strokeWidth]="2"
+                          aria-hidden="true"
+                        ></svg>
+                      </button>
+                    </div>
+
+                    <small>
+                      Dostupno:
+                      {{ item.availableQuantity }}
+                      {{ item.unit }}
+                    </small>
+                  </div>
+
+                  <strong class="item-total">
+                    {{
+                      item.unitPrice *
+                      item.quantity
+                    }}
+                    RSD
+                  </strong>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+
+        <section class="order-note">
+          <div class="label-row">
+            <label for="cartBuyerNote">
+              Napomena domaćinu
+
+              <span>
+                opciono
+              </span>
+            </label>
+
+            <small>
+              {{ buyerNote().length }}/500
+            </small>
+          </div>
+
+          <textarea
+            id="cartBuyerNote"
+            rows="3"
+            maxlength="500"
+            placeholder="Na primer: pozvonite kada stignete..."
+            [disabled]="isSubmitting()"
+            [ngModel]="buyerNote()"
+            (ngModelChange)="updateNote($event)"
+          ></textarea>
+        </section>
+
+        <div class="order-note-info">
+          <svg
+            [lucideIcon]="shieldIcon"
+            [size]="20"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+
+          <p>
+            Cena i dostupna količina proveravaju se ponovo pre kreiranja porudžbine.
+          </p>
+
+          <button
+            type="button"
+            aria-label="Ponovo proveri korpu"
+            [disabled]="
+              isRefreshing() ||
+              isSubmitting()
+            "
+            (click)="refreshCart()"
+          >
+            <svg
+              [lucideIcon]="refreshIcon"
+              [size]="17"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
+          </button>
+        </div>
+
+        <footer class="modal-actions">
+          <button
+            class="secondary-button"
+            type="button"
+            [disabled]="isSubmitting()"
+            (click)="close()"
+          >
+            Nastavi kupovinu
+          </button>
+
+          <div class="checkout-action">
+            <div class="cart-total">
+              <span>
+                Ukupno
+              </span>
+
+              <strong>
+                {{
+                  cartService
+                    .totalPrice()
+                }}
+                RSD
+              </strong>
+            </div>
+
+            <button
+              class="confirm-button"
+              type="button"
+              [disabled]="
+                isSubmitting() ||
+                isRefreshing()
+              "
+              (click)="submit()"
+            >
+              @if (isSubmitting()) {
+                <span
+                  class="button-spinner"
+                  aria-hidden="true"
+                ></span>
+
+                Slanje...
+              } @else {
+                Potvrdi porudžbinu
+              }
+            </button>
+          </div>
+        </footer>
+      }
+    </section>
+  </div>
+}

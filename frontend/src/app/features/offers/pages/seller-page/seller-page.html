@@ -1,0 +1,834 @@
+<main class="seller-page">
+  <div class="container seller-page-container">
+    <a
+      class="back-link"
+      routerLink="/offers"
+    >
+      <svg
+        [lucideIcon]="backIcon"
+        [size]="18"
+        [strokeWidth]="1.9"
+        aria-hidden="true"
+      ></svg>
+
+      <span>
+        Nazad na ponude
+      </span>
+    </a>
+
+    @if (isLoading()) {
+      <section class="page-state">
+        <div
+          class="loader"
+          aria-hidden="true"
+        ></div>
+
+        <div>
+          <h1>
+            Učitavanje domaćina
+          </h1>
+
+          <p>
+            Pripremamo profil i trenutno
+            dostupne ponude.
+          </p>
+        </div>
+      </section>
+    } @else if (loadError()) {
+      <section class="page-state">
+        <span
+          class="state-mark"
+          aria-hidden="true"
+        >
+          !
+        </span>
+
+        <div>
+          <h1>
+            Domaćin nije dostupan
+          </h1>
+
+          <p>
+            {{ loadError() }}
+          </p>
+        </div>
+
+        <button
+          class="retry-button"
+          type="button"
+          (click)="retry()"
+        >
+          Pokušaj ponovo
+        </button>
+      </section>
+    } @else if (
+      seller();
+      as currentSeller
+    ) {
+      <section class="seller-hero">
+        <div class="seller-identity">
+          <div class="seller-pattern">
+            <span class="seller-city-pill">
+              <svg
+                [lucideIcon]="mapPinIcon"
+                [size]="15"
+                [strokeWidth]="1.9"
+                aria-hidden="true"
+              ></svg>
+
+              {{
+                currentSeller.city.name
+              }}
+            </span>
+          </div>
+
+          <div class="seller-identity-content">
+            <div class="seller-avatar-wrapper">
+              @if (
+                currentSeller.profileImageUrl
+              ) {
+                <img
+                  class="seller-avatar"
+                  [src]="
+                    currentSeller.profileImageUrl
+                  "
+                  [alt]="
+                    'Profilna slika domaćina ' +
+                    currentSeller.businessName
+                  "
+                  decoding="async"
+                >
+              } @else {
+                <div
+                  class="
+                    seller-avatar
+                    seller-avatar-fallback
+                  "
+                >
+                  {{
+                    sellerInitials(
+                      currentSeller.businessName
+                    )
+                  }}
+                </div>
+              }
+
+              <span
+                class="seller-status-dot"
+                aria-hidden="true"
+              ></span>
+            </div>
+
+            <div class="seller-title-row">
+              <h1>
+                {{
+                  currentSeller.businessName
+                }}
+              </h1>
+
+              <svg
+                class="seller-verified"
+                [lucideIcon]="verifiedIcon"
+                [size]="21"
+                [strokeWidth]="1.9"
+                aria-label="Proveren domaćin"
+              ></svg>
+            </div>
+
+            <p class="seller-description">
+              {{
+                currentSeller.description ||
+                'Ovaj domaćin još nije uneo opis svog domaćinstva.'
+              }}
+            </p>
+
+            <div class="seller-meta">
+              <div>
+                <span>
+                  Preuzimanje
+                </span>
+
+                <strong>
+                  Lično kod domaćina
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Lokacija
+                </span>
+
+                <strong>
+                  {{
+                    currentSeller.city.name
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Ocena
+                </span>
+
+                @if (
+                  reviewsCount() > 0
+                ) {
+                  <strong class="seller-rating-meta">
+                    <svg
+                      [lucideIcon]="starIcon"
+                      [size]="14"
+                      [strokeWidth]="1.7"
+                      aria-hidden="true"
+                    ></svg>
+
+                    {{
+                      roundedAverageRating()
+                    }}
+
+                    ·
+
+                    {{
+                      reviewsCount()
+                    }}
+
+                    {{
+                      reviewsCountLabel(
+                        reviewsCount()
+                      )
+                    }}
+                  </strong>
+                } @else {
+                  <strong>
+                    Još nema ocena
+                  </strong>
+                }
+              </div>
+
+              <div>
+                <span>
+                  Status
+                </span>
+
+                <strong>
+                  Proveren domaćin
+                </strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="seller-cover">
+          @if (
+            currentSeller.coverImageUrl
+          ) {
+            <img
+              [src]="
+                currentSeller.coverImageUrl
+              "
+              [alt]="
+                'Naslovna slika domaćina ' +
+                currentSeller.businessName
+              "
+              decoding="async"
+            >
+          } @else {
+            <div class="seller-cover-placeholder">
+              <div
+                class="cover-placeholder-decoration"
+                aria-hidden="true"
+              ></div>
+
+              <div class="cover-placeholder-content">
+                <div class="cover-placeholder-icon">
+                  <svg
+                    [lucideIcon]="storeIcon"
+                    [size]="42"
+                    [strokeWidth]="1.45"
+                    aria-hidden="true"
+                  ></svg>
+                </div>
+
+                <strong>
+                  {{
+                    currentSeller.businessName
+                  }}
+                </strong>
+
+                <span>
+                  Domaće, pažljivo pripremljeno
+                </span>
+              </div>
+            </div>
+          }
+
+          <div
+            class="seller-cover-overlay"
+            aria-hidden="true"
+          ></div>
+        </div>
+      </section>
+
+      <section class="seller-overview">
+        <article class="seller-about-card">
+          <div
+            class="about-botanical"
+            aria-hidden="true"
+          ></div>
+
+          <div class="seller-about-content">
+            <span class="information-label">
+              O domaćinu
+            </span>
+
+            <h2>
+              Malo više o ovom domaćinu
+            </h2>
+
+            <p class="about-description">
+              {{
+                currentSeller.description ||
+                'Ovaj domaćin još nije uneo dodatne informacije o svom domaćinstvu.'
+              }}
+            </p>
+
+            <div class="seller-facts">
+              <div class="seller-fact">
+                <svg
+                  [lucideIcon]="mapPinIcon"
+                  [size]="18"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <div>
+                  <span>
+                    Preuzimanje
+                  </span>
+
+                  <strong>
+                    Lično kod domaćina
+                  </strong>
+                </div>
+              </div>
+
+              <div class="seller-fact">
+                <svg
+                  [lucideIcon]="mapPinIcon"
+                  [size]="18"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <div>
+                  <span>
+                    Grad
+                  </span>
+
+                  <strong>
+                    {{
+                      currentSeller.city.name
+                    }}
+                  </strong>
+                </div>
+              </div>
+
+              <div class="seller-fact">
+                <svg
+                  [lucideIcon]="verifiedIcon"
+                  [size]="18"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <div>
+                  <span>
+                    Kuvam zajednica
+                  </span>
+
+                  <strong>
+                    Proveren domaćin
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <p class="pickup-privacy-note">
+              Tačna adresa preuzimanja prikazuje
+              se tek nakon što domaćin prihvati
+              porudžbinu.
+            </p>
+          </div>
+        </article>
+
+        @if (
+          currentSeller.publicLocationZone;
+          as locationZone
+        ) {
+          <section class="seller-map">
+            <div
+              class="map-botanical"
+              aria-hidden="true"
+            ></div>
+
+            <app-seller-location-map
+              [publicLocationZone]="
+                locationZone
+              "
+            />
+          </section>
+        }
+      </section>
+
+      <section class="reviews-section">
+        <header class="reviews-section-header">
+          <div>
+            <span class="section-eyebrow">
+              Utisci kupaca
+            </span>
+
+            <h2>
+              Ocene i iskustva
+            </h2>
+
+            <p>
+              Iskustva kupaca koji su završili
+              porudžbinu kod ovog domaćina.
+            </p>
+          </div>
+
+          @if (
+            reviewsCount() > 0
+          ) {
+            <div class="reviews-summary">
+              <div class="reviews-summary-score">
+                <svg
+                  [lucideIcon]="starIcon"
+                  [size]="20"
+                  [strokeWidth]="1.6"
+                  aria-hidden="true"
+                ></svg>
+
+                <strong>
+                  {{
+                    roundedAverageRating()
+                  }}
+                </strong>
+              </div>
+
+              <span>
+                {{
+                  reviewsCount()
+                }}
+
+                {{
+                  reviewsCountLabel(
+                    reviewsCount()
+                  )
+                }}
+              </span>
+            </div>
+          }
+        </header>
+
+        @if (
+          isReviewsLoading()
+        ) {
+          <div class="reviews-state">
+            <div
+              class="reviews-loader"
+              aria-hidden="true"
+            ></div>
+
+            <span>
+              Učitavanje utisaka...
+            </span>
+          </div>
+        } @else if (
+          reviewsError()
+        ) {
+          <div
+            class="
+              reviews-state
+              reviews-state-error
+            "
+          >
+            {{ reviewsError() }}
+          </div>
+        } @else if (
+          reviews().length === 0
+        ) {
+          <div class="reviews-empty">
+            <svg
+              [lucideIcon]="starIcon"
+              [size]="29"
+              [strokeWidth]="1.5"
+              aria-hidden="true"
+            ></svg>
+
+            <div>
+              <h3>
+                Još nema ocena
+              </h3>
+
+              <p>
+                Prvi utisci kupaca pojaviće se
+                ovde nakon završenih porudžbina.
+              </p>
+            </div>
+          </div>
+        } @else {
+          <div
+            class="reviews-grid"
+            appHorizontalScroll
+          >
+            @for (
+              review of reviews();
+              track review._id
+            ) {
+              <article class="review-card">
+                <header class="review-card-header">
+                  <div class="review-buyer">
+                    <strong>
+                      {{
+                        review.buyer.firstName
+                      }}
+
+                      {{
+                        review.buyer.lastName.charAt(
+                          0
+                        )
+                      }}.
+                    </strong>
+
+                    <span>
+                      {{
+                        formatReviewDate(
+                          review.createdAt
+                        )
+                      }}
+                    </span>
+                  </div>
+
+                  <div
+                    class="review-stars"
+                    [attr.aria-label]="
+                      'Ocena ' +
+                      review.rating +
+                      ' od 5'
+                    "
+                  >
+                    @for (
+                      star of starOptions;
+                      track star
+                    ) {
+                      <svg
+                        [class.filled]="
+                          star <= review.rating
+                        "
+                        [lucideIcon]="starIcon"
+                        [size]="17"
+                        [strokeWidth]="1.6"
+                        aria-hidden="true"
+                      ></svg>
+                    }
+                  </div>
+                </header>
+
+                @if (
+                  review.comment
+                ) {
+                  <p class="review-comment">
+                    {{ review.comment }}
+                  </p>
+                } @else {
+                  <p
+                    class="
+                      review-comment
+                      review-comment-empty
+                    "
+                  >
+                    Kupac je ostavio ocenu bez
+                    dodatnog komentara.
+                  </p>
+                }
+
+                @if (
+                  review.offer
+                ) {
+                  <div class="review-offer">
+                    <span>
+                      Porudžbina
+                    </span>
+
+                    <strong>
+                      {{
+                        review.offer.name
+                      }}
+                    </strong>
+                  </div>
+                }
+              </article>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="offers-section">
+        <header class="offers-section-header">
+          <div>
+            <span class="section-eyebrow">
+              Ponude domaćina
+            </span>
+
+            <h2>
+              Šta trenutno nudi
+            </h2>
+
+            <p>
+              Pregledaj domaća jela i proizvode
+              raspoređene po kategorijama.
+            </p>
+          </div>
+        </header>
+
+        @if (
+          currentSeller.offers.length > 0
+        ) {
+          <nav
+            class="category-navigation"
+            aria-label="Kategorije ponuda"
+            appHorizontalScroll
+          >
+            <a
+              class="
+                category-navigation-item
+                active
+              "
+              href="#all-offers"
+            >
+              Sve ponude
+            </a>
+
+            @for (
+              category of
+                availableCategories(
+                  currentSeller.offers
+                );
+              track category.id
+            ) {
+              <a
+                class="category-navigation-item"
+                [href]="
+                  '#category-' +
+                  category.id
+                "
+                [style.--category-color]="
+                  category.iconColor
+                "
+                [style.--category-soft]="
+                  category.softColor
+                "
+              >
+                <svg
+                  [lucideIcon]="category.icon"
+                  [size]="16"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <span>
+                  {{ category.name }}
+                </span>
+              </a>
+            }
+          </nav>
+        }
+
+        <div
+          id="all-offers"
+          class="offer-sections"
+        >
+          @if (
+            currentSeller.offers.length === 0
+          ) {
+            <section class="empty-offers">
+              <div>
+                <h3>
+                  Trenutno nema aktivnih ponuda
+                </h3>
+
+                <p>
+                  Ovaj domaćin trenutno nema
+                  proizvode dostupne za
+                  poručivanje.
+                </p>
+              </div>
+            </section>
+          } @else {
+            @for (
+              category of
+                availableCategories(
+                  currentSeller.offers
+                );
+              track category.id
+            ) {
+              <section
+                class="offer-category"
+                [id]="
+                  'category-' +
+                  category.id
+                "
+                [style.--category-color]="
+                  category.iconColor
+                "
+                [style.--category-soft]="
+                  category.softColor
+                "
+              >
+                <header class="offer-category-header">
+                  <div class="offer-category-heading">
+                    <svg
+                      [lucideIcon]="category.icon"
+                      [size]="22"
+                      [strokeWidth]="1.8"
+                      aria-hidden="true"
+                    ></svg>
+
+                    <div>
+                      <h3>
+                        {{ category.name }}
+                      </h3>
+
+                      <span>
+                        {{
+                          offersForCategory(
+                            currentSeller.offers,
+                            category.id
+                          ).length
+                        }}
+
+                        proizvoda
+                      </span>
+                    </div>
+                  </div>
+
+                  <span
+                    class="offer-category-line"
+                    aria-hidden="true"
+                  ></span>
+                </header>
+
+                <div
+                  class="offers-grid"
+                  appHorizontalScroll
+                >
+                  @for (
+                    offer of
+                      offersForCategory(
+                        currentSeller.offers,
+                        category.id
+                      );
+                    track offer.id
+                  ) {
+                    <article class="offer-card">
+                      <div
+                        class="offer-pattern"
+                        [class.has-offer-image]="
+                          offer.imageUrl
+                        "
+                      >
+                        @if (
+                          offer.imageUrl
+                        ) {
+                          <img
+                            class="offer-pattern-image"
+                            [src]="offer.imageUrl"
+                            [alt]="offer.name"
+                            loading="lazy"
+                            decoding="async"
+                          >
+                        }
+
+                        <span class="offer-category-pill">
+                          {{ category.name }}
+                        </span>
+                      </div>
+
+                      <div class="offer-card-body">
+                        <div class="offer-icon-wrapper">
+                          <div class="offer-icon">
+                            <svg
+                              [lucideIcon]="
+                                category.icon
+                              "
+                              [size]="29"
+                              [strokeWidth]="1.7"
+                              aria-hidden="true"
+                            ></svg>
+                          </div>
+                        </div>
+
+                        <div class="offer-title-price">
+                          <h4
+                            [title]="offer.name"
+                          >
+                            {{ offer.name }}
+                          </h4>
+
+                          <strong>
+                            {{ offer.price }}
+                            RSD
+                          </strong>
+                        </div>
+
+                        <p class="offer-description">
+                          {{
+                            offer.description ||
+                            'Domaća ponuda pripremljena pažljivo i od kvalitetnih sastojaka.'
+                          }}
+                        </p>
+
+                        <div class="offer-availability">
+                          <span>
+                            Dostupno
+                          </span>
+
+                          <strong>
+                            {{
+                              offer.availableQuantity
+                            }}
+
+                            {{ offer.unit }}
+                          </strong>
+                        </div>
+
+                        <a
+                          class="offer-button"
+                          [routerLink]="[
+                            '/offers',
+                            offer.id
+                          ]"
+                        >
+                          <span>
+                            Pogledaj ponudu
+                          </span>
+
+                          <svg
+                            [lucideIcon]="arrowIcon"
+                            [size]="16"
+                            [strokeWidth]="2"
+                            aria-hidden="true"
+                          ></svg>
+                        </a>
+                      </div>
+                    </article>
+                  }
+                </div>
+              </section>
+            }
+          }
+        </div>
+      </section>
+    }
+  </div>
+</main>

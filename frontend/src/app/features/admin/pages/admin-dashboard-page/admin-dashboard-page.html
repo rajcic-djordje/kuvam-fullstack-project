@@ -1,12 +1,20 @@
 @if (isLoading() && !dashboard()) {
   <section class="page-state">
     <span class="loader" aria-hidden="true"></span>
-    <h2>Učitavanje dashboarda</h2>
+
+    <div>
+      <h2>Učitavanje dashboarda</h2>
+      <p>Prikupljamo najnovije podatke o platformi.</p>
+    </div>
   </section>
 } @else if (errorMessage() && !dashboard()) {
-  <section class="page-state">
-    <h2>Dashboard nije dostupan</h2>
-    <p>{{ errorMessage() }}</p>
+  <section class="page-state error-state">
+    <span class="state-mark" aria-hidden="true">!</span>
+
+    <div>
+      <h2>Dashboard nije dostupan</h2>
+      <p>{{ errorMessage() }}</p>
+    </div>
 
     <button type="button" (click)="loadDashboard()">
       Pokušaj ponovo
@@ -15,12 +23,16 @@
 } @else if (dashboard(); as data) {
   <section class="dashboard-intro">
     <div class="intro-content">
+      <span class="intro-eyebrow">Administracija</span>
+
       <h1>
-        Administracija platforme
+        Pregled platforme
         <span>Kuvam</span>
       </h1>
 
-      <p>Pregled korisnika, prodavaca, prijava i aktivnosti platforme.</p>
+      <p>
+        Najvažniji podaci o korisnicima, domaćinima, prijavama i aktivnosti platforme na jednom mestu.
+      </p>
     </div>
 
     <div class="intro-visual" aria-hidden="true"></div>
@@ -45,7 +57,7 @@
 
         <span class="stat-description">
           {{ data.statistics.buyers }} kupaca ·
-          {{ data.statistics.sellers }} prodavaca
+          {{ data.statistics.sellers }} domaćina
         </span>
       </div>
     </article>
@@ -82,7 +94,7 @@
       </div>
 
       <div class="stat-content">
-        <span class="stat-title">Prodavci na čekanju</span>
+        <span class="stat-title">Domaćini na čekanju</span>
 
         <strong class="stat-number">
           {{ data.statistics.pendingSellers }}
@@ -137,7 +149,13 @@
 
           <a routerLink="/admin/reports">
             <span>Vidi sve prijave</span>
-            <span class="link-arrow" aria-hidden="true">›</span>
+
+            <svg
+              [lucideIcon]="chevronIcon"
+              [size]="17"
+              [strokeWidth]="1.9"
+              aria-hidden="true"
+            ></svg>
           </a>
         </header>
 
@@ -160,15 +178,15 @@
             ) {
               <article class="activity-item">
                 <div class="avatar-wrapper">
-                    <div class="activity-avatar report-avatar">
-                      {{ report.reportedUser.firstName.charAt(0) }}{{ report.reportedUser.lastName.charAt(0) }}
-                    </div>
-
-                    <span
-                      class="avatar-status report-status"
-                      aria-hidden="true"
-                    ></span>
+                  <div class="activity-avatar report-avatar">
+                    {{ report.reportedUser.firstName.charAt(0) }}{{ report.reportedUser.lastName.charAt(0) }}
                   </div>
+
+                  <span
+                    class="avatar-status report-status"
+                    aria-hidden="true"
+                  ></span>
+                </div>
 
                 <div class="activity-content">
                   <div class="activity-title-row">
@@ -207,14 +225,20 @@
             ></svg>
 
             <div>
-              <h2>Prodavci na čekanju</h2>
-              <p>Novi zahtevi za prodajne naloge.</p>
+              <h2>Domaćini na čekanju</h2>
+              <p>Novi zahtevi za naloge domaćina.</p>
             </div>
           </div>
 
           <a routerLink="/admin/pending-sellers">
             <span>Vidi sve</span>
-            <span class="link-arrow" aria-hidden="true">›</span>
+
+            <svg
+              [lucideIcon]="chevronIcon"
+              [size]="17"
+              [strokeWidth]="1.9"
+              aria-hidden="true"
+            ></svg>
           </a>
         </header>
 
@@ -226,7 +250,7 @@
               aria-hidden="true"
             ></svg>
 
-            <strong>Nema prodavaca na čekanju</strong>
+            <strong>Nema domaćina na čekanju</strong>
             <span>Trenutno nema novih zahteva za odobrenje.</span>
           </div>
         } @else {

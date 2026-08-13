@@ -3,8 +3,13 @@ import Seller from "../models/seller.js"
 import Offer from "../models/offer.js"
 import Order from "../models/order.js"
 import Report from "../models/report.js"
-import { USER_ROLES, USER_STATUS } from "../constants/user.js"
-import { SELLER_APPROVAL_STATUS } from "../constants/seller.js"
+import {
+    USER_ROLES,
+    USER_STATUS
+} from "../constants/user.js"
+import {
+    SELLER_APPROVAL_STATUS
+} from "../constants/seller.js"
 import { ORDER_STATUS } from "../constants/order.js"
 import { REPORT_STATUS } from "../constants/report.js"
 
@@ -31,7 +36,9 @@ const getAdminDashboard = async () => {
         latestReviewedReport
     ] = await Promise.all([
         User.countDocuments({
-            role: { $ne: USER_ROLES.ADMIN }
+            role: {
+                $ne: USER_ROLES.ADMIN
+            }
         }),
 
         User.countDocuments({
@@ -43,31 +50,41 @@ const getAdminDashboard = async () => {
         }),
 
         User.countDocuments({
-            role: { $ne: USER_ROLES.ADMIN },
+            role: {
+                $ne: USER_ROLES.ADMIN
+            },
             status: USER_STATUS.ACTIVE
         }),
 
         User.countDocuments({
-            role: { $ne: USER_ROLES.ADMIN },
+            role: {
+                $ne: USER_ROLES.ADMIN
+            },
             status: USER_STATUS.SUSPENDED
         }),
 
         User.countDocuments({
-            role: { $ne: USER_ROLES.ADMIN },
+            role: {
+                $ne: USER_ROLES.ADMIN
+            },
             status: USER_STATUS.BANNED
         }),
 
         User.countDocuments({
-            role: { $ne: USER_ROLES.ADMIN },
+            role: {
+                $ne: USER_ROLES.ADMIN
+            },
             status: USER_STATUS.DEACTIVATED
         }),
 
         Seller.countDocuments({
-            approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
+            approvalStatus:
+                SELLER_APPROVAL_STATUS.APPROVED
         }),
 
         Seller.countDocuments({
-            approvalStatus: SELLER_APPROVAL_STATUS.PENDING
+            approvalStatus:
+                SELLER_APPROVAL_STATUS.PENDING
         }),
 
         Offer.countDocuments({
@@ -89,13 +106,16 @@ const getAdminDashboard = async () => {
         }),
 
         Seller.find({
-            approvalStatus: SELLER_APPROVAL_STATUS.PENDING
+            approvalStatus:
+                SELLER_APPROVAL_STATUS.PENDING
         })
             .populate({
                 path: "user",
                 select: "firstName lastName email status"
             })
-            .sort({ createdAt: -1 })
+            .sort({
+                createdAt: -1
+            })
             .limit(5)
             .lean(),
 
@@ -110,36 +130,49 @@ const getAdminDashboard = async () => {
                 path: "reportedUser",
                 select: "firstName lastName email role reportsCount offences status"
             })
-            .sort({ createdAt: -1 })
+            .sort({
+                createdAt: -1
+            })
             .limit(5)
             .lean(),
 
         User.findOne({
-            role: { $ne: USER_ROLES.ADMIN }
+            role: {
+                $ne: USER_ROLES.ADMIN
+            }
         })
-            .sort({ createdAt: -1 })
-            .select("firstName lastName createdAt")
+            .sort({
+                createdAt: -1
+            })
+            .select(
+                "firstName lastName createdAt"
+            )
             .lean(),
 
         Offer.findOne()
-            .sort({ createdAt: -1 })
+            .sort({
+                createdAt: -1
+            })
             .select("name createdAt")
             .lean(),
 
         Order.findOne()
-            .sort({ createdAt: -1 })
-            .select("offer createdAt")
-            .populate({
-                path: "offer",
-                select: "name"
+            .sort({
+                createdAt: -1
             })
+            .select("items createdAt")
             .lean(),
 
         Seller.findOne({
-            approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
+            approvalStatus:
+                SELLER_APPROVAL_STATUS.APPROVED
         })
-            .sort({ updatedAt: -1 })
-            .select("businessName updatedAt")
+            .sort({
+                updatedAt: -1
+            })
+            .select(
+                "businessName updatedAt"
+            )
             .lean(),
 
         Report.findOne({
@@ -149,10 +182,16 @@ const getAdminDashboard = async () => {
                     REPORT_STATUS.REJECTED
                 ]
             },
-            reviewedAt: { $ne: null }
+            reviewedAt: {
+                $ne: null
+            }
         })
-            .sort({ reviewedAt: -1 })
-            .select("status reviewedAt")
+            .sort({
+                reviewedAt: -1
+            })
+            .select(
+                "status reviewedAt"
+            )
             .lean()
     ])
 
@@ -162,7 +201,8 @@ const getAdminDashboard = async () => {
         recentActivity.push({
             type: "user_registered",
             title: "Novi korisnik",
-            description: `${latestUser.firstName} ${latestUser.lastName} se registrovao/la.`,
+            description:
+                `${latestUser.firstName} ${latestUser.lastName} se registrovao/la.`,
             createdAt: latestUser.createdAt
         })
     }
@@ -171,18 +211,25 @@ const getAdminDashboard = async () => {
         recentActivity.push({
             type: "offer_created",
             title: "Nova ponuda",
-            description: `Objavljena je ponuda „${latestOffer.name}“.`,
+            description:
+                `Objavljena je ponuda „${latestOffer.name}“.`,
             createdAt: latestOffer.createdAt
         })
     }
 
     if (latestOrder) {
+        const itemCount =
+            latestOrder.items?.length ?? 0
+
+        const orderDescription =
+            itemCount === 1
+                ? `Kreirana je porudžbina za ponudu „${latestOrder.items[0].name}“.`
+                : `Kreirana je porudžbina sa ${itemCount} stavki.`
+
         recentActivity.push({
             type: "order_created",
             title: "Nova porudžbina",
-            description: latestOrder.offer
-                ? `Kreirana je porudžbina za ponudu „${latestOrder.offer.name}“.`
-                : "Kreirana je nova porudžbina.",
+            description: orderDescription,
             createdAt: latestOrder.createdAt
         })
     }
@@ -191,29 +238,41 @@ const getAdminDashboard = async () => {
         recentActivity.push({
             type: "seller_approved",
             title: "Prodavac odobren",
-            description: `Prodavac „${latestApprovedSeller.businessName}“ je odobren.`,
-            createdAt: latestApprovedSeller.updatedAt
+            description:
+                `Prodavac „${latestApprovedSeller.businessName}“ je odobren.`,
+            createdAt:
+                latestApprovedSeller.updatedAt
         })
     }
 
     if (latestReviewedReport) {
         const reportResult =
-            latestReviewedReport.status === REPORT_STATUS.APPROVED
+            latestReviewedReport.status ===
+            REPORT_STATUS.APPROVED
                 ? "odobrena"
                 : "odbijena"
 
         recentActivity.push({
             type: "report_reviewed",
             title: "Prijava obrađena",
-            description: `Korisnička prijava je ${reportResult}.`,
-            createdAt: latestReviewedReport.reviewedAt
+            description:
+                `Korisnička prijava je ${reportResult}.`,
+            createdAt:
+                latestReviewedReport.reviewedAt
         })
     }
 
     recentActivity.sort(
-        (firstActivity, secondActivity) =>
-            new Date(secondActivity.createdAt).getTime() -
-            new Date(firstActivity.createdAt).getTime()
+        (
+            firstActivity,
+            secondActivity
+        ) =>
+            new Date(
+                secondActivity.createdAt
+            ).getTime() -
+            new Date(
+                firstActivity.createdAt
+            ).getTime()
     )
 
     return {
@@ -237,4 +296,6 @@ const getAdminDashboard = async () => {
     }
 }
 
-export { getAdminDashboard }
+export {
+    getAdminDashboard
+}

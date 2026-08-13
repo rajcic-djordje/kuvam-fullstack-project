@@ -1,13 +1,30 @@
 import express from "express"
-import { createOrderListing, markReceivedOrderAsReady, completeMyOrder, getReceivedOrderById, acceptReceivedOrder, rejectReceivedOrder, getReceivedOrders, getMyOrders, getMyOrderById, cancelMyOrder} from "../controllers/orderController.js"
-import { authenticate } from "../middleware/authenticate.js"
-import { authorize } from "../middleware/authorize.js"
-import { validateBody } from "../middleware/validateBody.js"
-import { USER_ROLES } from "../constants/user.js"
-import { createOrderSchema, rejectOrderSchema } from "../validators/orderValidator.js"
-import { validateObjectId } from "../middleware/validateObjectId.js"
-import { validateQuery } from "../middleware/validateQuery.js"
-import { orderQuerySchema } from "../validators/queryValidator.js"
+import {
+    createOrderListing,
+    getMyOrders,
+    getMyOrderById,
+    cancelMyOrder,
+    markMyOrderAsOnTheWay,
+    getReceivedOrders,
+    getReceivedOrderById,
+    acceptReceivedOrder,
+    rejectReceivedOrder,
+    markReceivedOrderAsReady,
+    completeReceivedOrder
+} from "../controllers/orderController.js"
+import {authenticate} from "../middleware/authenticate.js"
+import {authorize} from "../middleware/authorize.js"
+import {validateBody} from "../middleware/validateBody.js"
+import {validateObjectId} from "../middleware/validateObjectId.js"
+import {validateQuery} from "../middleware/validateQuery.js"
+import {USER_ROLES} from "../constants/user.js"
+import {
+    createOrderSchema,
+    acceptOrderSchema,
+    rejectOrderSchema,
+    verifyPickupCodeSchema
+} from "../validators/orderValidator.js"
+import {orderQuerySchema} from "../validators/queryValidator.js"
 
 const router = express.Router()
 
@@ -43,6 +60,14 @@ router.patch(
     cancelMyOrder
 )
 
+router.patch(
+    "/mine/:orderId/on-the-way",
+    authenticate,
+    authorize(USER_ROLES.BUYER),
+    validateObjectId("orderId"),
+    markMyOrderAsOnTheWay
+)
+
 router.get(
     "/received",
     authenticate,
@@ -50,7 +75,6 @@ router.get(
     validateQuery(orderQuerySchema),
     getReceivedOrders
 )
-
 
 router.get(
     "/received/:orderId",
@@ -65,6 +89,7 @@ router.patch(
     authenticate,
     authorize(USER_ROLES.SELLER),
     validateObjectId("orderId"),
+    validateBody(acceptOrderSchema),
     acceptReceivedOrder
 )
 
@@ -86,11 +111,12 @@ router.patch(
 )
 
 router.patch(
-    "/mine/:orderId/complete",
+    "/received/:orderId/complete",
     authenticate,
-    authorize(USER_ROLES.BUYER),
+    authorize(USER_ROLES.SELLER),
     validateObjectId("orderId"),
-    completeMyOrder
+    validateBody(verifyPickupCodeSchema),
+    completeReceivedOrder
 )
 
 export default router

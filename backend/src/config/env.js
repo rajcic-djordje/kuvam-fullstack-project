@@ -10,6 +10,7 @@ const adminFirstName = process.env.ADMIN_FIRST_NAME?.trim()
 const adminLastName = process.env.ADMIN_LAST_NAME?.trim()
 const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
 const adminPassword = process.env.ADMIN_PASSWORD
+const pickupCodeSecret = process.env.PICKUP_CODE_SECRET?.trim()
 
 const allowedValues = ["development", "test", "production"]
 
@@ -27,6 +28,9 @@ if(!nodeMongoDBUri)
 
 if(!accessTokenSecret || accessTokenSecret.length < 64)
     throw new Error("Access token secret is not valid.")
+
+if (!pickupCodeSecret || pickupCodeSecret.length < 64)
+    throw new Error("Pickup code secret is not valid.")
 
 if(!accessTokenExpiresIn)
     throw new Error("Access token expiration is not valid.")
@@ -57,7 +61,8 @@ const env = {
     adminFirstName,
     adminLastName,
     adminEmail,
-    adminPassword
+    adminPassword,
+    pickupCodeSecret
 }
 
 export default env

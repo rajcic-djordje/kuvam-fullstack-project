@@ -2,6 +2,8 @@ import express from "express"
 import {
     getMySellerProfile,
     updateMySellerProfile,
+    uploadMySellerProfileImage,
+    uploadMySellerCoverImage,
     getSellers,
     getSellerBySlug
 } from "../controllers/sellerController.js"
@@ -11,15 +13,15 @@ import {validateBody} from "../middleware/validateBody.js"
 import {USER_ROLES} from "../constants/user.js"
 import {updateSellerProfileSchema} from "../validators/sellerValidator.js"
 import {optionalAuthenticate} from "../middleware/optionalAuthenticate.js"
+import uploadSellerImage from "../middleware/uploadSellerImage.js"
 
 const router = express.Router()
 
 router.get(
     "/",
     optionalAuthenticate,
-     getSellers
-    )
-
+    getSellers
+)
 
 router.get(
     "/me",
@@ -36,9 +38,25 @@ router.patch(
     updateMySellerProfile
 )
 
+router.patch(
+    "/me/profile-image",
+    authenticate,
+    authorize(USER_ROLES.SELLER),
+    uploadSellerImage.single("image"),
+    uploadMySellerProfileImage
+)
+
+router.patch(
+    "/me/cover-image",
+    authenticate,
+    authorize(USER_ROLES.SELLER),
+    uploadSellerImage.single("image"),
+    uploadMySellerCoverImage
+)
+
 router.get(
     "/:slug",
-     getSellerBySlug
-    )
+    getSellerBySlug
+)
 
 export default router

@@ -5,6 +5,7 @@ import {
   inject,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   signal
@@ -19,15 +20,26 @@ import {
 import { Router } from '@angular/router';
 import {
   LucideDynamicIcon,
+  LucideLockKeyhole,
+  LucideUserRound,
   LucideX,
   type LucideIcon
 } from '@lucide/angular';
 import {
+  debounceTime,
   finalize,
+  Subscription,
   switchMap
 } from 'rxjs';
+import { FormDraftService } from '../../../../shared/services/form-draft';
+import { ToastService } from '../../../../shared/services/toast';
 import { AuthService } from '../../../auth/services/auth';
 import { AdminAccountService } from '../../services/admin-account';
+
+interface AdminProfileDraft {
+  firstName: string;
+  lastName: string;
+}
 
 @Component({
   selector: 'app-admin-account-modal',
@@ -38,27 +50,30 @@ import { AdminAccountService } from '../../services/admin-account';
   templateUrl: './admin-account-modal.html',
   styleUrl: './admin-account-modal.css'
 })
-export class AdminAccountModal implements OnChanges {
+export class AdminAccountModal
+  implements OnChanges, OnDestroy {
   @Input() isOpen = false;
   @Output() closed = new EventEmitter<void>();
 
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly adminAccountService = inject(AdminAccountService);
+  private readonly formDraftService = inject(FormDraftService);
+  private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
+
+  private profileDraftSubscription: Subscription | null = null;
 
   readonly isProfileSubmitting = signal(false);
   readonly isPasswordSubmitting = signal(false);
-
-  readonly profileSuccessMessage = signal('');
-  readonly profileErrorMessage = signal('');
-  readonly passwordErrorMessage = signal('');
 
   readonly showCurrentPassword = signal(false);
   readonly showNewPassword = signal(false);
   readonly showConfirmPassword = signal(false);
 
   readonly closeIcon: LucideIcon = LucideX;
+  readonly profileIcon: LucideIcon = LucideUserRound;
+  readonly passwordIcon: LucideIcon = LucideLockKeyhole;
 
   readonly profileForm = this.formBuilder.nonNullable.group({
     firstName: [
@@ -119,16 +134,27 @@ export class AdminAccountModal implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen']?.currentValue === true) {
       this.populateProfileForm();
+      this.restoreProfileDraft();
+      this.startProfileDraftPersistence();
+
       this.passwordForm.reset();
-      this.resetMessages();
+
       this.resetPasswordVisibility();
 
       document.body.classList.add('modal-open');
     }
 
     if (changes['isOpen']?.currentValue === false) {
+      this.stopProfileDraftPersistence();
+
       document.body.classList.remove('modal-open');
     }
+  }
+
+  ngOnDestroy(): void {
+    this.stopProfileDraftPersistence();
+
+    document.body.classList.remove('modal-open');
   }
 
   @HostListener('document:keydown.escape')
@@ -146,10 +172,12 @@ export class AdminAccountModal implements OnChanges {
       return;
     }
 
+    this.stopProfileDraftPersistence();
+
     document.body.classList.remove('modal-open');
 
     this.passwordForm.reset();
-    this.resetMessages();
+
     this.resetPasswordVisibility();
 
     this.closed.emit();
@@ -162,9 +190,6 @@ export class AdminAccountModal implements OnChanges {
   }
 
   submitProfile(): void {
-    this.profileSuccessMessage.set('');
-    this.profileErrorMessage.set('');
-
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
       return;
@@ -184,14 +209,21 @@ export class AdminAccountModal implements OnChanges {
       )
       .subscribe({
         next: () => {
-          this.populateProfileForm();
+          this.stopProfileDraftPersistence();
 
-          this.profileSuccessMessage.set(
+          this.formDraftService.clear(
+            this.getProfileDraftKey()
+          );
+
+          this.populateProfileForm();
+          this.startProfileDraftPersistence();
+
+          this.toastService.success(
             'Ime i prezime su uspešno sačuvani.'
           );
         },
         error: error => {
-          this.profileErrorMessage.set(
+          this.toastService.error(
             this.getErrorMessage(
               error,
               'Čuvanje podataka nije uspelo.'
@@ -202,8 +234,6 @@ export class AdminAccountModal implements OnChanges {
   }
 
   submitPassword(): void {
-    this.passwordErrorMessage.set('');
-
     if (this.passwordForm.invalid) {
       this.passwordForm.markAllAsTouched();
       return;
@@ -231,6 +261,8 @@ export class AdminAccountModal implements OnChanges {
           this.passwordForm.reset();
           this.resetPasswordVisibility();
 
+          this.stopProfileDraftPersistence();
+
           document.body.classList.remove('modal-open');
 
           this.authService.logout().subscribe({
@@ -243,7 +275,7 @@ export class AdminAccountModal implements OnChanges {
           });
         },
         error: error => {
-          this.passwordErrorMessage.set(
+          this.toastService.error(
             this.getErrorMessage(
               error,
               'Promena lozinke nije uspela.'
@@ -282,6 +314,63 @@ export class AdminAccountModal implements OnChanges {
       firstName: user.firstName,
       lastName: user.lastName
     });
+  }
+
+  private restoreProfileDraft(): void {
+    const draft =
+      this.formDraftService.load<AdminProfileDraft>(
+        this.getProfileDraftKey()
+      );
+
+    if (!draft) {
+      return;
+    }
+
+    this.profileForm.patchValue(
+      {
+        firstName: draft.firstName ?? '',
+        lastName: draft.lastName ?? ''
+      },
+      {
+        emitEvent: false
+      }
+    );
+  }
+
+  private startProfileDraftPersistence(): void {
+    this.stopProfileDraftPersistence();
+
+    this.profileDraftSubscription =
+      this.profileForm.valueChanges
+        .pipe(
+          debounceTime(250)
+        )
+        .subscribe(() => {
+          const values =
+            this.profileForm.getRawValue();
+
+          this.formDraftService.save(
+            this.getProfileDraftKey(),
+            {
+              firstName: values.firstName,
+              lastName: values.lastName
+            } satisfies AdminProfileDraft
+          );
+        });
+  }
+
+  private stopProfileDraftPersistence(): void {
+    this.profileDraftSubscription?.unsubscribe();
+
+    this.profileDraftSubscription = null;
+  }
+
+  private getProfileDraftKey(): string {
+    const user = this.authService.currentUser();
+
+    return user
+      ? `admin-account-profile:${user.id}`
+      : 'admin-account-profile';
   }
 
   private passwordsMatchValidator(
@@ -335,12 +424,6 @@ export class AdminAccountModal implements OnChanges {
       this.isProfileSubmitting() ||
       this.isPasswordSubmitting()
     );
-  }
-
-  private resetMessages(): void {
-    this.profileSuccessMessage.set('');
-    this.profileErrorMessage.set('');
-    this.passwordErrorMessage.set('');
   }
 
   private resetPasswordVisibility(): void {

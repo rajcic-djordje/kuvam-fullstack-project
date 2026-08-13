@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DOCUMENT } from '@angular/common';
 import {
   Component,
   inject,
@@ -50,6 +50,9 @@ export class AdminSuspensionsPage
   implements OnInit, OnDestroy {
   private readonly adminUserService =
     inject(AdminUserService);
+
+  private readonly document =
+    inject(DOCUMENT);
 
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
@@ -123,6 +126,8 @@ export class AdminSuspensionsPage
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
     }
+
+    this.document.body.classList.remove('modal-open');
   }
 
   onSearchChange(value: string): void {
@@ -217,6 +222,7 @@ export class AdminSuspensionsPage
     this.selectedUser.set(user);
     this.modalMode.set(mode);
     this.modalError.set('');
+    this.document.body.classList.add('modal-open');
   }
 
   closeModal(): void {
@@ -227,6 +233,7 @@ export class AdminSuspensionsPage
     this.modalMode.set(null);
     this.selectedUser.set(null);
     this.modalError.set('');
+    this.document.body.classList.remove('modal-open');
   }
 
   confirmUnsuspend(): void {
@@ -274,7 +281,7 @@ export class AdminSuspensionsPage
       string
     > = {
       buyer: 'Kupac',
-      seller: 'Prodavac'
+      seller: 'Domaćin'
     };
 
     return labels[role];

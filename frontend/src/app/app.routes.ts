@@ -18,7 +18,17 @@ import { AdminSuspensionsPage} from './features/admin/pages/admin-suspensions-pa
 import { AdminReportsPage } from './features/admin/pages/admin-reports-page/admin-reports-page';
 import { userGuard } from './core/guards/user-guard';
 import { OffersPage } from './features/offers/pages/offers-page/offers-page';
-
+import { SellerPage } from './features/offers/pages/seller-page/seller-page';
+import { OfferPage } from './features/offers/pages/offer-page/offer-page';
+import { MyOrdersPage } from './features/orders/pages/my-orders-page/my-orders-page';
+import { buyerGuard } from './core/guards/buyer-guard';
+import { SellerOrdersPage } from './features/orders/pages/seller-orders-page/seller-orders-page';
+import { sellerGuard } from './core/guards/seller-guard';
+import { SellerOffersPage } from './features/offers/pages/seller-offers-page/seller-offers-page';
+import { CreateOfferPage } from './features/offers/pages/create-offer-page/create-offer-page';
+import { EditOfferPage } from './features/offers/pages/edit-offer-page/edit-offer-page';
+import { OrderDetailPage } from './features/orders/pages/order-detail-page/order-detail-page';
+import { SellerOrderDetailPage } from './features/orders/pages/seller-order-detail-page/seller-order-detail-page';
 
 export const routes: Routes = [
   {
@@ -38,6 +48,49 @@ export const routes: Routes = [
         path: 'offers',
         component: OffersPage
       },
+      {
+        path: 'offers/:offerId',
+        component: OfferPage
+      },
+      {
+        path: 'sellers/:slug',
+        component: SellerPage
+      },
+      {
+        path: 'seller/orders',
+        component: SellerOrdersPage,
+        canActivate: [authGuard, sellerGuard]
+      },
+      {
+        path: 'seller/orders/:orderId',
+        component: SellerOrderDetailPage,
+        canActivate: [authGuard, sellerGuard]
+      },
+      {
+        path: 'orders',
+        component: MyOrdersPage,
+        canActivate: [authGuard, buyerGuard]
+      },
+      {
+        path: 'orders/:orderId',
+        component: OrderDetailPage,
+        canActivate: [authGuard, buyerGuard]
+      },
+      {
+        path: 'seller/offers',
+        component: SellerOffersPage,
+        canActivate: [authGuard, sellerGuard]
+      },
+      {
+        path: 'seller/offers/new',
+        component: CreateOfferPage,
+        canActivate: [authGuard, sellerGuard]
+      },
+      {
+        path: 'seller/offers/:offerId/edit',
+        component: EditOfferPage,
+        canActivate: [authGuard, sellerGuard]
+      }
     ]
   },
   {
@@ -83,7 +136,8 @@ export const routes: Routes = [
         path: '',
         pathMatch: 'full',
         redirectTo: 'dashboard'
-      }
+      },
+      
     ]
   },
   {

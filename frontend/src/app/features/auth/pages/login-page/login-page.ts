@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
+  OnDestroy,
   OnInit,
   signal
 } from '@angular/core';
@@ -16,73 +17,87 @@ import {
   RouterLink
 } from '@angular/router';
 import {
+  LucideDynamicIcon,
+  LucideEye,
+  LucideEyeOff,
+  LucideLockKeyhole,
+  LucideMail
+} from '@lucide/angular';
+import {
+  debounceTime,
+  Subscription
+} from 'rxjs';
+import { FormDraftService } from '../../../../shared/services/form-draft';
+import { ToastService } from '../../../../shared/services/toast';
+import {
   ApiErrorResponse,
   LoginRequest
 } from '../../models/auth';
 import { AuthService } from '../../services/auth';
 
+interface LoginDraft {
+  email: string;
+}
+
 @Component({
   selector: 'app-login-page',
   imports: [
+    LucideDynamicIcon,
     ReactiveFormsModule,
     RouterLink
   ],
   templateUrl: './login-page.html',
   styleUrl: './login-page.css'
 })
-export class LoginPage implements OnInit {
-  private readonly formBuilder =
-    inject(FormBuilder);
+export class LoginPage implements OnInit, OnDestroy {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly formDraftService = inject(FormDraftService);
+  private readonly toastService = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
-  private readonly authService =
-    inject(AuthService);
+  private readonly draftKey = 'login';
+  private draftSubscription: Subscription | null = null;
 
-  private readonly route =
-    inject(ActivatedRoute);
-
-  private readonly router =
-    inject(Router);
-
-  private toastTimer?:
-    ReturnType<typeof setTimeout>;
+  readonly emailIcon = LucideMail;
+  readonly lockIcon = LucideLockKeyhole;
+  readonly showIcon = LucideEye;
+  readonly hideIcon = LucideEyeOff;
 
   readonly isSubmitting = signal(false);
-  readonly errorMessage = signal('');
-  readonly successMessage = signal('');
   readonly showPassword = signal(false);
 
-  readonly loginForm =
-    this.formBuilder.nonNullable.group({
-      email: [
-        '',
-        [
-          Validators.required,
-          Validators.email
-        ]
-      ],
-      password: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(8)
-        ]
+  readonly loginForm = this.formBuilder.nonNullable.group({
+    email: [
+      '',
+      [
+        Validators.required,
+        Validators.email
       ]
-    });
+    ],
+    password: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(8)
+      ]
+    ]
+  });
 
   ngOnInit(): void {
+    this.restoreDraft();
+
     const registered =
-      this.route.snapshot.queryParamMap.get(
-        'registered'
-      );
+      this.route.snapshot.queryParamMap.get('registered');
 
     const email =
-      this.route.snapshot.queryParamMap.get(
-        'email'
-      );
+      this.route.snapshot.queryParamMap.get('email');
 
     if (registered === 'true') {
-      this.successMessage.set(
-        'Nalog je uspešno kreiran. Sada se prijavi.'
+      this.toastService.success(
+        'Nalog je uspešno kreiran. Sada se prijavi.',
+        'Registracija uspešna'
       );
     }
 
@@ -91,6 +106,12 @@ export class LoginPage implements OnInit {
         email
       );
     }
+
+    this.startDraftPersistence();
+  }
+
+  ngOnDestroy(): void {
+    this.draftSubscription?.unsubscribe();
   }
 
   togglePassword(): void {
@@ -100,13 +121,12 @@ export class LoginPage implements OnInit {
   }
 
   login(): void {
-    this.closeError();
-
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
 
-      this.showError(
-        'Proveri označena polja pre prijavljivanja.'
+      this.toastService.error(
+        'Proveri označena polja pre prijavljivanja.',
+        'Prijava nije uspela'
       );
 
       return;
@@ -116,107 +136,127 @@ export class LoginPage implements OnInit {
       this.loginForm.getRawValue();
 
     const request: LoginRequest = {
-      email: values.email
-        .trim()
-        .toLowerCase(),
-      password: values.password
+      email:
+        values.email
+          .trim()
+          .toLowerCase(),
+
+      password:
+        values.password
     };
 
     this.isSubmitting.set(true);
 
-    this.authService.login(request).subscribe({
-      next: () => {
-        const returnUrl =
-          this.route.snapshot.queryParamMap.get(
-            'returnUrl'
-          ) ?? '/';
+    this.authService
+      .login(request)
+      .subscribe({
+        next: () => {
+          this.formDraftService.clear(
+            this.draftKey
+          );
 
-        this.router.navigateByUrl(returnUrl);
-      },
-      error: error => {
-        this.handleError(error);
-        this.isSubmitting.set(false);
-      }
-    });
+          const returnUrl =
+            this.route.snapshot.queryParamMap.get(
+              'returnUrl'
+            ) ?? '/';
+
+          this.router.navigateByUrl(
+            returnUrl
+          );
+        },
+
+        error: error => {
+          this.handleError(error);
+          this.isSubmitting.set(false);
+        }
+      });
   }
 
-  closeError(): void {
-    this.errorMessage.set('');
+  private restoreDraft(): void {
+    const draft =
+      this.formDraftService.load<LoginDraft>(
+        this.draftKey
+      );
 
-    if (this.toastTimer) {
-      clearTimeout(this.toastTimer);
-      this.toastTimer = undefined;
+    if (!draft) {
+      return;
     }
+
+    this.loginForm.controls.email.setValue(
+      draft.email ?? ''
+    );
   }
 
-  private showError(message: string): void {
-    this.errorMessage.set(message);
+  private startDraftPersistence(): void {
+    this.draftSubscription =
+      this.loginForm.valueChanges
+        .pipe(
+          debounceTime(250)
+        )
+        .subscribe(() => {
+          const email =
+            this.loginForm.controls.email.value;
 
-    if (this.toastTimer) {
-      clearTimeout(this.toastTimer);
-    }
+          const draft: LoginDraft = {
+            email
+          };
 
-    this.toastTimer = setTimeout(() => {
-      this.errorMessage.set('');
-      this.toastTimer = undefined;
-    }, 4500);
+          this.formDraftService.save(
+            this.draftKey,
+            draft
+          );
+        });
   }
 
   private handleError(
     error: HttpErrorResponse
   ): void {
     const response =
-      error.error as ApiErrorResponse | undefined;
+      error.error as
+        | ApiErrorResponse
+        | undefined;
 
     const code =
       response?.error?.code;
-
-    if (code === 'ADMIN_LOGIN_REQUIRED') {
-      this.showError(
-        'Nalog nije moguće prijaviti putem korisničke prijave.'
-      );
-
-      return;
-    }
 
     if (
       code === 'INVALID_CREDENTIALS' ||
       code === 'WRONG_PASSWORD' ||
       code === 'USER_NOT_FOUND'
     ) {
-      this.showError(
-        'Email adresa ili lozinka nisu ispravni.'
+      this.toastService.error(
+        'Email adresa ili lozinka nisu ispravni.',
+        'Prijava nije uspela'
       );
 
       return;
     }
 
     if (
-      code === 'ACCOUNT_SUSPENDED' ||
-      code === 'ACCOUNT_BANNED' ||
-      code === 'ACCOUNT_DEACTIVATED' ||
       code === 'ACCOUNT_DISABLED' ||
       code === 'USER_INACTIVE'
     ) {
-      this.showError(
-        response?.error?.message ??
-        'Ovaj nalog trenutno nije aktivan.'
+      this.toastService.error(
+        'Ovaj nalog trenutno nije aktivan.',
+        'Prijava nije uspela'
       );
 
       return;
     }
 
     if (code === 'VALIDATION_ERROR') {
-      this.showError(
-        'Proveri unete podatke i pokušaj ponovo.'
+      this.toastService.error(
+        'Proveri unete podatke i pokušaj ponovo.',
+        'Prijava nije uspela'
       );
 
       return;
     }
 
-    this.showError(
+    this.toastService.error(
       response?.error?.message ??
-      'Prijava trenutno nije uspela. Pokušaj ponovo.'
+      'Prijava trenutno nije uspela. Pokušaj ponovo.',
+      'Prijava nije uspela'
     );
   }
 }

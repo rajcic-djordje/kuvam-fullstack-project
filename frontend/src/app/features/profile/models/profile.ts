@@ -31,6 +31,7 @@ export interface SellerProfile {
   isProfileComplete: boolean;
   createdAt?: string;
   updatedAt?: string;
+  isOpen: boolean;
 }
 
 export interface UserProfile extends AuthUser {
@@ -66,6 +67,9 @@ export interface UpdateSellerProfileRequest {
   street?: string;
   streetNumber?: string;
   additionalInfo?: string | null;
+  latitude?: number;
+  longitude?: number;
+  isOpen?: boolean;
 }
 
 export interface UpdateLocationResponse {

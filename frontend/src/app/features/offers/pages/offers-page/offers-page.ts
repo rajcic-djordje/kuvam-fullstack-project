@@ -5,30 +5,27 @@ import {
   OnInit,
   signal
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import {
-  LucideArchive,
+  ActivatedRoute,
+  RouterLink
+} from '@angular/router';
+import {
   LucideBadgeCheck,
-  LucideBeef,
-  LucideCakeSlice,
   LucideChevronRight,
-  LucideCookingPot,
-  LucideCupSoda,
+  LucideClock,
   LucideDynamicIcon,
-  LucideEllipsis,
-  LucideLayoutGrid,
   LucideMapPin,
   LucidePackageOpen,
-  LucideSalad,
-  LucideSandwich,
   LucideScanSearch,
-  LucideSoup,
   LucideStore,
-  LucideWheat,
-  LucideX,
-  LucideClock,
-  type LucideIcon
+  LucideX
 } from '@lucide/angular';
+import { HorizontalScrollDirective } from '../../../../shared/directives/horizontal-scroll/horizontal-scroll';
+import {
+  getOfferCategoryConfig,
+  OFFER_CATEGORY_FILTERS,
+  OfferCategoryConfig
+} from '../../constants/offer-categories';
 import {
   OfferCategory,
   OfferCategoryFilter,
@@ -43,129 +40,84 @@ interface ApiErrorBody {
   };
 }
 
-interface FoodCategory {
-  id: OfferCategoryFilter;
-  name: string;
-  icon: LucideIcon;
-  iconColor: string;
-  softColor: string;
-}
-
 @Component({
   selector: 'app-offers-page',
-  imports: [LucideDynamicIcon],
+  imports: [
+    LucideDynamicIcon,
+    RouterLink,
+    HorizontalScrollDirective
+  ],
   templateUrl: './offers-page.html',
   styleUrl: './offers-page.css'
 })
 export class OffersPage implements OnInit {
-  private readonly sellerService = inject(SellerService);
-  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly sellerService =
+    inject(SellerService);
 
-  readonly searchIcon = LucideScanSearch;
-  readonly clearIcon = LucideX;
-  readonly mapPinIcon = LucideMapPin;
-  readonly storeIcon = LucideStore;
-  readonly verifiedIcon = LucideBadgeCheck;
-  readonly offersIcon = LucidePackageOpen;
-  readonly arrowIcon = LucideChevronRight;
-  readonly clockIcon = LucideClock;
+  private readonly activatedRoute =
+    inject(ActivatedRoute);
 
-  readonly searchTerm = signal('');
-  readonly selectedCategory = signal<OfferCategoryFilter>('all');
+  readonly searchIcon =
+    LucideScanSearch;
 
-  readonly sellers = signal<PublicSeller[]>([]);
-  readonly isLoading = signal(true);
-  readonly loadError = signal('');
+  readonly clearIcon =
+    LucideX;
 
-  readonly categories: FoodCategory[] = [
-    {
-      id: 'all',
-      name: 'Sva hrana',
-      icon: LucideLayoutGrid,
-      iconColor: '#2f8f46',
-      softColor: '#eef6ef'
-    },
-    {
-      id: 'cooked_meals',
-      name: 'Kuvana jela',
-      icon: LucideCookingPot,
-      iconColor: '#b87333',
-      softColor: '#f8efe5'
-    },
-    {
-      id: 'soups_and_stews',
-      name: 'Supe i čorbe',
-      icon: LucideSoup,
-      iconColor: '#c07b3e',
-      softColor: '#faf1e7'
-    },
-    {
-      id: 'grilled_and_roasted',
-      name: 'Roštilj i pečenja',
-      icon: LucideBeef,
-      iconColor: '#a94f38',
-      softColor: '#f8eae6'
-    },
-    {
-      id: 'bakery_and_pies',
-      name: 'Peciva i pite',
-      icon: LucideWheat,
-      iconColor: '#c78a3a',
-      softColor: '#faf2e4'
-    },
-    {
-      id: 'desserts',
-      name: 'Dezerti',
-      icon: LucideCakeSlice,
-      iconColor: '#d06b75',
-      softColor: '#faecef'
-    },
-    {
-      id: 'salads_and_sides',
-      name: 'Salate i prilozi',
-      icon: LucideSalad,
-      iconColor: '#4e994f',
-      softColor: '#edf6ed'
-    },
-    {
-      id: 'preserved_food',
-      name: 'Zimnica',
-      icon: LucideArchive,
-      iconColor: '#db7041',
-      softColor: '#fbece5'
-    },
-    {
-      id: 'breakfast_and_snacks',
-      name: 'Doručak i užine',
-      icon: LucideSandwich,
-      iconColor: '#b47a3e',
-      softColor: '#f8f0e6'
-    },
-    {
-      id: 'drinks',
-      name: 'Pića',
-      icon: LucideCupSoda,
-      iconColor: '#31884a',
-      softColor: '#eaf5ed'
-    },
-    {
-      id: 'other',
-      name: 'Ostalo',
-      icon: LucideEllipsis,
-      iconColor: '#727871',
-      softColor: '#f0f1ef'
-    }
-  ];
+  readonly mapPinIcon =
+    LucideMapPin;
+
+  readonly storeIcon =
+    LucideStore;
+
+  readonly verifiedIcon =
+    LucideBadgeCheck;
+
+  readonly offersIcon =
+    LucidePackageOpen;
+
+  readonly arrowIcon =
+    LucideChevronRight;
+
+  readonly clockIcon =
+    LucideClock;
+
+  readonly categories =
+    OFFER_CATEGORY_FILTERS;
+
+  readonly searchTerm =
+    signal('');
+
+  readonly selectedCategory =
+    signal<OfferCategoryFilter>('all');
+
+  readonly sellers =
+    signal<PublicSeller[]>([]);
+
+  readonly isLoading =
+    signal(true);
+
+  readonly loadError =
+    signal('');
 
   ngOnInit(): void {
-    const search = this.activatedRoute.snapshot.queryParamMap.get('search');
-    const category = this.activatedRoute.snapshot.queryParamMap.get('category');
+    const search =
+      this.activatedRoute.snapshot.queryParamMap.get(
+        'search'
+      );
+
+    const category =
+      this.activatedRoute.snapshot.queryParamMap.get(
+        'category'
+      );
 
     if (search) {
       this.searchTerm.set(search);
     }
 
-    if (category && this.isValidCategory(category)) {
+    if (
+      category &&
+      this.isValidCategory(category)
+    ) {
       this.selectedCategory.set(category);
     }
 
@@ -173,7 +125,9 @@ export class OffersPage implements OnInit {
   }
 
   updateSearch(event: Event): void {
-    const input = event.target as HTMLInputElement;
+    const input =
+      event.target as HTMLInputElement;
+
     this.searchTerm.set(input.value);
   }
 
@@ -186,8 +140,13 @@ export class OffersPage implements OnInit {
     this.loadSellers();
   }
 
-  selectCategory(category: OfferCategoryFilter): void {
-    if (this.selectedCategory() === category) {
+  selectCategory(
+    category: OfferCategoryFilter
+  ): void {
+    if (
+      this.selectedCategory() ===
+      category
+    ) {
       return;
     }
 
@@ -199,19 +158,17 @@ export class OffersPage implements OnInit {
     this.loadSellers();
   }
 
-  categoryIcon(category: OfferCategory): LucideIcon {
-    return this.getCategory(category)?.icon ?? LucidePackageOpen;
+  categoryConfig(
+    category: OfferCategory
+  ): OfferCategoryConfig {
+    return getOfferCategoryConfig(
+      category
+    );
   }
 
-  categoryColor(category: OfferCategory): string {
-    return this.getCategory(category)?.iconColor ?? '#2f8f46';
-  }
-
-  categorySoftColor(category: OfferCategory): string {
-    return this.getCategory(category)?.softColor ?? '#eef6ef';
-  }
-
-  sellerInitials(businessName: string): string {
+  sellerInitials(
+    businessName: string
+  ): string {
     const words = businessName
       .trim()
       .split(/\s+/)
@@ -222,49 +179,76 @@ export class OffersPage implements OnInit {
     }
 
     if (words.length === 1) {
-      return words[0].slice(0, 2).toUpperCase();
+      return words[0]
+        .slice(0, 2)
+        .toUpperCase();
     }
 
-    return `${words[0][0]}${words[1][0]}`.toUpperCase();
-  }
-
-  private getCategory(category: OfferCategory): FoodCategory | undefined {
-    return this.categories.find(option => option.id === category);
+    return `${words[0][0]}${words[1][0]}`
+      .toUpperCase();
   }
 
   private loadSellers(): void {
     this.isLoading.set(true);
     this.loadError.set('');
 
-    const category = this.selectedCategory();
+    const category =
+      this.selectedCategory();
 
-    this.sellerService.getSellers({
-      search: this.searchTerm().trim() || undefined,
-      category: category === 'all' ? undefined : category
-    }).subscribe({
-      next: response => {
-        this.sellers.set(response.sellers);
-        this.isLoading.set(false);
-      },
-      error: error => {
-        this.sellers.set([]);
-        this.isLoading.set(false);
-        this.handleLoadError(error);
-      }
-    });
+    this.sellerService
+      .getSellers({
+        search:
+          this.searchTerm().trim() ||
+          undefined,
+
+        category:
+          category === 'all'
+            ? undefined
+            : category
+      })
+      .subscribe({
+        next: response => {
+          this.sellers.set(
+            response.sellers
+          );
+
+          this.isLoading.set(false);
+        },
+        error: error => {
+          this.sellers.set([]);
+          this.isLoading.set(false);
+
+          this.handleLoadError(error);
+        }
+      });
   }
 
-  private isValidCategory(category: string): category is OfferCategory {
-    return this.categories.some(option => {
-      return option.id !== 'all' && option.id === category;
-    });
+  private isValidCategory(
+    category: string
+  ): category is OfferCategory {
+    return this.categories.some(
+      option =>
+        option.id !== 'all' &&
+        option.id === category
+    );
   }
 
-  private handleLoadError(error: HttpErrorResponse): void {
-    const response = error.error as ApiErrorBody | undefined;
+  private handleLoadError(
+    error: HttpErrorResponse
+  ): void {
+    const response =
+      error.error as
+        | ApiErrorBody
+        | undefined;
 
-    if (response?.error?.code === 'INVALID_OFFER_CATEGORY') {
-      this.loadError.set('Izabrana kategorija nije dostupna.');
+    if (
+      response?.error?.code ===
+      'INVALID_OFFER_CATEGORY'
+    ) {
+      this.loadError.set(
+        'Izabrana kategorija nije dostupna.'
+      );
+
       return;
     }
 

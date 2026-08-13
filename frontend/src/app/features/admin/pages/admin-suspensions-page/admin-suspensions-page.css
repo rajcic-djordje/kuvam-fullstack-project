@@ -490,7 +490,6 @@ select {
   line-height: 1.45;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  
 }
 
 .suspension-date {
@@ -736,7 +735,7 @@ select {
 
 .user-modal {
   width: min(100%, 620px);
-  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   overflow-y: auto;
   background:
     radial-gradient(
@@ -1232,7 +1231,7 @@ select {
 
   .user-modal {
     width: 100%;
-    max-height: calc(100vh - 28px);
+    max-height: calc(100dvh - 28px);
     border-radius: 18px 18px 14px 14px;
   }
 
@@ -1310,8 +1309,6 @@ select {
   .user-details strong {
     font-size: 14px;
   }
-
-
 
   .modal-heading {
     gap: 10px;

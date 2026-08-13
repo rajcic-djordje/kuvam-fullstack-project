@@ -16,8 +16,8 @@ import {
   LucideUserRound,
   type LucideIcon
 } from '@lucide/angular';
-import { AuthService } from '../../../features/auth/services/auth';
 import { AdminAccountModal } from '../../../features/admin/components/admin-account-modal/admin-account-modal';
+import { AuthService } from '../../../features/auth/services/auth';
 
 @Component({
   selector: 'app-admin-navbar',
@@ -31,19 +31,31 @@ import { AdminAccountModal } from '../../../features/admin/components/admin-acco
 })
 export class AdminNavbar {
   readonly authService = inject(AuthService);
-  readonly isProfileMenuOpen = signal(false);
-  readonly isAccountModalOpen = signal(false);
-
-  readonly userIcon: LucideIcon = LucideUserRound;
-  readonly editIcon: LucideIcon = LucidePencil;
-  readonly homeIcon: LucideIcon = LucideHouse;
-  readonly logoutIcon: LucideIcon = LucideLogOut;
-  readonly chevronIcon: LucideIcon = LucideChevronDown;
 
   private readonly router = inject(Router);
 
+  readonly isProfileMenuOpen = signal(false);
+  readonly isAccountModalOpen = signal(false);
+
+  readonly userIcon: LucideIcon =
+    LucideUserRound;
+
+  readonly editIcon: LucideIcon =
+    LucidePencil;
+
+  readonly homeIcon: LucideIcon =
+    LucideHouse;
+
+  readonly logoutIcon: LucideIcon =
+    LucideLogOut;
+
+  readonly chevronIcon: LucideIcon =
+    LucideChevronDown;
+
   toggleProfileMenu(): void {
-    this.isProfileMenuOpen.update(value => !value);
+    this.isProfileMenuOpen.update(
+      value => !value
+    );
   }
 
   closeProfileMenu(): void {
@@ -64,10 +76,14 @@ export class AdminNavbar {
 
     this.authService.logout().subscribe({
       next: () => {
-        this.router.navigate(['/admin/login']);
+        this.router.navigate([
+          '/admin/login'
+        ]);
       },
       error: () => {
-        this.router.navigate(['/admin/login']);
+        this.router.navigate([
+          '/admin/login'
+        ]);
       }
     });
   }

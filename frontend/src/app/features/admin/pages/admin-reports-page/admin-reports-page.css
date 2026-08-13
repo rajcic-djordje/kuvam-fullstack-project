@@ -236,26 +236,6 @@
   cursor: pointer;
 }
 
-.success-message {
-  min-height: 42px;
-  margin-top: 14px;
-  padding: 10px 13px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: #2f693d;
-  background: #edf7ed;
-  border: 1px solid #cfe4d0;
-  border-radius: 11px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.success-message svg {
-  width: 18px;
-  height: 18px;
-}
-
 .reports-list {
   margin-top: 18px;
   display: grid;
@@ -315,7 +295,10 @@
 .participants-section {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+  grid-template-columns:
+    minmax(0, 1fr)
+    24px
+    minmax(0, 1fr);
   align-items: center;
   gap: 8px;
 }
@@ -397,11 +380,12 @@
 .card-divider {
   width: 1px;
   height: 50px;
-  background: linear-gradient(
-    transparent,
-    #e2e0da,
-    transparent
-  );
+  background:
+    linear-gradient(
+      transparent,
+      #e2e0da,
+      transparent
+    );
 }
 
 .information-section {
@@ -628,7 +612,7 @@
 
 .report-modal {
   width: min(820px, 100%);
-  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   overflow: auto;
   background: #fffefa;
   border: 1px solid #e6ddd2;
@@ -702,7 +686,10 @@
 .modal-users {
   padding: 17px;
   display: grid;
-  grid-template-columns: 1fr 32px 1fr;
+  grid-template-columns:
+    1fr
+    32px
+    1fr;
   align-items: center;
   gap: 14px;
   background: #fbfaf5;
@@ -775,8 +762,20 @@
 
 .details-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr 0.8fr;
+  grid-template-columns:
+    1.2fr
+    0.8fr
+    0.8fr;
   gap: 12px;
+}
+
+.detail-section {
+  min-width: 0;
+  display: grid;
+  grid-template-rows:
+    auto
+    1fr;
+  gap: 7px;
 }
 
 .detail-card {
@@ -797,21 +796,12 @@
   text-transform: uppercase;
 }
 
-.detail-section {
-  min-width: 0;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 7px;
-}
-
-
-
 .detail-card p {
+  height: 100%;
   margin: 0;
   color: #505850;
   font-size: 10px;
   line-height: 1.55;
-  height: 100%;
 }
 
 .detail-card dl {
@@ -868,16 +858,6 @@
   color: #899089;
   font-size: 8px;
   text-align: right;
-}
-
-.action-error {
-  margin: 0;
-  padding: 10px 12px;
-  color: #a23f3b;
-  background: #fae9e7;
-  border-radius: 9px;
-  font-size: 9px;
-  font-weight: 700;
 }
 
 .modal-actions {
@@ -972,12 +952,18 @@
 
 @media (max-width: 980px) {
   .report-card {
-    grid-template-columns: minmax(0, 1fr) minmax(150px, 0.5fr) auto;
-    gap: 15px 18px;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(150px, 0.5fr)
+      auto;
+    gap:
+      15px
+      18px;
   }
 
   .participants-section {
-    grid-column: 1 / 3;
+    grid-column:
+      1 / 3;
   }
 
   .card-divider {
@@ -986,11 +972,14 @@
 
   .information-section {
     padding-top: 12px;
-    border-top: 1px solid #ece8e0;
+    border-top:
+      1px solid
+      #ece8e0;
   }
 
   .reason-section {
-    grid-column: 1 / 3;
+    grid-column:
+      1 / 3;
   }
 
   .view-button {
@@ -999,13 +988,16 @@
   }
 
   .details-grid {
-    display: grid;
-    grid-template-columns: 1.2fr 0.8fr 0.8fr;
+    grid-template-columns:
+      1.2fr
+      0.8fr
+      0.8fr;
     align-items: stretch;
-    gap: 12px;
   }
+
   .description-card {
-    grid-column: 1 / 3;
+    grid-column:
+      1 / 3;
   }
 }
 
@@ -1040,7 +1032,8 @@
   }
 
   .modal-arrow {
-    transform: rotate(90deg);
+    transform:
+      rotate(90deg);
   }
 
   .details-grid {
@@ -1066,7 +1059,8 @@
   .report-arrow {
     justify-content: start;
     padding-left: 16px;
-    transform: rotate(90deg);
+    transform:
+      rotate(90deg);
   }
 
   .modal-backdrop {
@@ -1075,8 +1069,8 @@
 
   .report-modal {
     width: 100%;
-    max-height: 100vh;
-    min-height: 100vh;
+    max-height: 100dvh;
+    min-height: 100dvh;
     border: 0;
     border-radius: 0;
   }
@@ -1088,7 +1082,8 @@
   }
 
   .modal-actions {
-    flex-direction: column-reverse;
+    flex-direction:
+      column-reverse;
   }
 
   .modal-actions button {

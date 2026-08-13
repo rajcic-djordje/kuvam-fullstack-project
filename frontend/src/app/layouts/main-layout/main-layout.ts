@@ -6,6 +6,7 @@ import {
 } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AuthService } from '../../features/auth/services/auth';
+import { CartModal } from '../../features/cart/components/cart-modal/cart-modal';
 import { LocationModal } from '../../features/location/components/location-modal/location-modal';
 import { UserProfile } from '../../features/profile/models/profile';
 import { ProfileService } from '../../features/profile/services/profile';
@@ -16,16 +17,22 @@ import { Navbar } from '../../shared/components/navbar/navbar';
   imports: [
     RouterOutlet,
     Navbar,
+    CartModal,
     LocationModal
   ],
-  templateUrl: './main-layout.html',
-  styleUrl: './main-layout.css'
+  templateUrl: './main-layout.html'
 })
 export class MainLayout {
-  private readonly authService = inject(AuthService);
-  private readonly profileService = inject(ProfileService);
+  private readonly authService = inject(
+    AuthService
+  );
 
-  private loadedProfileUserId: string | null = null;
+  private readonly profileService = inject(
+    ProfileService
+  );
+
+  private loadedProfileUserId: string | null =
+    null;
 
   readonly isLocationModalOpen = signal(false);
 
@@ -52,34 +59,38 @@ export class MainLayout {
       return;
     }
 
-    if (this.loadedProfileUserId === user.id) {
+    if (
+      this.loadedProfileUserId === user.id
+    ) {
       return;
     }
 
     this.loadedProfileUserId = user.id;
 
-    this.profileService.getProfile().subscribe({
-      next: response => {
-        this.authService.updateCurrentUser(
-          response.user
-        );
+    this.profileService
+      .getProfile()
+      .subscribe({
+        next: response => {
+          this.authService.updateCurrentUser(
+            response.user
+          );
 
-        const wasSkipped =
-          sessionStorage.getItem(
-            this.getLocationModalStorageKey(
-              response.user.id
-            )
-          ) === 'true';
+          const wasSkipped =
+            sessionStorage.getItem(
+              this.getLocationModalStorageKey(
+                response.user.id
+              )
+            ) === 'true';
 
-        this.isLocationModalOpen.set(
-          !response.user.hasLocation &&
-          !wasSkipped
-        );
-      },
-      error: () => {
-        this.isLocationModalOpen.set(false);
-      }
-    });
+          this.isLocationModalOpen.set(
+            !response.user.hasLocation &&
+            !wasSkipped
+          );
+        },
+        error: () => {
+          this.isLocationModalOpen.set(false);
+        }
+      });
   });
 
   locationSaved(user: UserProfile): void {

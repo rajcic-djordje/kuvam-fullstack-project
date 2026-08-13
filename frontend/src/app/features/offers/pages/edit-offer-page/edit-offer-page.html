@@ -1,0 +1,527 @@
+<main class="edit-offer-page">
+  <div class="container">
+    <a
+      class="back-link"
+      routerLink="/seller/offers"
+    >
+      <svg
+        [lucideIcon]="backIcon"
+        [size]="18"
+        [strokeWidth]="1.8"
+        aria-hidden="true"
+      ></svg>
+
+      <span>
+        Nazad na moje ponude
+      </span>
+    </a>
+
+    @if (isLoading()) {
+      <section class="state-card">
+        <div
+          class="loader"
+          aria-hidden="true"
+        ></div>
+
+        <div>
+          <h1>
+            Učitavanje ponude
+          </h1>
+
+          <p>
+            Pripremamo podatke za izmenu.
+          </p>
+        </div>
+      </section>
+    } @else if (loadError()) {
+      <section class="state-card">
+        <span
+          class="error-mark"
+          aria-hidden="true"
+        >
+          !
+        </span>
+
+        <div>
+          <h1>
+            Ponuda nije dostupna
+          </h1>
+
+          <p>
+            {{ loadError() }}
+          </p>
+        </div>
+
+        <button
+          class="retry-button"
+          type="button"
+          (click)="retry()"
+        >
+          Pokušaj ponovo
+        </button>
+      </section>
+    } @else if (
+      offer();
+      as currentOffer
+    ) {
+      <header class="page-header">
+        <div>
+          <span class="page-eyebrow">
+            Domaćin
+          </span>
+
+          <h1>
+            Izmeni ponudu
+          </h1>
+
+          <p>
+            Ažuriraj podatke za ponudu
+            <strong>
+              {{ currentOffer.name }}
+            </strong>.
+          </p>
+        </div>
+      </header>
+
+      <section class="form-card">
+        <form
+          class="offer-form"
+          [formGroup]="offerForm"
+          (ngSubmit)="updateOffer()"
+        >
+          <section class="form-section">
+            <div class="section-heading">
+              <div class="section-icon">
+                <svg
+                  [lucideIcon]="basicInfoIcon"
+                  [size]="21"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div class="section-title">
+                <h2>
+                  Osnovne informacije
+                </h2>
+
+                <p>
+                  Naziv, opis i kategorija ponude.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="offerName">
+                Naziv ponude
+              </label>
+
+              <input
+                id="offerName"
+                type="text"
+                maxlength="100"
+                formControlName="name"
+              >
+
+              <span class="field-message">
+                @if (
+                  offerForm.controls.name.touched &&
+                  offerForm.controls.name.hasError(
+                    'required'
+                  )
+                ) {
+                  Naziv ponude je obavezan.
+                } @else if (
+                  offerForm.controls.name.touched &&
+                  offerForm.controls.name.hasError(
+                    'minlength'
+                  )
+                ) {
+                  Naziv mora imati najmanje 2
+                  karaktera.
+                } @else if (
+                  offerForm.controls.name.touched &&
+                  offerForm.controls.name.hasError(
+                    'maxlength'
+                  )
+                ) {
+                  Naziv može imati najviše 100
+                  karaktera.
+                }
+              </span>
+            </div>
+
+            <div class="form-field">
+              <div class="label-row">
+                <label for="offerDescription">
+                  Opis ponude
+                </label>
+
+                <span>
+                  {{
+                    offerForm.controls.description
+                      .value.length
+                  }}/1000
+                </span>
+              </div>
+
+              <textarea
+                id="offerDescription"
+                rows="5"
+                maxlength="1000"
+                formControlName="description"
+              ></textarea>
+
+              <span class="field-message">
+                @if (
+                  offerForm.controls.description
+                    .touched &&
+                  offerForm.controls.description
+                    .hasError('required')
+                ) {
+                  Opis ponude je obavezan.
+                } @else if (
+                  offerForm.controls.description
+                    .touched &&
+                  offerForm.controls.description
+                    .hasError('minlength')
+                ) {
+                  Opis mora imati najmanje 10
+                  karaktera.
+                } @else if (
+                  offerForm.controls.description
+                    .touched &&
+                  offerForm.controls.description
+                    .hasError('maxlength')
+                ) {
+                  Opis može imati najviše 1000
+                  karaktera.
+                }
+              </span>
+            </div>
+
+            <div class="form-field">
+              <label for="offerCategory">
+                Kategorija
+              </label>
+
+              <select
+                id="offerCategory"
+                formControlName="category"
+              >
+                <option
+                  value=""
+                  disabled
+                >
+                  Izaberi kategoriju
+                </option>
+
+                @for (
+                  category of categoryOptions;
+                  track category.value
+                ) {
+                  <option
+                    [value]="category.value"
+                  >
+                    {{ category.label }}
+                  </option>
+                }
+              </select>
+
+              <span class="field-message">
+                @if (
+                  offerForm.controls.category
+                    .touched &&
+                  offerForm.controls.category
+                    .hasError('required')
+                ) {
+                  Kategorija je obavezna.
+                }
+              </span>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <div class="section-heading">
+              <div class="section-icon">
+                <svg
+                  [lucideIcon]="priceIcon"
+                  [size]="21"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div class="section-title">
+                <h2>
+                  Cena i dostupnost
+                </h2>
+
+                <p>
+                  Ažuriraj cenu, količinu i
+                  jedinicu prodaje.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="offerPrice">
+                  Cena u RSD
+                </label>
+
+                <input
+                  id="offerPrice"
+                  type="number"
+                  min="1"
+                  step="1"
+                  formControlName="price"
+                >
+
+                <span class="field-message">
+                  @if (
+                    offerForm.controls.price
+                      .touched &&
+                    offerForm.controls.price
+                      .hasError('required')
+                  ) {
+                    Cena je obavezna.
+                  } @else if (
+                    offerForm.controls.price
+                      .touched &&
+                    offerForm.controls.price
+                      .hasError('min')
+                  ) {
+                    Cena mora biti veća od 0.
+                  }
+                </span>
+              </div>
+
+              <div class="form-field">
+                <label for="offerQuantity">
+                  Dostupna količina
+                </label>
+
+                <input
+                  id="offerQuantity"
+                  type="number"
+                  min="0"
+                  step="1"
+                  formControlName="availableQuantity"
+                >
+
+                <span class="field-message">
+                  @if (
+                    offerForm.controls
+                      .availableQuantity
+                      .touched &&
+                    offerForm.controls
+                      .availableQuantity
+                      .hasError('required')
+                  ) {
+                    Količina je obavezna.
+                  } @else if (
+                    offerForm.controls
+                      .availableQuantity
+                      .touched &&
+                    offerForm.controls
+                      .availableQuantity
+                      .hasError('min')
+                  ) {
+                    Količina ne može biti
+                    negativna.
+                  }
+                </span>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="offerUnit">
+                Jedinica prodaje
+              </label>
+
+              <select
+                id="offerUnit"
+                formControlName="unit"
+              >
+                <option
+                  value=""
+                  disabled
+                >
+                  Izaberi jedinicu
+                </option>
+
+                @for (
+                  unit of unitOptions;
+                  track unit.value
+                ) {
+                  <option
+                    [value]="unit.value"
+                  >
+                    {{ unit.label }}
+                  </option>
+                }
+              </select>
+
+              <span class="field-message">
+                @if (
+                  offerForm.controls.unit
+                    .touched &&
+                  offerForm.controls.unit
+                    .hasError('required')
+                ) {
+                  Jedinica prodaje je obavezna.
+                }
+              </span>
+            </div>
+          </section>
+
+          <section class="form-section image-section">
+            <div class="section-heading">
+              <div class="section-icon">
+                <svg
+                  [lucideIcon]="imageIcon"
+                  [size]="21"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div class="section-title">
+                <h2>
+                  Slika ponude
+                </h2>
+
+                <p>
+                  Promeni postojeću fotografiju
+                  ponude.
+                </p>
+              </div>
+            </div>
+
+            <div class="image-field-layout">
+              <div class="image-upload-panel">
+                <div>
+                  <strong>
+                    Fotografija proizvoda
+                  </strong>
+
+                  <span>
+                    JPG, PNG ili WEBP · do 5 MB
+                  </span>
+                </div>
+
+                <label class="image-upload-button">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    [disabled]="isSubmitting()"
+                    (change)="selectImage($event)"
+                  >
+
+                  <svg
+                    [lucideIcon]="uploadIcon"
+                    [size]="17"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  {{
+                    selectedImage()
+                      ? 'Promeni izabranu sliku'
+                      : 'Izaberi novu sliku'
+                  }}
+                </label>
+
+                @if (
+                  selectedImage();
+                  as image
+                ) {
+                  <div class="selected-image-info">
+                    <span>
+                      {{ image.name }}
+                    </span>
+
+                    <button
+                      type="button"
+                      [disabled]="isSubmitting()"
+                      (click)="removeSelectedImage()"
+                    >
+                      Ukloni
+                    </button>
+                  </div>
+                }
+              </div>
+
+              @if (imagePreview()) {
+                <div class="image-preview">
+                  <img
+                    [src]="imagePreview()"
+                    alt="Pregled nove slike ponude"
+                  >
+                </div>
+              } @else if (
+                currentOffer.imageUrl
+              ) {
+                <div class="image-preview">
+                  <img
+                    [src]="currentOffer.imageUrl"
+                    [alt]="currentOffer.name"
+                  >
+                </div>
+              } @else {
+                <div class="image-upload-placeholder">
+                  <svg
+                    [lucideIcon]="imageIcon"
+                    [size]="31"
+                    [strokeWidth]="1.5"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <div>
+                    <strong>
+                      Ponuda nema sliku
+                    </strong>
+
+                    <span>
+                      Ovde će se prikazati nova
+                      fotografija ako je izabereš.
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+
+          <div class="form-actions">
+            <a
+              class="cancel-link"
+              routerLink="/seller/offers"
+            >
+              Otkaži
+            </a>
+
+            <button
+              class="submit-button"
+              type="submit"
+              [disabled]="isSubmitting()"
+            >
+              <svg
+                [lucideIcon]="saveIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              @if (isSubmitting()) {
+                Čuvanje...
+              } @else {
+                Sačuvaj izmene
+              }
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+  </div>
+</main>

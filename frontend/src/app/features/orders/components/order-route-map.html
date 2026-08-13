@@ -1,0 +1,49 @@
+<div class="route-map">
+  <div
+    #mapContainer
+    class="map-container"
+    aria-label="Mapa mesta preuzimanja"
+  ></div>
+
+  <div class="route-controls">
+    <button
+      class="route-button"
+      type="button"
+      [disabled]="isLoadingRoute()"
+      (click)="showRoute()"
+    >
+      @if (isLoadingRoute()) {
+        Određivanje putanje...
+      } @else {
+        Prikaži putanju od moje lokacije
+      }
+    </button>
+
+    @if (
+      routeDistance() !== null &&
+      routeDuration() !== null
+    ) {
+      <div class="route-summary">
+        <div>
+          <span>Udaljenost</span>
+          <strong>
+            {{ formatDistance(routeDistance()!) }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Procenjeno vreme vožnje</span>
+          <strong>
+            {{ formatDuration(routeDuration()!) }}
+          </strong>
+        </div>
+      </div>
+    }
+
+    @if (routeError()) {
+      <p class="route-error">
+        {{ routeError() }}
+      </p>
+    }
+  </div>
+</div>

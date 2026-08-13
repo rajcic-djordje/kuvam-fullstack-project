@@ -34,6 +34,7 @@ export interface PublicSeller {
   description: string;
   profileImageUrl: string | null;
   coverImageUrl: string | null;
+  publicLocationZone: PublicLocationZone | null;
   city: City;
   offers: SellerOfferPreview[];
 }
@@ -51,4 +52,17 @@ export interface SellerFilters {
 export interface CategoryOption {
   value: OfferCategoryFilter;
   label: string;
+}
+
+export interface SellerResponse {
+  message: string;
+  seller: PublicSeller;
+}
+
+export interface PublicLocationZone {
+  center: {
+    latitude: number;
+    longitude: number;
+  };
+  radius: number;
 }

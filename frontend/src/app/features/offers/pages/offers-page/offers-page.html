@@ -1,25 +1,35 @@
 <main class="offers-page">
   <section class="offers-toolbar container">
     <div class="toolbar-heading">
-      <span>Ponude iz tvoje okoline</span>
+      <span>
+        Ponude iz tvoje okoline
+      </span>
 
-      <h1>Domaći ukusi na jednom mestu</h1>
+      <h1>
+        Domaći ukusi na jednom mestu
+      </h1>
 
       <p>
-        Pronađi prodavce, jela i domaće proizvode koji su trenutno dostupni.
+        Pronađi prodavce, jela i domaće proizvode
+        koji su trenutno dostupni.
       </p>
     </div>
 
     <form
       class="search-form"
-      (submit)="$event.preventDefault(); search()"
+      (submit)="
+        $event.preventDefault();
+        search()
+      "
     >
       <div class="search-field">
-        <img
+        <svg
           class="search-icon"
-          src="/icons/search.svg"
-          alt=""
-        >
+          [lucideIcon]="searchIcon"
+          [size]="19"
+          [strokeWidth]="1.8"
+          aria-hidden="true"
+        ></svg>
 
         <input
           type="search"
@@ -37,14 +47,30 @@
             aria-label="Obriši pretragu"
             (click)="clearSearch()"
           >
-            ×
+            <svg
+              [lucideIcon]="clearIcon"
+              [size]="17"
+              [strokeWidth]="2"
+              aria-hidden="true"
+            ></svg>
           </button>
         }
       </div>
 
-      <button class="search-button" type="submit">
-        <img src="/icons/search.svg" alt="">
-        <span>Pretraži</span>
+      <button
+        class="search-button"
+        type="submit"
+      >
+        <svg
+          [lucideIcon]="searchIcon"
+          [size]="17"
+          [strokeWidth]="2"
+          aria-hidden="true"
+        ></svg>
+
+        <span>
+          Pretraži
+        </span>
       </button>
     </form>
   </section>
@@ -53,15 +79,31 @@
     class="categories-section container"
     aria-label="Kategorije hrane"
   >
-    <div class="categories-list">
-      @for (category of categories; track category.id) {
+    <div
+      class="categories-list"
+      appHorizontalScroll
+    >
+      @for (
+        category of categories;
+        track category.id
+      ) {
         <button
           class="category-button"
           type="button"
-          [class.active]="selectedCategory() === category.id"
-          [attr.aria-pressed]="selectedCategory() === category.id"
-          [style.--category-color]="category.iconColor"
-          (click)="selectCategory(category.id)"
+          [class.active]="
+            selectedCategory() ===
+            category.id
+          "
+          [attr.aria-pressed]="
+            selectedCategory() ===
+            category.id
+          "
+          [style.--category-color]="
+            category.iconColor
+          "
+          (click)="
+            selectCategory(category.id)
+          "
         >
           <svg
             class="category-icon"
@@ -71,7 +113,9 @@
             aria-hidden="true"
           ></svg>
 
-          <span>{{ category.name }}</span>
+          <span>
+            {{ category.name }}
+          </span>
         </button>
       }
     </div>
@@ -83,31 +127,51 @@
         Lokalni prodavci
       </span>
 
-      <h2>Domaćini i njihove ponude</h2>
+      <h2>
+        Domaćini i njihove ponude
+      </h2>
 
-      <p id="sub-header">
-        Pogledaj šta trenutno pripremaju prodavci iz tvoje okoline.
+      <p>
+        Pogledaj šta trenutno pripremaju
+        prodavci iz tvoje okoline.
       </p>
     </div>
 
     @if (isLoading()) {
       <div class="state-card">
-        <div class="loader" aria-hidden="true"></div>
+        <div
+          class="loader"
+          aria-hidden="true"
+        ></div>
 
         <div>
-          <h3>Učitavanje ponuda</h3>
-          <p>Tražimo domaće prodavce i njihove proizvode.</p>
+          <h3>
+            Učitavanje ponuda
+          </h3>
+
+          <p>
+            Tražimo domaće prodavce i njihove
+            proizvode.
+          </p>
         </div>
       </div>
     } @else if (loadError()) {
-      <div class="state-card error-state">
-        <span class="error-mark" aria-hidden="true">
+      <div class="state-card">
+        <span
+          class="error-mark"
+          aria-hidden="true"
+        >
           !
         </span>
 
         <div>
-          <h3>Ponude trenutno nisu dostupne</h3>
-          <p>{{ loadError() }}</p>
+          <h3>
+            Ponude trenutno nisu dostupne
+          </h3>
+
+          <p>
+            {{ loadError() }}
+          </p>
         </div>
 
         <button
@@ -118,7 +182,9 @@
           Pokušaj ponovo
         </button>
       </div>
-    } @else if (sellers().length === 0) {
+    } @else if (
+      sellers().length === 0
+    ) {
       <div class="state-card empty-state">
         <svg
           [lucideIcon]="storeIcon"
@@ -128,30 +194,50 @@
         ></svg>
 
         <div>
-          <h3>Nema pronađenih prodavaca</h3>
+          <h3>
+            Nema pronađenih prodavaca
+          </h3>
 
           <p>
-            Promeni pojam pretrage ili izaberi drugu kategoriju hrane.
+            Promeni pojam pretrage ili izaberi
+            drugu kategoriju hrane.
           </p>
         </div>
       </div>
     } @else {
       <div class="sellers-grid">
-        @for (seller of sellers(); track seller.id) {
+        @for (
+          seller of sellers();
+          track seller.id
+        ) {
           <article class="seller-card">
             <div
               class="seller-visual"
-              [class.has-cover-image]="seller.coverImageUrl"
+              [class.has-cover-image]="
+                seller.coverImageUrl
+              "
             >
-              @if (seller.coverImageUrl) {
+              @if (
+                seller.coverImageUrl
+              ) {
                 <img
                   class="seller-cover-image"
-                  [src]="seller.coverImageUrl"
-                  [alt]="'Naslovna slika prodavca ' + seller.businessName"
+                  [src]="
+                    seller.coverImageUrl
+                  "
+                  [alt]="
+                    'Naslovna slika domaćina ' +
+                    seller.businessName
+                  "
+                  loading="lazy"
+                  decoding="async"
                 >
               }
 
-              <div class="visual-pattern" aria-hidden="true"></div>
+              <div
+                class="visual-pattern"
+                aria-hidden="true"
+              ></div>
 
               <div class="seller-city">
                 <svg
@@ -161,37 +247,60 @@
                   aria-hidden="true"
                 ></svg>
 
-                <span>{{ seller.city.name }}</span>
+                <span>
+                  {{ seller.city.name }}
+                </span>
               </div>
             </div>
 
             <div class="seller-avatar-wrapper">
-              @if (seller.profileImageUrl) {
+              @if (
+                seller.profileImageUrl
+              ) {
                 <img
-                  class="seller-avatar seller-avatar-image"
-                  [src]="seller.profileImageUrl"
-                  [alt]="'Profilna slika prodavca ' + seller.businessName"
+                  class="
+                    seller-avatar
+                    seller-avatar-image
+                  "
+                  [src]="
+                    seller.profileImageUrl
+                  "
+                  [alt]="
+                    'Profilna slika domaćina ' +
+                    seller.businessName
+                  "
+                  loading="lazy"
+                  decoding="async"
                 >
               } @else {
                 <div class="seller-avatar">
-                  {{ sellerInitials(seller.businessName) }}
+                  {{
+                    sellerInitials(
+                      seller.businessName
+                    )
+                  }}
                 </div>
               }
 
-              <span class="avatar-status"></span>
+              <span
+                class="avatar-status"
+                aria-hidden="true"
+              ></span>
             </div>
 
             <div class="seller-content">
               <div class="seller-heading">
                 <div class="seller-name-row">
-                  <h3>{{ seller.businessName }}</h3>
+                  <h3>
+                    {{ seller.businessName }}
+                  </h3>
 
                   <svg
                     class="verified-icon"
                     [lucideIcon]="verifiedIcon"
                     [size]="20"
                     [strokeWidth]="1.8"
-                    aria-label="Odobren prodavac"
+                    aria-label="Proveren domaćin"
                   ></svg>
                 </div>
 
@@ -199,7 +308,8 @@
                   {{
                     seller.offers.length === 1
                       ? '1 aktivna ponuda'
-                      : seller.offers.length + ' aktivne ponude'
+                      : seller.offers.length +
+                        ' aktivne ponude'
                   }}
                 </span>
               </div>
@@ -207,7 +317,7 @@
               <p class="seller-description">
                 {{
                   seller.description ||
-                  'Prodavac još nije uneo opis svog domaćinstva.'
+                  'Domaćin još nije uneo opis svog domaćinstva.'
                 }}
               </p>
 
@@ -220,38 +330,62 @@
                     aria-hidden="true"
                   ></svg>
 
-                  <h4>Aktuelne ponude</h4>
+                  <h4>
+                    Aktuelne ponude
+                  </h4>
                 </div>
 
                 <span class="latest-offers-label">
-                   Istaknuto
-                <svg
-                  [lucideIcon]="clockIcon"
-                  [size]="16"
-                  [strokeWidth]="1.8"
-                  aria-hidden="true"
-                ></svg>
+                  Istaknuto
 
-               
-              </span>
+                  <svg
+                    [lucideIcon]="clockIcon"
+                    [size]="16"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+                </span>
               </div>
 
               <div class="seller-offers">
-                @for (offer of seller.offers; track offer.id) {
+                @for (
+                  offer of seller.offers;
+                  track offer.id
+                ) {
+                  @let category =
+                    categoryConfig(
+                      offer.category
+                    );
+
                   <article
                     class="offer-tile"
-                    [style.--offer-color]="categoryColor(offer.category)"
-                    [style.--offer-soft]="categorySoftColor(offer.category)"
+                    [style.--offer-color]="
+                      category.iconColor
+                    "
+                    [style.--offer-soft]="
+                      category.softColor
+                    "
                   >
-                    <div class="offer-visual">
-                      @if (offer.imageUrl) {
+                    <div
+                      class="offer-visual"
+                      [class.has-image]="
+                        offer.imageUrl
+                      "
+                    >
+                      @if (
+                        offer.imageUrl
+                      ) {
                         <img
                           [src]="offer.imageUrl"
                           [alt]="offer.name"
+                          loading="lazy"
+                          decoding="async"
                         >
                       } @else {
                         <svg
-                          [lucideIcon]="categoryIcon(offer.category)"
+                          [lucideIcon]="
+                            category.icon
+                          "
                           [size]="30"
                           [strokeWidth]="1.6"
                           aria-hidden="true"
@@ -260,12 +394,21 @@
                     </div>
 
                     <div class="offer-info">
-                      <h5>{{ offer.name }}</h5>
+                      <h5
+                        [title]="offer.name"
+                      >
+                        {{ offer.name }}
+                      </h5>
 
-                      <strong>{{ offer.price }} RSD</strong>
+                      <strong>
+                        {{ offer.price }}
+                        RSD
+                      </strong>
 
                       <span>
-                        {{ offer.availableQuantity }}
+                        {{
+                          offer.availableQuantity
+                        }}
                         {{ offer.unit }}
                       </span>
                     </div>
@@ -273,11 +416,16 @@
                 }
               </div>
 
-              <button
+              <a
                 class="seller-button"
-                type="button"
+                [routerLink]="[
+                  '/sellers',
+                  seller.slug
+                ]"
               >
-                <span>Pogledaj domaćina</span>
+                <span>
+                  Pogledaj domaćina
+                </span>
 
                 <svg
                   [lucideIcon]="arrowIcon"
@@ -285,7 +433,7 @@
                   [strokeWidth]="2"
                   aria-hidden="true"
                 ></svg>
-              </button>
+              </a>
             </div>
           </article>
         }

@@ -1,0 +1,60 @@
+<div class="location-picker">
+  @if (!readonly) {
+    <div class="address-search">
+      <div>
+        <strong>Automatsko pronalaženje adrese</strong>
+
+        <p>
+          Proveri grad, ulicu i broj, pa potvrdi pretragu.
+        </p>
+      </div>
+
+      <button
+        class="search-address-button"
+        type="button"
+        [disabled]="isSearching()"
+        (click)="findAddress()"
+      >
+        @if (isSearching()) {
+          Pronalaženje...
+        } @else {
+          Pronađi adresu na mapi
+        }
+      </button>
+    </div>
+  }
+
+  @if (searchMessage()) {
+    <div
+      class="search-message"
+      [class.error]="
+        searchMessageType() === 'error'
+      "
+      role="status"
+    >
+      {{ searchMessage() }}
+    </div>
+  }
+
+  <div
+    #mapContainer
+    class="map-container"
+    aria-label="Mapa za izbor mesta preuzimanja"
+  ></div>
+
+  @if (!readonly) {
+    <div class="map-controls">
+      <p>
+        Ako automatski rezultat nije precizan, klikni na mapu ili pomeri pin.
+      </p>
+
+      <button
+        type="button"
+        [disabled]="isSearching()"
+        (click)="useCurrentLocation()"
+      >
+        Koristi trenutnu lokaciju
+      </button>
+    </div>
+  }
+</div>

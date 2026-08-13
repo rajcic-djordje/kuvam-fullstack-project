@@ -6,7 +6,10 @@ const updateSellerProfileSchema = z.object({
     cityId: z.string().trim().min(1).optional(),
     street: z.string().trim().min(2).max(150).optional(),
     streetNumber: z.string().trim().min(1).max(20).optional(),
-    additionalInfo: z.string().trim().max(300).nullable().optional()
+    additionalInfo: z.string().trim().max(300).nullable().optional(),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    isOpen: z.boolean().optional()
 })
     .refine(
         (data) => Object.keys(data).length > 0,
@@ -33,6 +36,17 @@ const updateSellerProfileSchema = z.object({
         },
         {
             message: "City, street and street number must be provided together."
+        }
+    )
+    .refine(
+        (data) => {
+            const hasLatitude = data.latitude !== undefined
+            const hasLongitude = data.longitude !== undefined
+
+            return hasLatitude === hasLongitude
+        },
+        {
+            message: "Latitude and longitude must be provided together."
         }
     )
 

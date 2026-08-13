@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt"
+import Notification from "../models/notification.js"
 import env from "../config/env.js"
 import {
   connectToDatabase,
@@ -74,7 +75,9 @@ const userData = [
     address: {
       street: "Kralja Aleksandra I Karađorđevića",
       streetNumber: "42",
-      additionalInfo: "Stan 8, drugi sprat"
+      additionalInfo: "Stan 8, drugi sprat",
+      latitude: 44.0157,
+      longitude: 20.9116
     },
     status: USER_STATUS.ACTIVE,
     reportsCount: 0,
@@ -91,7 +94,9 @@ const userData = [
     address: {
       street: "Gospodar Jovanova",
       streetNumber: "18",
-      additionalInfo: null
+      additionalInfo: null,
+      latitude: 43.8917,
+      longitude: 20.3492
     },
     status: USER_STATUS.ACTIVE,
     reportsCount: 0,
@@ -108,7 +113,9 @@ const userData = [
     address: {
       street: null,
       streetNumber: null,
-      additionalInfo: null
+      additionalInfo: null,
+      latitude: null,
+      longitude: null
     },
     status: USER_STATUS.ACTIVE,
     reportsCount: 0,
@@ -125,7 +132,9 @@ const userData = [
     address: {
       street: "Bulevar kralja Aleksandra",
       streetNumber: "125",
-      additionalInfo: null
+      additionalInfo: null,
+      latitude: 44.8028,
+      longitude: 20.4858
     },
     status: USER_STATUS.SUSPENDED,
     reportsCount: 2,
@@ -142,7 +151,9 @@ const userData = [
     address: {
       street: "Futoška",
       streetNumber: "73",
-      additionalInfo: null
+      additionalInfo: null,
+      latitude: 45.2495,
+      longitude: 19.8248
     },
     status: USER_STATUS.SUSPENDED,
     reportsCount: 3,
@@ -159,7 +170,9 @@ const userData = [
     address: {
       street: "Vožda Karađorđa",
       streetNumber: "31",
-      additionalInfo: null
+      additionalInfo: null,
+      latitude: 43.3218,
+      longitude: 21.8981
     },
     status: USER_STATUS.BANNED,
     reportsCount: 4,
@@ -182,7 +195,9 @@ const sellerData = [
     pickupAddress: {
       street: "Svetozara Markovića",
       streetNumber: "27",
-      additionalInfo: "Preuzimanje na ulazu iz dvorišta"
+      additionalInfo: "Preuzimanje na ulazu iz dvorišta",
+      latitude: 44.0109,
+      longitude: 20.9176
     },
     approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
   },
@@ -197,7 +212,9 @@ const sellerData = [
     pickupAddress: {
       street: "Kneza Miloša",
       streetNumber: "64",
-      additionalInfo: "Preuzimanje na kapiji"
+      additionalInfo: "Preuzimanje na kapiji",
+      latitude: 44.0134,
+      longitude: 20.9078
     },
     approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
   },
@@ -212,7 +229,9 @@ const sellerData = [
     pickupAddress: {
       street: "Župana Stracimira",
       streetNumber: "15",
-      additionalInfo: "Lokal u prizemlju"
+      additionalInfo: "Lokal u prizemlju",
+      latitude: 43.8914,
+      longitude: 20.3497
     },
     approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
   },
@@ -227,7 +246,9 @@ const sellerData = [
     pickupAddress: {
       street: "Bate Jankovića",
       streetNumber: "39",
-      additionalInfo: null
+      additionalInfo: null,
+      latitude: 43.8865,
+      longitude: 20.3564
     },
     approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
   },
@@ -242,7 +263,9 @@ const sellerData = [
     pickupAddress: {
       street: "Omladinska",
       streetNumber: "21",
-      additionalInfo: "Pozvati po dolasku"
+      additionalInfo: "Pozvati po dolasku",
+      latitude: 43.7243,
+      longitude: 20.6879
     },
     approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
   },
@@ -257,7 +280,9 @@ const sellerData = [
     pickupAddress: {
       street: "Zmaj Jovina",
       streetNumber: "11",
-      additionalInfo: null
+      additionalInfo: null,
+      latitude: 44.012,
+      longitude: 20.9115
     },
     approvalStatus: SELLER_APPROVAL_STATUS.PENDING
   }
@@ -631,6 +656,7 @@ const seed = async () => {
   try {
     await connectToDatabase()
 
+    await Notification.deleteMany({})
     await Report.deleteMany({})
     await Order.deleteMany({})
     await Offer.deleteMany({})
@@ -646,7 +672,12 @@ const seed = async () => {
       }))
     )
 
-    const citiesBySlug = new Map(createdCities.map(city => [city.slug, city]))
+    const citiesBySlug = new Map(
+      createdCities.map(city => [
+        city.slug,
+        city
+      ])
+    )
 
     const admin = await User.create({
       firstName: adminData.firstName,
@@ -659,7 +690,9 @@ const seed = async () => {
       address: {
         street: null,
         streetNumber: null,
-        additionalInfo: null
+        additionalInfo: null,
+        latitude: null,
+        longitude: null
       },
       reportsCount: 0,
       offences: 0,
@@ -673,7 +706,13 @@ const seed = async () => {
     usersByEmail.set(admin.email, admin)
 
     for (const data of userData) {
-      const city = data.citySlug ? getRequiredMapValue(citiesBySlug, data.citySlug, "City") : null
+      const city = data.citySlug
+        ? getRequiredMapValue(
+            citiesBySlug,
+            data.citySlug,
+            "City"
+          )
+        : null
 
       const user = await User.create({
         firstName: data.firstName,
@@ -697,7 +736,11 @@ const seed = async () => {
     const sellersByEmail = new Map()
 
     for (const data of sellerData) {
-      const city = getRequiredMapValue(citiesBySlug, data.citySlug, "City")
+      const city = getRequiredMapValue(
+        citiesBySlug,
+        data.citySlug,
+        "City"
+      )
 
       const user = await User.create({
         firstName: data.firstName,
@@ -710,7 +753,9 @@ const seed = async () => {
         address: {
           street: null,
           streetNumber: null,
-          additionalInfo: null
+          additionalInfo: null,
+          latitude: null,
+          longitude: null
         },
         reportsCount: 0,
         offences: 0,
@@ -738,7 +783,11 @@ const seed = async () => {
     }
 
     const offers = offerData.map(data => {
-      const seller = getRequiredMapValue(sellersByEmail, data.sellerEmail, "Seller")
+      const seller = getRequiredMapValue(
+        sellersByEmail,
+        data.sellerEmail,
+        "Seller"
+      )
 
       return {
         seller: seller._id,
@@ -753,32 +802,80 @@ const seed = async () => {
       }
     })
 
-    const createdOffers = await Offer.insertMany(offers)
+    const createdOffers = await Offer.insertMany(
+      offers
+    )
 
-    const offersByName = new Map(createdOffers.map(offer => [offer.name, offer]))
+    const offersByName = new Map(
+      createdOffers.map(offer => [
+        offer.name,
+        offer
+      ])
+    )
 
     for (const data of reportData) {
-      const reporter = getRequiredMapValue(usersByEmail, data.reporterEmail, "Reporter")
-      const reportedUser = getRequiredMapValue(usersByEmail, data.reportedUserEmail, "Reported user")
-      const buyer = getRequiredMapValue(usersByEmail, data.buyerEmail, "Buyer")
-      const seller = getRequiredMapValue(sellersByEmail, data.sellerEmail, "Seller")
-      const offer = getRequiredMapValue(offersByName, data.offerName, "Offer")
+      const reporter = getRequiredMapValue(
+        usersByEmail,
+        data.reporterEmail,
+        "Reporter"
+      )
+
+      const reportedUser = getRequiredMapValue(
+        usersByEmail,
+        data.reportedUserEmail,
+        "Reported user"
+      )
+
+      const buyer = getRequiredMapValue(
+        usersByEmail,
+        data.buyerEmail,
+        "Buyer"
+      )
+
+      const seller = getRequiredMapValue(
+        sellersByEmail,
+        data.sellerEmail,
+        "Seller"
+      )
+
+      const offer = getRequiredMapValue(
+        offersByName,
+        data.offerName,
+        "Offer"
+      )
+
+      const itemTotalPrice =
+        offer.price * data.quantity
 
       const order = await Order.create({
         buyer: buyer._id,
         seller: seller._id,
-        offer: offer._id,
-        quantity: data.quantity,
-        unitPrice: offer.price,
-        totalPrice: offer.price * data.quantity,
+        items: [
+          {
+            offer: offer._id,
+            name: offer.name,
+            category: offer.category,
+            imageUrl: offer.imageUrl,
+            quantity: data.quantity,
+            unit: offer.unit,
+            unitPrice: offer.price,
+            totalPrice: itemTotalPrice
+          }
+        ],
+        totalPrice: itemTotalPrice,
         status: ORDER_STATUS.COMPLETED,
         buyerNote: "",
         rejectionReason: null,
+        buyerOnTheWayAt: null,
+        pickupCodeGeneratedAt: null,
+        pickupCodeAttempts: 0,
+        pickupCodeBlockedUntil: null,
         createdAt: data.createdAt,
         updatedAt: data.createdAt
       })
 
-      const isReviewed = data.status !== REPORT_STATUS.PENDING
+      const isReviewed =
+        data.status !== REPORT_STATUS.PENDING
 
       await Report.create({
         reporter: reporter._id,
@@ -787,9 +884,15 @@ const seed = async () => {
         reason: data.reason,
         description: data.description,
         status: data.status,
-        reviewedBy: isReviewed ? admin._id : null,
-        adminNote: isReviewed ? data.adminNote : null,
-        reviewedAt: isReviewed ? data.createdAt : null,
+        reviewedBy: isReviewed
+          ? admin._id
+          : null,
+        adminNote: isReviewed
+          ? data.adminNote
+          : null,
+        reviewedAt: isReviewed
+          ? data.createdAt
+          : null,
         createdAt: data.createdAt,
         updatedAt: data.createdAt
       })
@@ -835,48 +938,92 @@ const seed = async () => {
         result._id,
         {
           $set: {
-            reportsCount: result.reportsCount,
+            reportsCount:
+              result.reportsCount,
             offences: result.offences
           }
         }
       )
     }
 
-    const citiesCount = await City.countDocuments()
-    const usersCount = await User.countDocuments()
-    const sellersCount = await Seller.countDocuments()
-    const approvedSellersCount = await Seller.countDocuments({
-      approvalStatus: SELLER_APPROVAL_STATUS.APPROVED
-    })
-    const offersCount = await Offer.countDocuments()
-    const publicOffersCount = await Offer.countDocuments({
-      isActive: true,
-      availableQuantity: {
-        $gt: 0
-      }
-    })
-    const ordersCount = await Order.countDocuments()
-    const reportsCount = await Report.countDocuments()
-    const pendingReportsCount = await Report.countDocuments({
-      status: REPORT_STATUS.PENDING
-    })
+    const citiesCount =
+      await City.countDocuments()
+
+    const usersCount =
+      await User.countDocuments()
+
+    const sellersCount =
+      await Seller.countDocuments()
+
+    const approvedSellersCount =
+      await Seller.countDocuments({
+        approvalStatus:
+          SELLER_APPROVAL_STATUS.APPROVED
+      })
+
+    const offersCount =
+      await Offer.countDocuments()
+
+    const publicOffersCount =
+      await Offer.countDocuments({
+        isActive: true,
+        availableQuantity: {
+          $gt: 0
+        }
+      })
+
+    const ordersCount =
+      await Order.countDocuments()
+
+    const reportsCount =
+      await Report.countDocuments()
+
+    const pendingReportsCount =
+      await Report.countDocuments({
+        status: REPORT_STATUS.PENDING
+      })
 
     const suspendedUsers = await User.find({
       status: USER_STATUS.SUSPENDED
     })
-      .select("firstName lastName email suspendedAt")
+      .select(
+        "firstName lastName email suspendedAt"
+      )
       .lean()
 
-    console.log(`Cities seeded: ${citiesCount}.`)
-    console.log(`Users seeded: ${usersCount}.`)
-    console.log(`Sellers seeded: ${sellersCount}, approved: ${approvedSellersCount}.`)
-    console.log(`Offers seeded: ${offersCount}, active and available: ${publicOffersCount}.`)
-    console.log(`Orders created: ${ordersCount}.`)
-    console.log(`Reports created: ${reportsCount}, pending: ${pendingReportsCount}.`)
-    console.log(`Suspended users created: ${suspendedUsers.length}.`)
+    console.log(
+      `Cities seeded: ${citiesCount}.`
+    )
+
+    console.log(
+      `Users seeded: ${usersCount}.`
+    )
+
+    console.log(
+      `Sellers seeded: ${sellersCount}, approved: ${approvedSellersCount}.`
+    )
+
+    console.log(
+      `Offers seeded: ${offersCount}, active and available: ${publicOffersCount}.`
+    )
+
+    console.log(
+      `Orders created: ${ordersCount}.`
+    )
+
+    console.log(
+      `Reports created: ${reportsCount}, pending: ${pendingReportsCount}.`
+    )
+
+    console.log(
+      `Suspended users created: ${suspendedUsers.length}.`
+    )
+
     console.log(suspendedUsers)
     console.log("Seed user password: Test1234")
-    console.log(`Seed admin email: ${env.adminEmail}`)
+    console.log(
+      `Seed admin email: ${env.adminEmail}`
+    )
   } catch (error) {
     console.error("Seed failed.")
     console.error(error)

@@ -1,4 +1,5 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DOCUMENT } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -21,6 +22,8 @@ import {
   LucideX,
   type LucideIcon
 } from '@lucide/angular';
+import { FormDraftService } from '../../../../shared/services/form-draft';
+import { ToastService } from '../../../../shared/services/toast';
 import {
   AdminReport,
   AdminReportReason,
@@ -30,6 +33,10 @@ import {
   AdminReportUserRole
 } from '../../models/admin-report';
 import { AdminReportService } from '../../services/admin-report';
+
+interface AdminReportNoteDraft {
+  adminNote: string;
+}
 
 @Component({
   selector: 'app-admin-reports-page',
@@ -44,6 +51,15 @@ export class AdminReportsPage implements OnInit, OnDestroy {
   private readonly adminReportService =
     inject(AdminReportService);
 
+  private readonly formDraftService =
+    inject(FormDraftService);
+
+  private readonly toastService =
+    inject(ToastService);
+
+  private readonly document =
+    inject(DOCUMENT);
+
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
   readonly reports = signal<AdminReport[]>([]);
@@ -53,14 +69,15 @@ export class AdminReportsPage implements OnInit, OnDestroy {
   readonly isProcessing = signal(false);
 
   readonly errorMessage = signal('');
-  readonly actionErrorMessage = signal('');
-  readonly successMessage = signal('');
 
   readonly searchTerm = signal('');
+
   readonly selectedStatus =
     signal<AdminReportsStatusFilter>('all');
+
   readonly selectedSort =
     signal<AdminReportsSort>('newest');
+
   readonly adminNote = signal('');
 
   readonly reportsIcon: LucideIcon =
@@ -104,6 +121,8 @@ export class AdminReportsPage implements OnInit, OnDestroy {
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
     }
+
+    this.document.body.classList.remove('modal-open');
   }
 
   onSearchChange(value: string): void {
@@ -143,7 +162,6 @@ export class AdminReportsPage implements OnInit, OnDestroy {
   loadReports(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
-    this.successMessage.set('');
 
     this.adminReportService.getReports(
       this.searchTerm(),
@@ -170,9 +188,25 @@ export class AdminReportsPage implements OnInit, OnDestroy {
 
   openReport(report: AdminReport): void {
     this.selectedReport.set(report);
-    this.adminNote.set(report.adminNote ?? '');
-    this.actionErrorMessage.set('');
-    this.successMessage.set('');
+
+    if (report.status === 'pending') {
+      const draft =
+        this.formDraftService.load<AdminReportNoteDraft>(
+          this.getDraftKey(report._id)
+        );
+
+      this.adminNote.set(
+        draft?.adminNote ??
+        report.adminNote ??
+        ''
+      );
+    } else {
+      this.adminNote.set(
+        report.adminNote ?? ''
+      );
+    }
+
+    this.document.body.classList.add('modal-open');
   }
 
   closeReport(): void {
@@ -182,12 +216,25 @@ export class AdminReportsPage implements OnInit, OnDestroy {
 
     this.selectedReport.set(null);
     this.adminNote.set('');
-    this.actionErrorMessage.set('');
+
+    this.document.body.classList.remove('modal-open');
   }
 
   onAdminNoteChange(value: string): void {
     this.adminNote.set(value);
-    this.actionErrorMessage.set('');
+
+    const report = this.selectedReport();
+
+    if (!report || report.status !== 'pending') {
+      return;
+    }
+
+    this.formDraftService.save(
+      this.getDraftKey(report._id),
+      {
+        adminNote: value
+      } satisfies AdminReportNoteDraft
+    );
   }
 
   approveSelectedReport(): void {
@@ -198,7 +245,6 @@ export class AdminReportsPage implements OnInit, OnDestroy {
     }
 
     this.isProcessing.set(true);
-    this.actionErrorMessage.set('');
 
     this.adminReportService.approveReport(
       report._id,
@@ -208,16 +254,23 @@ export class AdminReportsPage implements OnInit, OnDestroy {
         const wasBanned =
           response.reportedUser?.status === 'banned';
 
-        this.successMessage.set(
-          wasBanned
-            ? 'Prijava je odobrena, a korisnik je automatski banovan.'
-            : 'Prijava je uspešno odobrena.'
+        this.formDraftService.clear(
+          this.getDraftKey(report._id)
         );
 
         this.isProcessing.set(false);
         this.selectedReport.set(null);
         this.adminNote.set('');
+
+        this.document.body.classList.remove('modal-open');
+
         this.loadReports();
+
+        this.toastService.success(
+          wasBanned
+            ? 'Prijava je odobrena, a korisnik je automatski banovan.'
+            : 'Prijava je uspešno odobrena.'
+        );
       },
       error: error => {
         this.handleActionError(error);
@@ -234,28 +287,35 @@ export class AdminReportsPage implements OnInit, OnDestroy {
     }
 
     if (note.length < 2) {
-      this.actionErrorMessage.set(
+      this.toastService.error(
         'Unesi razlog odbijanja prijave.'
       );
+
       return;
     }
 
     this.isProcessing.set(true);
-    this.actionErrorMessage.set('');
 
     this.adminReportService.rejectReport(
       report._id,
       note
     ).subscribe({
       next: () => {
-        this.successMessage.set(
-          'Prijava je uspešno odbijena.'
+        this.formDraftService.clear(
+          this.getDraftKey(report._id)
         );
 
         this.isProcessing.set(false);
         this.selectedReport.set(null);
         this.adminNote.set('');
+
+        this.document.body.classList.remove('modal-open');
+
         this.loadReports();
+
+        this.toastService.success(
+          'Prijava je uspešno odbijena.'
+        );
       },
       error: error => {
         this.handleActionError(error);
@@ -264,13 +324,13 @@ export class AdminReportsPage implements OnInit, OnDestroy {
   }
 
   getFullName(
-  user: {
-    firstName: string;
-    lastName: string;
+    user: {
+      firstName: string;
+      lastName: string;
+    }
+  ): string {
+    return `${user.firstName} ${user.lastName}`;
   }
-): string {
-  return `${user.firstName} ${user.lastName}`;
-}
 
   getInitials(
     user: AdminReport['reporter']
@@ -283,7 +343,7 @@ export class AdminReportsPage implements OnInit, OnDestroy {
 
   getRoleLabel(role: AdminReportUserRole): string {
     return role === 'seller'
-      ? 'Prodavac'
+      ? 'Domaćin'
       : 'Kupac';
   }
 
@@ -328,15 +388,20 @@ export class AdminReportsPage implements OnInit, OnDestroy {
     return this.pendingIcon;
   }
 
-  private handleActionError(error: any): void {
-    const code = error.error?.error?.code;
+  private getDraftKey(reportId: string): string {
+    return `admin-report-note:${reportId}`;
+  }
+
+  private handleActionError(error: HttpErrorResponse): void {
+    const code =
+      error.error?.error?.code;
 
     if (code === 'REPORT_ALREADY_REVIEWED') {
-      this.actionErrorMessage.set(
+      this.toastService.error(
         'Ovu prijavu je u međuvremenu već obradio drugi administrator.'
       );
     } else {
-      this.actionErrorMessage.set(
+      this.toastService.error(
         error.error?.error?.message ??
         error.error?.message ??
         'Došlo je do greške pri obradi prijave.'

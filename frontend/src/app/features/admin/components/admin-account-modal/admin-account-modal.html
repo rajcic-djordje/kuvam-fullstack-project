@@ -10,44 +10,72 @@
       aria-modal="true"
       aria-labelledby="account-modal-title"
     >
+      <button
+        class="close-button"
+        type="button"
+        aria-label="Zatvori modal"
+        [disabled]="
+          isProfileSubmitting() ||
+          isPasswordSubmitting()
+        "
+        (click)="close()"
+      >
+        <svg
+          [lucideIcon]="closeIcon"
+          [size]="20"
+          [strokeWidth]="1.8"
+          aria-hidden="true"
+        ></svg>
+      </button>
+
       <header class="modal-header">
-        <div class="modal-heading">
-          <h2 id="account-modal-title">
-            Promeni podatke
-          </h2>
+        <span class="modal-eyebrow">
+          Administratorski nalog
+        </span>
 
-          <p>
-            Izmeni ime i prezime ili promeni lozinku administratorskog naloga.
-          </p>
-        </div>
+        <h2 id="account-modal-title">
+          Promeni podatke
+        </h2>
 
-        <button
-          class="close-button"
-          type="button"
-          aria-label="Zatvori modal"
-          [disabled]="
-            isProfileSubmitting() ||
-            isPasswordSubmitting()
-          "
-          (click)="close()"
+        <p>
+          Izmeni osnovne podatke ili promeni lozinku administratorskog naloga.
+        </p>
+
+        <div
+          class="modal-decoration"
+          aria-hidden="true"
         >
-          <svg
-            [lucideIcon]="closeIcon"
-            [size]="20"
-            [strokeWidth]="1.9"
-            aria-hidden="true"
-          ></svg>
-        </button>
+          <span></span>
+
+          <svg viewBox="0 0 24 24">
+            <path d="M5 15c6 0 10-4 12-10"></path>
+            <path d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"></path>
+            <path d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"></path>
+          </svg>
+
+          <span></span>
+        </div>
       </header>
 
       <div class="modal-content">
         <section class="account-section">
           <div class="section-header">
-            <h3>Osnovni podaci</h3>
+            <span class="section-number">
+              <svg
+                [lucideIcon]="profileIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+            </span>
 
-            <p>
-              Promeni ime ili prezime administratorskog naloga.
-            </p>
+            <div>
+              <h3>Osnovni podaci</h3>
+
+              <p>
+                Promeni ime ili prezime administratorskog naloga.
+              </p>
+            </div>
           </div>
 
           <form
@@ -109,43 +137,19 @@
               </div>
             </div>
 
-            @if (profileSuccessMessage()) {
-              <div
-                class="form-notice success-notice"
-                role="status"
+            <div class="section-action">
+              <button
+                class="submit-button"
+                type="submit"
+                [disabled]="isProfileSubmitting()"
               >
-                <strong>Podaci su sačuvani</strong>
-
-                <p>
-                  {{ profileSuccessMessage() }}
-                </p>
-              </div>
-            }
-
-            @if (profileErrorMessage()) {
-              <div
-                class="form-notice error-notice"
-                role="alert"
-              >
-                <strong>Čuvanje nije uspelo</strong>
-
-                <p>
-                  {{ profileErrorMessage() }}
-                </p>
-              </div>
-            }
-
-            <button
-              class="submit-button"
-              type="submit"
-              [disabled]="isProfileSubmitting()"
-            >
-              @if (isProfileSubmitting()) {
-                Čuvanje podataka...
-              } @else {
-                Sačuvaj podatke
-              }
-            </button>
+                @if (isProfileSubmitting()) {
+                  Čuvanje podataka...
+                } @else {
+                  Sačuvaj podatke
+                }
+              </button>
+            </div>
           </form>
         </section>
 
@@ -153,11 +157,22 @@
 
         <section class="account-section">
           <div class="section-header">
-            <h3>Promena lozinke</h3>
+            <span class="section-number">
+              <svg
+                [lucideIcon]="passwordIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+            </span>
 
-            <p>
-              Za promenu lozinke prvo unesi trenutnu lozinku.
-            </p>
+            <div>
+              <h3>Promena lozinke</h3>
+
+              <p>
+                Unesi trenutnu lozinku i zatim postavi novu.
+              </p>
+            </div>
           </div>
 
           <form
@@ -337,30 +352,19 @@
               </div>
             </div>
 
-            @if (passwordErrorMessage()) {
-              <div
-                class="form-notice error-notice"
-                role="alert"
+            <div class="section-action">
+              <button
+                class="submit-button"
+                type="submit"
+                [disabled]="isPasswordSubmitting()"
               >
-                <strong>Promena nije uspela</strong>
-
-                <p>
-                  {{ passwordErrorMessage() }}
-                </p>
-              </div>
-            }
-
-            <button
-              class="submit-button"
-              type="submit"
-              [disabled]="isPasswordSubmitting()"
-            >
-              @if (isPasswordSubmitting()) {
-                Promena lozinke...
-              } @else {
-                Promeni lozinku
-              }
-            </button>
+                @if (isPasswordSubmitting()) {
+                  Promena lozinke...
+                } @else {
+                  Promeni lozinku
+                }
+              </button>
+            </div>
           </form>
         </section>
       </div>

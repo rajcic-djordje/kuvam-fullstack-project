@@ -8,20 +8,26 @@
         </h1>
 
         <p class="hero-description">
-          Pronađi ukusna kuvana jela, peciva, kolače, zimnicu i još mnogo toga
-          od proverenih domaćina u tvom kraju.
+          Pronađi ukusna kuvana jela, peciva, kolače,
+          zimnicu i još mnogo toga od proverenih
+          domaćina u tvom kraju.
         </p>
 
         <form
           class="search-form"
-          (submit)="$event.preventDefault(); searchOffers(searchInput.value)"
+          (submit)="
+            $event.preventDefault();
+            searchOffers(searchInput.value)
+          "
         >
           <div class="search-field">
-            <img
+            <svg
               class="search-icon"
-              src="/icons/search.svg"
-              alt=""
-            >
+              [lucideIcon]="searchIcon"
+              [size]="18"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
 
             <input
               #searchInput
@@ -32,36 +38,72 @@
           </div>
 
           <button type="submit">
-            <img src="/icons/search.svg" alt="">
+            <svg
+              [lucideIcon]="searchIcon"
+              [size]="17"
+              [strokeWidth]="2"
+              aria-hidden="true"
+            ></svg>
+
             <span>Pretraži</span>
           </button>
         </form>
 
         <div class="hero-benefits">
           <div class="benefit">
-            <img src="/icons/shield-check.svg" alt="">
+            <svg
+              [lucideIcon]="verifiedIcon"
+              [size]="23"
+              [strokeWidth]="1.7"
+              aria-hidden="true"
+            ></svg>
 
             <div>
-              <strong>Provereni domaćini</strong>
-              <span>Kvalitet kojem možeš da veruješ</span>
+              <strong>
+                Provereni domaćini
+              </strong>
+
+              <span>
+                Kvalitet kojem možeš da veruješ
+              </span>
             </div>
           </div>
 
           <div class="benefit">
-            <img src="/icons/leaf.svg" alt="">
+            <svg
+              [lucideIcon]="leafIcon"
+              [size]="23"
+              [strokeWidth]="1.7"
+              aria-hidden="true"
+            ></svg>
 
             <div>
-              <strong>Sveže i domaće</strong>
-              <span>Pripremljeno s ljubavlju</span>
+              <strong>
+                Sveže i domaće
+              </strong>
+
+              <span>
+                Pripremljeno s ljubavlju
+              </span>
             </div>
           </div>
 
           <div class="benefit">
-            <img src="/icons/geo-alt.svg" alt="">
+            <svg
+              [lucideIcon]="locationIcon"
+              [size]="23"
+              [strokeWidth]="1.7"
+              aria-hidden="true"
+            ></svg>
 
             <div>
-              <strong>Iz tvoje okoline</strong>
-              <span>Brzo i jednostavno preuzimanje</span>
+              <strong>
+                Iz tvoje okoline
+              </strong>
+
+              <span>
+                Brzo i jednostavno preuzimanje
+              </span>
             </div>
           </div>
         </div>
@@ -71,6 +113,7 @@
         <img
           src="/images/hero-food.png"
           alt="Domaća hrana i proizvodi"
+          fetchpriority="high"
         >
       </div>
     </div>
@@ -80,15 +123,25 @@
     class="categories-section container"
     aria-label="Kategorije hrane"
   >
-    <div class="categories-list">
-      @for (category of categories; track category.id) {
+    <div
+      class="categories-list"
+      appHorizontalScroll
+    >
+      @for (
+        category of categories;
+        track category.id
+      ) {
         <a
           class="category-button"
           routerLink="/offers"
-          [queryParams]="category.id === 'all'
-            ? {}
-            : { category: category.id }"
-          [style.--category-color]="category.iconColor"
+          [queryParams]="
+            category.id === 'all'
+              ? {}
+              : { category: category.id }
+          "
+          [style.--category-color]="
+            category.iconColor
+          "
         >
           <svg
             class="category-icon"
@@ -108,15 +161,25 @@
 
   <section class="offers-section container">
     <div class="offers-header">
-      <h2>Najnovije ponude</h2>
+      <h2>
+        Najnovije ponude
+      </h2>
 
       <a
         class="view-all-link"
         routerLink="/offers"
         aria-label="Prikaži sve ponude"
       >
-        <span>Prikaži sve ponude</span>
-        <span class="link-arrow" aria-hidden="true">›</span>
+        <span>
+          Prikaži sve ponude
+        </span>
+
+        <svg
+          [lucideIcon]="arrowIcon"
+          [size]="17"
+          [strokeWidth]="2"
+          aria-hidden="true"
+        ></svg>
       </a>
     </div>
 
@@ -128,40 +191,62 @@
       <p class="offers-status error">
         Ponude trenutno nisu dostupne.
       </p>
-    } @else if (latestOffers().length === 0) {
+    } @else if (
+      latestOffers().length === 0
+    ) {
       <p class="offers-status">
         Trenutno nema dostupnih ponuda.
       </p>
     } @else {
-      <div class="offers-grid">
-        @for (offer of latestOffers(); track offer._id) {
+      <div
+        class="offers-grid"
+        appHorizontalScroll
+      >
+        @for (
+          offer of latestOffers();
+          track offer._id
+        ) {
+          @let category =
+            categoryConfig(offer.category);
+
           <article
             class="home-offer-card"
-            [style.--offer-color]="categoryColor(offer.category)"
-            [style.--offer-soft]="categorySoftColor(offer.category)"
+            [style.--offer-color]="
+              category.iconColor
+            "
+            [style.--offer-soft]="
+              category.softColor
+            "
           >
             <div
               class="home-offer-visual"
-              [class.has-offer-image]="offer.imageUrl"
+              [class.has-offer-image]="
+                offer.imageUrl
+              "
             >
               @if (offer.imageUrl) {
                 <img
                   class="home-offer-image"
                   [src]="offer.imageUrl"
                   [alt]="offer.name"
+                  loading="lazy"
+                  decoding="async"
                 >
               }
 
-              <div class="home-offer-pattern" aria-hidden="true"></div>
+              <div
+                class="home-offer-pattern"
+                aria-hidden="true"
+              ></div>
 
               <span class="home-offer-category">
-                {{ categoryName(offer.category) }}
+                {{ category.name }}
               </span>
             </div>
 
             <div class="home-offer-icon">
               <svg
-                [lucideIcon]="categoryIcon(offer.category)"
+                [lucideIcon]="category.icon"
                 [size]="27"
                 [strokeWidth]="1.6"
                 aria-hidden="true"
@@ -171,7 +256,7 @@
             <div class="home-offer-content">
               <div class="home-offer-heading">
                 <h3 [title]="offer.name">
-                  {{ truncateText(offer.name, 28) }}
+                  {{ offer.name }}
                 </h3>
 
                 <span class="home-offer-price">
@@ -180,7 +265,7 @@
               </div>
 
               <p class="home-offer-description">
-                {{ truncateText(offer.description, 75) }}
+                {{ offer.description }}
               </p>
 
               <div class="home-offer-footer">
@@ -193,17 +278,22 @@
                   ></svg>
 
                   <span>
-                    Dostupno {{ offer.availableQuantity }}
+                    Dostupno
+                    {{ offer.availableQuantity }}
                     {{ offer.unit }}
                   </span>
                 </div>
 
                 <a
                   class="home-offer-link"
-                  routerLink="/offers"
-                  [queryParams]="{ search: offer.name }"
+                  [routerLink]="[
+                    '/offers',
+                    offer._id
+                  ]"
                 >
-                  <span>Pogledaj ponudu</span>
+                  <span>
+                    Pogledaj ponudu
+                  </span>
 
                   <svg
                     [lucideIcon]="arrowIcon"
@@ -221,9 +311,14 @@
   </section>
 
   <section class="how-it-works-section container">
-    <h2>Kako funkcioniše</h2>
+    <h2>
+      Kako funkcioniše
+    </h2>
 
-    <div class="steps-list">
+    <div
+      class="steps-list"
+      appHorizontalScroll
+    >
       <article class="step-card">
         <svg
           class="step-icon"
@@ -234,7 +329,11 @@
 
         <div class="step-content">
           <h3>Pretraži</h3>
-          <p>Pronađi jela i proizvode iz svoje okoline.</p>
+
+          <p>
+            Pronađi jela i proizvode iz svoje
+            okoline.
+          </p>
         </div>
       </article>
 
@@ -248,7 +347,10 @@
 
         <div class="step-content">
           <h3>Poruči</h3>
-          <p>Izaberi ponudu i kontaktiraj domaćina.</p>
+
+          <p>
+            Izaberi ponudu i kontaktiraj domaćina.
+          </p>
         </div>
       </article>
 
@@ -261,8 +363,14 @@
         ></svg>
 
         <div class="step-content">
-          <h3>Preuzmi i uživaj</h3>
-          <p>Preuzmi narudžbinu i uživaj u domaćem ukusu.</p>
+          <h3>
+            Preuzmi i uživaj
+          </h3>
+
+          <p>
+            Preuzmi narudžbinu i uživaj u domaćem
+            ukusu.
+          </p>
         </div>
       </article>
 
@@ -271,11 +379,19 @@
           class="support-image"
           src="/images/support-local.png"
           alt="Korpa sa domaćim proizvodima"
+          loading="lazy"
+          decoding="async"
         >
 
         <div class="support-content">
-          <h3>Podrži domaće</h3>
-          <p>Kupovinom na Kuvam podržavaš domaćinstva u svojoj zajednici.</p>
+          <h3>
+            Podrži domaće
+          </h3>
+
+          <p>
+            Kupovinom na Kuvam podržavaš
+            domaćinstva u svojoj zajednici.
+          </p>
         </div>
 
         <svg

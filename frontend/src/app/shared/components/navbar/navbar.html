@@ -4,6 +4,7 @@
       class="logo-link"
       routerLink="/"
       aria-label="Kuvam početna stranica"
+      (click)="closeMobileMenu()"
     >
       <img
         class="logo"
@@ -20,9 +21,7 @@
         class="nav-link"
         routerLink="/"
         routerLinkActive="active"
-        [routerLinkActiveOptions]="{
-          exact: true
-        }"
+        [routerLinkActiveOptions]="{ exact: true }"
       >
         Početna
       </a>
@@ -43,38 +42,27 @@
             class="profile-trigger"
             type="button"
             [class.open]="isProfileMenuOpen()"
-            [attr.aria-expanded]="
-              isProfileMenuOpen()
-            "
+            [attr.aria-expanded]="isProfileMenuOpen()"
             aria-haspopup="menu"
             (click)="toggleProfileMenu()"
           >
             <span class="profile-avatar">
               <svg
                 [lucideIcon]="userIcon"
-                [size]="18"
-                [strokeWidth]="1.9"
+                [size]="17"
+                [strokeWidth]="1.8"
                 aria-hidden="true"
               ></svg>
             </span>
 
             <span class="profile-name">
-              {{
-                authService.currentUser()
-                  ?.firstName
-              }}
+              {{ authService.currentUser()?.firstName }}
             </span>
 
-            <svg
+            <span
               class="profile-chevron"
-              [class.rotated]="
-                isProfileMenuOpen()
-              "
-              [lucideIcon]="chevronIcon"
-              [size]="15"
-              [strokeWidth]="2"
               aria-hidden="true"
-            ></svg>
+            ></span>
           </button>
 
           @if (isProfileMenuOpen()) {
@@ -84,65 +72,86 @@
             >
               <div class="profile-summary">
                 <strong>
-                  {{
-                    authService.currentUser()
-                      ?.firstName
-                  }}
-
-                  {{
-                    authService.currentUser()
-                      ?.lastName
-                  }}
+                  {{ authService.currentUser()?.firstName }}
+                  {{ authService.currentUser()?.lastName }}
                 </strong>
 
                 <span>
-                  {{
-                    authService.currentUser()
-                      ?.email
-                  }}
+                  {{ authService.currentUser()?.email }}
                 </span>
               </div>
 
               <div class="dropdown-divider"></div>
 
-              @if (
-                authService.currentUser()
-                  ?.role === 'admin'
-              ) {
+              @if (authService.currentUser()?.role === 'buyer') {
                 <a
                   class="dropdown-item"
-                  routerLink="/admin/dashboard"
+                  routerLink="/orders"
                   role="menuitem"
                   (click)="closeProfileMenu()"
                 >
                   <svg
-                    class="dropdown-icon"
-                    [lucideIcon]="dashboardIcon"
+                    [lucideIcon]="buyerOrdersIcon"
                     [size]="18"
                     [strokeWidth]="1.8"
                     aria-hidden="true"
                   ></svg>
 
-                  <span>Admin panel</span>
-                </a>
-              } @else {
-                <a
-                  class="dropdown-item"
-                  routerLink="/profile"
-                  role="menuitem"
-                  (click)="closeProfileMenu()"
-                >
-                  <svg
-                    class="dropdown-icon"
-                    [lucideIcon]="userIcon"
-                    [size]="18"
-                    [strokeWidth]="1.8"
-                    aria-hidden="true"
-                  ></svg>
-
-                  <span>Moj profil</span>
+                  <span>Moje porudžbine</span>
                 </a>
               }
+
+              @if (authService.currentUser()?.role === 'seller') {
+                <a
+                  class="dropdown-item"
+                  routerLink="/seller/offers"
+                  role="menuitem"
+                  (click)="closeProfileMenu()"
+                >
+                  <svg
+                    [lucideIcon]="sellerOffersIcon"
+                    [size]="18"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <span>Moje ponude</span>
+                </a>
+
+                <a
+                  class="dropdown-item"
+                  routerLink="/seller/orders"
+                  role="menuitem"
+                  (click)="closeProfileMenu()"
+                >
+                  <svg
+                    [lucideIcon]="sellerOrdersIcon"
+                    [size]="18"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <span>Primljene porudžbine</span>
+                </a>
+              }
+
+              <a
+                class="dropdown-item"
+                routerLink="/profile"
+                role="menuitem"
+                (click)="closeProfileMenu()"
+              >
+                <svg
+                  [lucideIcon]="userIcon"
+                  [size]="18"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <span>Moj profil</span>
+              </a>
+
+              <div class="dropdown-divider"></div>
 
               <button
                 class="dropdown-item logout-item"
@@ -151,7 +160,6 @@
                 (click)="logout()"
               >
                 <svg
-                  class="dropdown-icon"
                   [lucideIcon]="logoutIcon"
                   [size]="18"
                   [strokeWidth]="1.8"
@@ -160,6 +168,158 @@
 
                 <span>Odjava</span>
               </button>
+            </div>
+          }
+        </div>
+
+        @if (authService.currentUser()?.role === 'buyer') {
+          <button
+            class="cart-trigger"
+            type="button"
+            aria-label="Otvori korpu"
+            (click)="openCart()"
+          >
+            <svg
+              [lucideIcon]="buyerOrdersIcon"
+              [size]="21"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
+
+            @if (cartService.itemCount() > 0) {
+              <span class="cart-badge">
+                {{
+                  cartService.itemCount() > 99
+                    ? '99+'
+                    : cartService.itemCount()
+                }}
+              </span>
+            }
+          </button>
+        }
+
+        <div class="notification-menu">
+          <button
+            class="notification-trigger"
+            type="button"
+            [class.open]="isNotificationMenuOpen()"
+            [attr.aria-expanded]="isNotificationMenuOpen()"
+            aria-label="Notifikacije"
+            aria-haspopup="menu"
+            (click)="toggleNotificationMenu()"
+          >
+            <svg
+              [lucideIcon]="notificationIcon"
+              [size]="21"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
+
+            @if (notificationService.unreadCount() > 0) {
+              <span class="notification-badge">
+                @if (notificationService.unreadCount() > 9) {
+                  9+
+                } @else {
+                  {{ notificationService.unreadCount() }}
+                }
+              </span>
+            }
+          </button>
+
+          @if (isNotificationMenuOpen()) {
+            <div
+              class="notification-dropdown"
+              role="menu"
+            >
+              <div class="notification-header">
+                <div class="notification-heading">
+                  <strong>Notifikacije</strong>
+
+                  @if (notificationService.unreadCount() > 0) {
+                    <span>
+                      {{ notificationService.unreadCount() }}
+                      nepročitanih
+                    </span>
+                  } @else {
+                    <span>Nema nepročitanih</span>
+                  }
+                </div>
+
+                <button
+                  class="read-all-button"
+                  type="button"
+                  [disabled]="
+                    notificationService.unreadCount() === 0 ||
+                    isMarkingAllAsRead()
+                  "
+                  (click)="markAllAsRead()"
+                >
+                  <svg
+                    [lucideIcon]="readAllIcon"
+                    [size]="15"
+                    [strokeWidth]="1.9"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <span>
+                    @if (isMarkingAllAsRead()) {
+                      Čuvanje...
+                    } @else {
+                      Pročitaj sve
+                    }
+                  </span>
+                </button>
+              </div>
+
+              @if (notificationService.isLoading()) {
+                <div class="notification-state">
+                  Učitavanje notifikacija...
+                </div>
+              } @else if (
+                notificationService.notifications().length === 0
+              ) {
+                <div class="notification-state">
+                  Još nemaš notifikacija.
+                </div>
+              } @else {
+                <div class="notification-list">
+                  @for (
+                    notification of notificationService.notifications();
+                    track notification._id
+                  ) {
+                    <button
+                      class="notification-item"
+                      type="button"
+                      [class.unread]="!notification.isRead"
+                      role="menuitem"
+                      (click)="openNotification(notification)"
+                    >
+                      <span
+                        class="notification-status"
+                        aria-hidden="true"
+                      ></span>
+
+                      <span class="notification-content">
+                        <strong>
+                          {{ notification.title }}
+                        </strong>
+
+                        <span>
+                          {{ notification.message }}
+                        </span>
+
+                        <small>
+                          {{
+                            notificationTime(
+                              notification.createdAt
+                            )
+                          }}
+                        </small>
+                      </span>
+                    </button>
+                  }
+                </div>
+              }
             </div>
           }
         </div>
@@ -176,15 +336,200 @@
           routerLink="/register"
         >
           <svg
-            [lucideIcon]="registerIcon"
+            [lucideIcon]="userIcon"
             [size]="18"
-            [strokeWidth]="1.9"
+            [strokeWidth]="1.8"
             aria-hidden="true"
           ></svg>
 
           <span>Registracija</span>
         </a>
       }
+
+      <button
+        class="mobile-menu-trigger"
+        type="button"
+        [class.open]="isMobileMenuOpen()"
+        [attr.aria-expanded]="isMobileMenuOpen()"
+        aria-controls="mobileNavigation"
+        aria-label="Otvori navigaciju"
+        (click)="toggleMobileMenu()"
+      >
+        <svg
+          [lucideIcon]="
+            isMobileMenuOpen()
+              ? closeIcon
+              : menuIcon
+          "
+          [size]="22"
+          [strokeWidth]="1.8"
+          aria-hidden="true"
+        ></svg>
+      </button>
     </div>
+
+    @if (isMobileMenuOpen()) {
+      <nav
+        id="mobileNavigation"
+        class="mobile-menu"
+        aria-label="Mobilna navigacija"
+      >
+        @if (authService.isAuthenticated()) {
+          <div class="mobile-user-summary">
+            <div class="mobile-user-icon">
+              <svg
+                [lucideIcon]="userIcon"
+                [size]="20"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+            </div>
+
+            <div>
+              <strong>
+                {{ authService.currentUser()?.firstName }}
+                {{ authService.currentUser()?.lastName }}
+              </strong>
+
+              <span>
+                {{ authService.currentUser()?.email }}
+              </span>
+            </div>
+          </div>
+
+          <div class="mobile-menu-divider"></div>
+        }
+
+        <div class="mobile-nav-links">
+          <a
+            class="mobile-nav-link"
+            routerLink="/"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="closeMobileMenu()"
+          >
+            Početna
+          </a>
+
+          <a
+            class="mobile-nav-link"
+            routerLink="/offers"
+            routerLinkActive="active"
+            (click)="closeMobileMenu()"
+          >
+            Ponude
+          </a>
+
+          @if (authService.currentUser()?.role === 'buyer') {
+            <a
+              class="mobile-nav-link mobile-nav-link-icon"
+              routerLink="/orders"
+              routerLinkActive="active"
+              (click)="closeMobileMenu()"
+            >
+              <svg
+                [lucideIcon]="buyerOrdersIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <span>Moje porudžbine</span>
+            </a>
+          }
+
+          @if (authService.currentUser()?.role === 'seller') {
+            <a
+              class="mobile-nav-link mobile-nav-link-icon"
+              routerLink="/seller/offers"
+              routerLinkActive="active"
+              (click)="closeMobileMenu()"
+            >
+              <svg
+                [lucideIcon]="sellerOffersIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <span>Moje ponude</span>
+            </a>
+
+            <a
+              class="mobile-nav-link mobile-nav-link-icon"
+              routerLink="/seller/orders"
+              routerLinkActive="active"
+              (click)="closeMobileMenu()"
+            >
+              <svg
+                [lucideIcon]="sellerOrdersIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <span>Primljene porudžbine</span>
+            </a>
+          }
+
+          @if (authService.isAuthenticated()) {
+            <a
+              class="mobile-nav-link mobile-nav-link-icon"
+              routerLink="/profile"
+              routerLinkActive="active"
+              (click)="closeMobileMenu()"
+            >
+              <svg
+                [lucideIcon]="userIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <span>Moj profil</span>
+            </a>
+          }
+        </div>
+
+        @if (authService.isAuthenticated()) {
+          <div class="mobile-menu-divider"></div>
+
+          <button
+            class="mobile-nav-link mobile-nav-link-icon mobile-logout"
+            type="button"
+            (click)="logout()"
+          >
+            <svg
+              [lucideIcon]="logoutIcon"
+              [size]="18"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
+
+            <span>Odjava</span>
+          </button>
+        } @else {
+          <div class="mobile-menu-divider"></div>
+
+          <div class="mobile-auth-actions">
+            <a
+              class="mobile-login-link"
+              routerLink="/login"
+              (click)="closeMobileMenu()"
+            >
+              Prijava
+            </a>
+
+            <a
+              class="mobile-register-link"
+              routerLink="/register"
+              (click)="closeMobileMenu()"
+            >
+              Registracija
+            </a>
+          </div>
+        }
+      </nav>
+    }
   </div>
 </header>

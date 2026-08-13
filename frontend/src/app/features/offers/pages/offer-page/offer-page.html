@@ -1,0 +1,490 @@
+<main class="offer-page">
+  <div class="container offer-page-container">
+    <a
+      class="back-link"
+      routerLink="/offers"
+    >
+      <svg
+        [lucideIcon]="backIcon"
+        [size]="17"
+        [strokeWidth]="1.8"
+        aria-hidden="true"
+      ></svg>
+
+      <span>
+        Nazad na ponude
+      </span>
+    </a>
+
+    @if (isLoading()) {
+      <section class="state-card">
+        <div
+          class="loader"
+          aria-hidden="true"
+        ></div>
+
+        <div>
+          <h1>
+            Učitavanje ponude
+          </h1>
+
+          <p>
+            Prikupljamo podatke o ponudi.
+          </p>
+        </div>
+      </section>
+    } @else if (loadError()) {
+      <section class="state-card">
+        <span
+          class="error-mark"
+          aria-hidden="true"
+        >
+          !
+        </span>
+
+        <div>
+          <h1>
+            Ponuda nije dostupna
+          </h1>
+
+          <p>
+            {{ loadError() }}
+          </p>
+        </div>
+
+        <button
+          class="retry-button"
+          type="button"
+          (click)="retry()"
+        >
+          Pokušaj ponovo
+        </button>
+      </section>
+    } @else if (
+      offer();
+      as currentOffer
+    ) {
+      @let category =
+        categoryConfig(
+          currentOffer.category
+        );
+
+      <section class="offer-layout">
+        <div class="offer-image-panel">
+          @if (
+            currentOffer.imageUrl
+          ) {
+            <img
+              class="offer-image"
+              [src]="currentOffer.imageUrl"
+              [alt]="currentOffer.name"
+              decoding="async"
+            >
+          } @else {
+            <div class="offer-image-placeholder">
+              <span
+                class="leaf-accent leaf-accent-top"
+                aria-hidden="true"
+              ></span>
+
+              <span
+                class="leaf-accent leaf-accent-bottom"
+                aria-hidden="true"
+              ></span>
+
+              <div class="placeholder-content">
+                <svg
+                  [lucideIcon]="category.icon"
+                  [size]="54"
+                  [strokeWidth]="1.4"
+                  [style.color]="category.iconColor"
+                  aria-hidden="true"
+                ></svg>
+
+                <span>
+                  Slika ponude nije dostupna
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="offer-details">
+          <section class="offer-introduction">
+            <span
+              class="offer-category"
+              [style.--category-color]="
+                category.iconColor
+              "
+              [style.--category-soft]="
+                category.softColor
+              "
+            >
+              <svg
+                [lucideIcon]="category.icon"
+                [size]="15"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              {{ category.name }}
+            </span>
+
+            <h1>
+              {{ currentOffer.name }}
+            </h1>
+
+            <p class="offer-description">
+              {{ currentOffer.description }}
+            </p>
+
+            <strong class="offer-price">
+              {{ currentOffer.price }}
+              RSD
+            </strong>
+          </section>
+
+          <section class="offer-information">
+            <article class="information-item">
+              <svg
+                [lucideIcon]="quantityIcon"
+                [size]="22"
+                [strokeWidth]="1.7"
+                aria-hidden="true"
+              ></svg>
+
+              <div>
+                <span>
+                  Dostupna količina
+                </span>
+
+                <strong>
+                  {{
+                    remainingAvailableQuantity()
+                  }}
+                  {{ currentOffer.unit }}
+                </strong>
+              </div>
+            </article>
+
+            @if (
+              currentOffer.seller.city
+            ) {
+              <article class="information-item">
+                <svg
+                  [lucideIcon]="locationIcon"
+                  [size]="22"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+
+                <div>
+                  <span>
+                    Lokacija
+                  </span>
+
+                  <strong>
+                    {{
+                      currentOffer.seller.city.name
+                    }}
+                  </strong>
+                </div>
+              </article>
+            }
+          </section>
+
+          <section class="seller-card">
+            <div class="seller-profile">
+              @if (
+                currentOffer.seller
+                  .profileImageUrl
+              ) {
+                <img
+                  class="seller-image"
+                  [src]="
+                    currentOffer.seller
+                      .profileImageUrl
+                  "
+                  [alt]="
+                    currentOffer.seller
+                      .businessName
+                  "
+                  loading="lazy"
+                  decoding="async"
+                >
+              } @else {
+                <div
+                  class="
+                    seller-image
+                    seller-placeholder
+                  "
+                >
+                  <svg
+                    [lucideIcon]="sellerIcon"
+                    [size]="25"
+                    [strokeWidth]="1.55"
+                    aria-hidden="true"
+                  ></svg>
+                </div>
+              }
+
+              <div class="seller-information">
+                <span>
+                  Domaćin
+                </span>
+
+                <h2>
+                  {{
+                    currentOffer.seller
+                      .businessName
+                  }}
+                </h2>
+              </div>
+            </div>
+
+            @if (
+              currentOffer.seller.slug
+            ) {
+              <a
+                class="seller-link"
+                [routerLink]="[
+                  '/sellers',
+                  currentOffer.seller.slug
+                ]"
+              >
+                <span>
+                  Pogledaj domaćina
+                </span>
+
+                <svg
+                  [lucideIcon]="arrowIcon"
+                  [size]="17"
+                  [strokeWidth]="1.9"
+                  aria-hidden="true"
+                ></svg>
+              </a>
+            }
+          </section>
+
+          @if (
+            remainingAvailableQuantity() <=
+            0
+          ) {
+            <section class="order-unavailable">
+              <svg
+                [lucideIcon]="quantityIcon"
+                [size]="23"
+                [strokeWidth]="1.7"
+                aria-hidden="true"
+              ></svg>
+
+              <div>
+                @if (
+                  quantityInCart() > 0
+                ) {
+                  <strong>
+                    Celokupna količina je u korpi
+                  </strong>
+
+                  <p>
+                    Već si dodao svu trenutno
+                    dostupnu količinu ove ponude
+                    u svoju korpu.
+                  </p>
+                } @else {
+                  <strong>
+                    Ponuda je rasprodata
+                  </strong>
+
+                  <p>
+                    Trenutno nema dostupne
+                    količine za poručivanje.
+                  </p>
+                }
+              </div>
+            </section>
+          } @else if (
+            !isAuthenticated()
+          ) {
+            <section class="order-access-card">
+              <svg
+                [lucideIcon]="orderIcon"
+                [size]="23"
+                [strokeWidth]="1.7"
+                aria-hidden="true"
+              ></svg>
+
+              <div>
+                <strong>
+                  Prijavi se da poručiš
+                </strong>
+
+                <p>
+                  Porudžbine mogu da kreiraju
+                  prijavljeni kupci.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                (click)="goToLogin()"
+              >
+                Prijavi se
+              </button>
+            </section>
+          } @else if (
+            isSeller()
+          ) {
+            <section class="order-unavailable">
+              <svg
+                [lucideIcon]="storeIcon"
+                [size]="23"
+                [strokeWidth]="1.7"
+                aria-hidden="true"
+              ></svg>
+
+              <div>
+                <strong>
+                  Nalog domaćina ne može da
+                  poručuje
+                </strong>
+
+                <p>
+                  Za poručivanje je potreban
+                  nalog kupca.
+                </p>
+              </div>
+            </section>
+          } @else if (
+            isAdmin()
+          ) {
+            <section class="order-unavailable">
+              <svg
+                [lucideIcon]="storeIcon"
+                [size]="23"
+                [strokeWidth]="1.7"
+                aria-hidden="true"
+              ></svg>
+
+              <div>
+                <strong>
+                  Admin nalog ne može da
+                  poručuje
+                </strong>
+
+                <p>
+                  Administratorski nalog služi
+                  samo za upravljanje
+                  platformom.
+                </p>
+              </div>
+            </section>
+          } @else if (
+            isBuyer()
+          ) {
+            <section class="order-section">
+              <div class="order-heading">
+                <svg
+                  [lucideIcon]="orderIcon"
+                  [size]="23"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+
+                <div>
+                  <h2>
+                    Dodaj u korpu
+                  </h2>
+
+                  <p>
+                    Izaberi željenu količinu.
+                  </p>
+                </div>
+              </div>
+
+              <form
+                class="order-form"
+                [formGroup]="orderForm"
+                (ngSubmit)="createOrder()"
+              >
+                <div class="order-field">
+                  <label for="quantity">
+                    Količina
+                  </label>
+
+                  <div class="quantity-input">
+                    <input
+                      id="quantity"
+                      type="number"
+                      min="1"
+                      step="1"
+                      [max]="
+                        remainingAvailableQuantity()
+                      "
+                      formControlName="quantity"
+                    >
+
+                    <span>
+                      {{ currentOffer.unit }}
+                    </span>
+                  </div>
+
+                  <small>
+                    Maksimalno:
+                    {{
+                      remainingAvailableQuantity()
+                    }}
+                    {{ currentOffer.unit }}
+                  </small>
+
+                  @if (
+                    orderForm.controls.quantity
+                      .touched &&
+                    orderForm.controls.quantity
+                      .invalid
+                  ) {
+                    <p class="field-error">
+                      Unesi ispravnu količinu.
+                    </p>
+                  }
+                </div>
+
+                <div class="order-total">
+                  <span>
+                    Ukupna cena
+                  </span>
+
+                  <strong>
+                    {{ totalPrice() }}
+                    RSD
+                  </strong>
+                </div>
+
+                <button
+                  class="order-button"
+                  type="submit"
+                  [disabled]="
+                    orderForm.invalid ||
+                    remainingAvailableQuantity() <=
+                      0
+                  "
+                >
+                  <svg
+                    [lucideIcon]="orderIcon"
+                    [size]="18"
+                    [strokeWidth]="1.9"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <span>
+                    Dodaj u korpu
+                  </span>
+                </button>
+              </form>
+            </section>
+          }
+        </div>
+      </section>
+    }
+  </div>
+</main>

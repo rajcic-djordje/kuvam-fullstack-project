@@ -1,12 +1,19 @@
-import { createOffer, getPublicOffers,getPublicOfferById, getSellerOffers, setOfferActiveStatus, updateSellerOffer } from "../services/offerService.js"
+import {
+    deleteSellerOffer,
+    createOffer,
+    getPublicOffers,
+    getPublicOfferById,
+    getSellerOffers,
+    setOfferActiveStatus,
+    updateSellerOffer,
+    updateSellerOfferImage
+} from "../services/offerService.js"
 
-const createOfferListing = async(req,res) => {
-
-    const userId = req.auth.userId
-
-    console.log("JWT userId:", req.auth.userId)
-
-    const offer = await createOffer(userId,req.body)
+const createOfferListing = async (req, res) => {
+    const offer = await createOffer(
+        req.auth.userId,
+        req.body
+    )
 
     return res.status(201).json({
         message: "Offer created successfully.",
@@ -14,27 +21,23 @@ const createOfferListing = async(req,res) => {
     })
 }
 
+const getMyOffers = async (req, res) => {
+    const offers = await getSellerOffers(
+        req.auth.userId
+    )
 
-const getMyOffers = async (req,res) => {
-
-    const userId = req.auth.userId
-
-    const offers = await getSellerOffers(userId)
-
-    return res.status(201).json({
+    return res.status(200).json({
         message: "Seller offers retrieved successfully.",
         offers
     })
 }
 
-
-const activateOfferListing = async (req,res) => {
-
-    const userId = req.auth.userId
-
-    const offerId = req.params.offerId
-
-    const offer = await setOfferActiveStatus(userId, offerId,true)
+const activateOfferListing = async (req, res) => {
+    const offer = await setOfferActiveStatus(
+        req.auth.userId,
+        req.params.offerId,
+        true
+    )
 
     return res.status(200).json({
         message: "Offer activated successfully.",
@@ -42,14 +45,12 @@ const activateOfferListing = async (req,res) => {
     })
 }
 
-
-const deactivateOfferListing = async (req,res) => {
-
-    const userId = req.auth.userId
-
-    const offerId = req.params.offerId
-
-    const offer = await setOfferActiveStatus(userId,offerId,false)
+const deactivateOfferListing = async (req, res) => {
+    const offer = await setOfferActiveStatus(
+        req.auth.userId,
+        req.params.offerId,
+        false
+    )
 
     return res.status(200).json({
         message: "Offer deactivated successfully.",
@@ -57,14 +58,10 @@ const deactivateOfferListing = async (req,res) => {
     })
 }
 
-
 const updateOfferListing = async (req, res) => {
-    const userId = req.auth.userId
-    const offerId = req.params.offerId
-
     const offer = await updateSellerOffer(
-        userId,
-        offerId,
+        req.auth.userId,
+        req.params.offerId,
         req.body
     )
 
@@ -72,7 +69,31 @@ const updateOfferListing = async (req, res) => {
         message: "Offer updated successfully.",
         offer
     })
+}
 
+const uploadOfferImage = async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({
+            error: {
+                code: "IMAGE_REQUIRED",
+                message: "Image file is required."
+            }
+        })
+    }
+
+    const imageUrl =
+        `${req.protocol}://${req.get("host")}/uploads/offers/${req.file.filename}`
+
+    const offer = await updateSellerOfferImage(
+        req.auth.userId,
+        req.params.offerId,
+        imageUrl
+    )
+
+    return res.status(200).json({
+        message: "Offer image uploaded successfully.",
+        offer
+    })
 }
 
 const getAvailableOffers = async (req, res) => {
@@ -88,9 +109,9 @@ const getAvailableOffers = async (req, res) => {
 }
 
 const getAvailableOfferById = async (req, res) => {
-    const offerId = req.params.offerId
-
-    const offer = await getPublicOfferById(offerId)
+    const offer = await getPublicOfferById(
+        req.params.offerId
+    )
 
     return res.status(200).json({
         message: "Offer retrieved successfully.",
@@ -98,4 +119,25 @@ const getAvailableOfferById = async (req, res) => {
     })
 }
 
-export {createOfferListing, getAvailableOfferById, getMyOffers, activateOfferListing, deactivateOfferListing, updateOfferListing, getAvailableOffers}
+const deleteOfferListing = async (req, res) => {
+    await deleteSellerOffer(
+        req.auth.userId,
+        req.params.offerId
+    )
+
+    return res.status(200).json({
+        message: "Offer deleted successfully."
+    })
+}
+
+export {
+    deleteOfferListing,
+    createOfferListing,
+    getAvailableOfferById,
+    getMyOffers,
+    activateOfferListing,
+    deactivateOfferListing,
+    updateOfferListing,
+    uploadOfferImage,
+    getAvailableOffers
+}

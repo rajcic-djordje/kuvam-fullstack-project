@@ -90,12 +90,12 @@ export class LocationModal implements OnInit {
     const values = this.locationForm.getRawValue();
 
     const request: UpdateLocationRequest = {
-      cityId: values.cityId,
-      street: values.street.trim(),
-      streetNumber: values.streetNumber.trim(),
-      additionalInfo:
-        values.additionalInfo.trim() || undefined
-    };
+  cityId: values.cityId,
+  street: values.street.trim(),
+  streetNumber: values.streetNumber.trim(),
+  additionalInfo:
+    values.additionalInfo.trim() || undefined
+};
 
     this.isSaving.set(true);
 
@@ -158,6 +158,31 @@ export class LocationModal implements OnInit {
 
       return;
     }
+
+
+    if (code === 'ADDRESS_NOT_FOUND') {
+  this.errorMessage.set(
+    'Uneta adresa nije pronađena. Proveri grad, ulicu i broj.'
+  );
+
+  return;
+}
+
+if (code === 'GEOCODING_SERVICE_UNAVAILABLE') {
+  this.errorMessage.set(
+    'Servis za pronalaženje adrese trenutno nije dostupan. Pokušaj ponovo kasnije.'
+  );
+
+  return;
+}
+
+if (code === 'INVALID_GEOCODING_RESPONSE') {
+  this.errorMessage.set(
+    'Koordinate za unetu adresu trenutno nije moguće odrediti.'
+  );
+
+  return;
+}
 
     this.errorMessage.set(
       response?.error?.message ??

@@ -1,47 +1,43 @@
 <main class="auth-page">
-  @if (errorMessage()) {
-    <div class="auth-toast" role="alert">
-      <div class="toast-mark" aria-hidden="true">
-        <span>!</span>
-      </div>
+  <div
+    class="page-botanical botanical-left"
+    aria-hidden="true"
+  ></div>
 
-      <div class="toast-content">
-        <strong>Prijava nije uspela</strong>
-        <p>{{ errorMessage() }}</p>
-      </div>
-
-      <button
-        type="button"
-        class="toast-close"
-        aria-label="Zatvori poruku"
-        (click)="closeError()"
-      >
-        ×
-      </button>
-
-      <span class="toast-decoration" aria-hidden="true"></span>
-    </div>
-  }
+  <div
+    class="page-botanical botanical-right"
+    aria-hidden="true"
+  ></div>
 
   <section class="auth-card">
-    <a
-      class="auth-logo"
-      routerLink="/"
-      aria-label="Kuvam početna stranica"
-    >
-      <img src="/images/kuvam-logo.png" alt="Kuvam">
-    </a>
+    <div class="auth-brand">
+      <a
+        class="auth-logo"
+        routerLink="/"
+        aria-label="Kuvam početna stranica"
+      >
+        <img
+          src="/images/kuvam-logo.png"
+          alt="Kuvam"
+        >
+      </a>
 
-    <div class="auth-header">
-      <h1>Prijavi se</h1>
-      <p>Dobro došao nazad u Kuvam zajednicu.</p>
+      <span class="brand-line"></span>
     </div>
 
-    @if (successMessage()) {
-      <p class="success-message" role="status">
-        {{ successMessage() }}
+    <header class="auth-header">
+      <span class="auth-eyebrow">
+        Dobro došao nazad
+      </span>
+
+      <h1>
+        Prijavi se
+      </h1>
+
+      <p>
+        Prijavi se i nastavi tamo gde si stao u Kuvam zajednici.
       </p>
-    }
+    </header>
 
     <form
       class="auth-form"
@@ -49,20 +45,45 @@
       (ngSubmit)="login()"
     >
       <div class="form-field">
-        <label for="email">Email adresa</label>
+        <label for="email">
+          Email adresa
+        </label>
 
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          autocomplete="email"
-          placeholder="ime@example.com"
-        >
-
-        <span class="field-message field-error" aria-live="polite">
-          @if (
+        <div
+          class="input-wrapper"
+          [class.invalid]="
             loginForm.controls.email.touched &&
             loginForm.controls.email.invalid
+          "
+        >
+          <svg
+            [lucideIcon]="emailIcon"
+            [size]="18"
+            [strokeWidth]="1.7"
+            aria-hidden="true"
+          ></svg>
+
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="ime@example.com"
+          >
+        </div>
+
+        <span
+          class="field-message field-error"
+          aria-live="polite"
+        >
+          @if (
+            loginForm.controls.email.touched &&
+            loginForm.controls.email.hasError('required')
+          ) {
+            Email adresa je obavezna.
+          } @else if (
+            loginForm.controls.email.touched &&
+            loginForm.controls.email.hasError('email')
           ) {
             Unesi ispravnu email adresu.
           }
@@ -70,12 +91,31 @@
       </div>
 
       <div class="form-field">
-        <label for="password">Lozinka</label>
+        <label for="password">
+          Lozinka
+        </label>
 
-        <div class="password-field">
+        <div
+          class="input-wrapper password-field"
+          [class.invalid]="
+            loginForm.controls.password.touched &&
+            loginForm.controls.password.invalid
+          "
+        >
+          <svg
+            [lucideIcon]="lockIcon"
+            [size]="18"
+            [strokeWidth]="1.7"
+            aria-hidden="true"
+          ></svg>
+
           <input
             id="password"
-            [type]="showPassword() ? 'text' : 'password'"
+            [type]="
+              showPassword()
+                ? 'text'
+                : 'password'
+            "
             formControlName="password"
             autocomplete="current-password"
             placeholder="Unesi lozinku..."
@@ -92,14 +132,31 @@
             [attr.aria-pressed]="showPassword()"
             (click)="togglePassword()"
           >
-            {{ showPassword() ? 'Sakrij' : 'Prikaži' }}
+            <svg
+              [lucideIcon]="
+                showPassword()
+                  ? hideIcon
+                  : showIcon
+              "
+              [size]="19"
+              [strokeWidth]="1.7"
+              aria-hidden="true"
+            ></svg>
           </button>
         </div>
 
-        <span class="field-message field-error" aria-live="polite">
+        <span
+          class="field-message field-error"
+          aria-live="polite"
+        >
           @if (
             loginForm.controls.password.touched &&
-            loginForm.controls.password.invalid
+            loginForm.controls.password.hasError('required')
+          ) {
+            Lozinka je obavezna.
+          } @else if (
+            loginForm.controls.password.touched &&
+            loginForm.controls.password.hasError('minlength')
           ) {
             Lozinka mora imati najmanje 8 karaktera.
           }
@@ -112,16 +169,53 @@
         [disabled]="isSubmitting()"
       >
         @if (isSubmitting()) {
-          Prijavljivanje...
+          <span
+            class="button-loader"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            Prijavljivanje...
+          </span>
         } @else {
-          Prijavi se
+          <span>
+            Prijavi se
+          </span>
         }
       </button>
     </form>
 
+    <div
+      class="auth-decoration"
+      aria-hidden="true"
+    >
+      <span></span>
+
+      <svg
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M5 15c6 0 10-4 12-10"
+        ></path>
+
+        <path
+          d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"
+        ></path>
+
+        <path
+          d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"
+        ></path>
+      </svg>
+
+      <span></span>
+    </div>
+
     <p class="auth-footer">
       Nemaš nalog?
-      <a routerLink="/register">Registruj se</a>
+
+      <a routerLink="/register">
+        Registruj se
+      </a>
     </p>
   </section>
 </main>

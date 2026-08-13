@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../../../core/constants/api.constants';
 import {
   SellerFilters,
+  SellerResponse,
   SellersResponse
 } from '../models/seller';
 
@@ -43,6 +44,12 @@ export class SellerService {
       {
         params
       }
+    );
+  }
+
+  getSellerBySlug(slug: string): Observable<SellerResponse> {
+    return this.http.get<SellerResponse>(
+      `${this.sellersUrl}/${slug}`
     );
   }
 }
