@@ -1,25 +1,95 @@
 import { SELLER_APPROVAL_STATUS } from '../constants/seller.js'
 import Seller from '../models/seller.js'
 import AppError from '../errors/appError.js'
+import User from "../models/user.js"
+import { USER_ROLES } from '../constants/user.js'
+import { USER_STATUS } from '../constants/user.js'
+const getPendingSellers = async(search, sort) => {
+    const userFilter = {
+        role: USER_ROLES.SELLER,
+        status: USER_STATUS.ACTIVE
+    }
 
-const getPendingSellers = async () =>
-{
-    return await Seller.find({approvalStatus: SELLER_APPROVAL_STATUS.PENDING}).populate("user", "firstName lastName email status").sort({createdAt: 1})
+    if(search) {
+        const searchRegex = new RegExp(search, "i")
 
+        userFilter.$or = [
+            { firstName: searchRegex },
+            { lastName: searchRegex },
+            { email: searchRegex }
+        ]
+    }
+
+    const matchingUsers = await User.find(userFilter)
+        .select("_id")
+        .lean()
+
+    const matchingUserIds = matchingUsers.map(
+        user => user._id
+    )
+
+    const filter = {
+        approvalStatus:
+            SELLER_APPROVAL_STATUS.PENDING,
+        user: {
+            $in: matchingUserIds
+        }
+    }
+
+    if(search) {
+        const searchRegex = new RegExp(search, "i")
+
+        filter.$or = [
+            { businessName: searchRegex },
+            {
+                user: {
+                    $in: matchingUserIds
+                }
+            }
+        ]
+    }
+
+    const sortOption =
+        sort === "oldest"
+            ? { createdAt: 1 }
+            : { createdAt: -1 }
+
+    return Seller.find(filter)
+        .populate(
+            "user",
+            [
+                "firstName",
+                "lastName",
+                "email",
+                "role",
+                "status",
+                "reportsCount",
+                "offences",
+                "createdAt"
+            ].join(" ")
+        )
+        .sort(sortOption)
+        .lean()
 }
 
-const approveSeller = async (sellerId) => {
-
+const approveSeller = async(sellerId) => {
     const seller = await Seller.findById(sellerId)
+        .populate("user")
 
     if(!seller)
-        throw new AppError("Seller application not found.", 404, "SELLER_NOT_FOUND")
+        throw new AppError("Seller application not found.",404,"SELLER_NOT_FOUND")
 
-    if(seller.approvalStatus!==SELLER_APPROVAL_STATUS.PENDING)
-        throw new AppError("Seller application already processed.", 409, "SELLER_APPLICATION_ALREADY_PROCESSED")
-    
-    seller.approvalStatus=SELLER_APPROVAL_STATUS.APPROVED
-    seller.rejectionReason=null
+    if(seller.approvalStatus !==SELLER_APPROVAL_STATUS.PENDING)
+        throw new AppError("Seller application already processed.",409,"SELLER_APPLICATION_ALREADY_PROCESSED")
+
+    if(!seller.user)
+        throw new AppError("Seller account not found.",404,"SELLER_USER_NOT_FOUND")
+
+    if(seller.user.status !== USER_STATUS.ACTIVE)
+        throw new AppError("Only an active user can be approved as a seller.",409,"SELLER_USER_NOT_ACTIVE")
+
+    seller.approvalStatus = SELLER_APPROVAL_STATUS.APPROVED
+    seller.rejectionReason = null
 
     await seller.save()
 

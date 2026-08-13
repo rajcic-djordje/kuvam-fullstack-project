@@ -1,0 +1,555 @@
+<main class="seller-orders-page">
+  <div class="container">
+    <header class="page-header">
+      <div class="header-content">
+        <span class="page-eyebrow">
+          Domaćin
+        </span>
+
+        <h1>
+          Primljene porudžbine
+        </h1>
+
+        <p>
+          Pregledaj zahteve kupaca i upravljaj
+          statusima porudžbina.
+        </p>
+      </div>
+    </header>
+
+    <nav
+      class="status-filters"
+      aria-label="Filter statusa porudžbina"
+      appHorizontalScroll
+    >
+      @for (
+        option of statusOptions;
+        track option.value
+      ) {
+        <button
+          type="button"
+          [class.active]="
+            selectedStatus() ===
+            option.value
+          "
+          [attr.aria-pressed]="
+            selectedStatus() ===
+            option.value
+          "
+          (click)="
+            selectStatus(
+              option.value
+            )
+          "
+        >
+          {{ option.label }}
+        </button>
+      }
+    </nav>
+
+    @if (
+      isLoading()
+    ) {
+      <section class="state-card">
+        <div
+          class="loader"
+          aria-hidden="true"
+        ></div>
+
+        <div>
+          <h2>
+            Učitavanje porudžbina
+          </h2>
+
+          <p>
+            Prikupljamo porudžbine za tvoje
+            ponude.
+          </p>
+        </div>
+      </section>
+    } @else if (
+      loadError()
+    ) {
+      <section class="state-card">
+        <span
+          class="error-mark"
+          aria-hidden="true"
+        >
+          !
+        </span>
+
+        <div>
+          <h2>
+            Porudžbine nisu dostupne
+          </h2>
+
+          <p>
+            {{ loadError() }}
+          </p>
+        </div>
+
+        <button
+          class="retry-button"
+          type="button"
+          (click)="retry()"
+        >
+          <svg
+            [lucideIcon]="retryIcon"
+            [size]="17"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+
+          <span>
+            Pokušaj ponovo
+          </span>
+        </button>
+      </section>
+    } @else if (
+      orders().length === 0
+    ) {
+      <section class="empty-state">
+        <div class="empty-state-icon">
+          <svg
+            [lucideIcon]="orderIcon"
+            [size]="34"
+            [strokeWidth]="1.4"
+            aria-hidden="true"
+          ></svg>
+        </div>
+
+        <h2>
+          Nema primljenih porudžbina
+        </h2>
+
+        <p>
+          Za izabrani status trenutno nema
+          porudžbina.
+        </p>
+      </section>
+    } @else {
+      <section class="orders-list">
+        @for (
+          order of orders();
+          track order._id
+        ) {
+          <article class="order-card">
+            <div class="order-visual">
+              <span
+                class="visual-branch visual-branch-top"
+                aria-hidden="true"
+              ></span>
+
+              <span
+                class="visual-branch visual-branch-bottom"
+                aria-hidden="true"
+              ></span>
+
+              <div class="order-icon">
+                <svg
+                  [lucideIcon]="orderIcon"
+                  [size]="29"
+                  [strokeWidth]="1.5"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <span class="order-number">
+                Porudžbina
+                #{{
+                  order._id
+                    .slice(-6)
+                    .toUpperCase()
+                }}
+              </span>
+            </div>
+
+            <div class="order-content">
+              <div class="order-main">
+                <div class="order-heading">
+                  <div class="order-title">
+                    <span class="buyer-name">
+                      {{ buyerName(order) }}
+                    </span>
+
+                    <h2
+                      [title]="
+                        order.items[0].name
+                      "
+                    >
+                      {{
+                        order.items[0].name
+                      }}
+                    </h2>
+
+                    <a
+                      class="buyer-email"
+                      [href]="
+                        'mailto:' +
+                        order.buyer.email
+                      "
+                    >
+                      {{ order.buyer.email }}
+                    </a>
+                  </div>
+
+                  <span
+                    class="status-badge"
+                    [attr.data-status]="
+                      order.status
+                    "
+                  >
+                    <span
+                      class="status-dot"
+                      aria-hidden="true"
+                    ></span>
+
+                    {{
+                      statusLabel(
+                        order.status
+                      )
+                    }}
+                  </span>
+                </div>
+
+                <div class="order-meta">
+                  <div>
+                    <svg
+                      [lucideIcon]="pendingIcon"
+                      [size]="15"
+                      [strokeWidth]="1.7"
+                      aria-hidden="true"
+                    ></svg>
+
+                    <span>
+                      {{
+                        formatDate(
+                          order.createdAt
+                        )
+                      }}
+                    </span>
+                  </div>
+
+                  <span
+                    class="meta-separator"
+                    aria-hidden="true"
+                  >
+                    •
+                  </span>
+
+                  <span>
+                    {{
+                      order.items.length
+                    }}
+
+                    {{
+                      order.items.length ===
+                      1
+                        ? 'stavka'
+                        : 'stavki'
+                    }}
+                  </span>
+                </div>
+
+                <div class="order-items-preview">
+                  @for (
+                    item of order.items;
+                    track $index
+                  ) {
+                    <span>
+                      {{ item.quantity }}
+                      ×
+                      {{ item.name }}
+                    </span>
+                  }
+                </div>
+
+                @if (
+                  order.buyerNote
+                ) {
+                  <div class="buyer-note">
+                    <strong>
+                      Napomena kupca
+                    </strong>
+
+                    <p>
+                      {{ order.buyerNote }}
+                    </p>
+                  </div>
+                }
+
+                @if (
+                  order.status ===
+                    'rejected' &&
+                  order.rejectionReason
+                ) {
+                  <div class="rejection-reason">
+                    <strong>
+                      Razlog odbijanja
+                    </strong>
+
+                    <p>
+                      {{
+                        order.rejectionReason
+                      }}
+                    </p>
+                  </div>
+                }
+
+                @if (
+                  rejectingOrderId() ===
+                  order._id
+                ) {
+                  <div class="reject-form">
+                    <div class="reject-form-heading">
+                      <div>
+                        <h3>
+                          Odbijanje porudžbine
+                        </h3>
+
+                        <p>
+                          Kupac će videti razlog
+                          koji uneseš.
+                        </p>
+                      </div>
+
+                      <button
+                        class="reject-close"
+                        type="button"
+                        aria-label="Zatvori odbijanje"
+                        [disabled]="
+                          actionOrderId() !==
+                          null
+                        "
+                        (click)="
+                          closeRejectForm()
+                        "
+                      >
+                        <svg
+                          [lucideIcon]="rejectIcon"
+                          [size]="18"
+                          [strokeWidth]="1.8"
+                          aria-hidden="true"
+                        ></svg>
+                      </button>
+                    </div>
+
+                    <label
+                      [for]="
+                        'rejectionReason-' +
+                        order._id
+                      "
+                    >
+                      Razlog odbijanja
+                    </label>
+
+                    <textarea
+                      [id]="
+                        'rejectionReason-' +
+                        order._id
+                      "
+                      rows="3"
+                      maxlength="500"
+                      placeholder="Objasni kupcu zašto porudžbina nije prihvaćena..."
+                      [ngModel]="
+                        rejectionReason()
+                      "
+                      (ngModelChange)="
+                        updateRejectionReason(
+                          $event
+                        )
+                      "
+                    ></textarea>
+
+                    <div class="reject-form-footer">
+                      <span>
+                        {{
+                          rejectionReason()
+                            .length
+                        }}/500
+                      </span>
+
+                      <div class="reject-actions">
+                        <button
+                          class="secondary-action"
+                          type="button"
+                          [disabled]="
+                            actionOrderId() !==
+                            null
+                          "
+                          (click)="
+                            closeRejectForm()
+                          "
+                        >
+                          Odustani
+                        </button>
+
+                        <button
+                          class="danger-action"
+                          type="button"
+                          [disabled]="
+                            actionOrderId() !==
+                              null ||
+                            !rejectionReason()
+                              .trim()
+                          "
+                          (click)="
+                            rejectOrder(
+                              order._id
+                            )
+                          "
+                        >
+                          @if (
+                            actionOrderId() ===
+                            order._id
+                          ) {
+                            Odbijanje...
+                          } @else {
+                            Potvrdi odbijanje
+                          }
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <aside class="order-side">
+                <div class="order-total">
+                  <span>
+                    Ukupna vrednost
+                  </span>
+
+                  <strong>
+                    {{
+                      order.totalPrice
+                    }}
+                    RSD
+                  </strong>
+                </div>
+
+                <div class="order-side-actions">
+                  @if (
+                    order.status ===
+                    'pending'
+                  ) {
+                    <div class="order-actions">
+                      <button
+                        class="primary-action"
+                        type="button"
+                        [disabled]="
+                          actionOrderId() !==
+                          null
+                        "
+                        (click)="
+                          acceptOrder(
+                            order._id
+                          )
+                        "
+                      >
+                        <svg
+                          [lucideIcon]="acceptIcon"
+                          [size]="17"
+                          [strokeWidth]="2"
+                          aria-hidden="true"
+                        ></svg>
+
+                        <span>
+                          Prihvati
+                        </span>
+                      </button>
+
+                      <button
+                        class="
+                          secondary-action
+                          danger
+                        "
+                        type="button"
+                        [disabled]="
+                          actionOrderId() !==
+                          null
+                        "
+                        (click)="
+                          openRejectForm(
+                            order._id
+                          )
+                        "
+                      >
+                        <svg
+                          [lucideIcon]="rejectIcon"
+                          [size]="17"
+                          [strokeWidth]="2"
+                          aria-hidden="true"
+                        ></svg>
+
+                        <span>
+                          Odbij
+                        </span>
+                      </button>
+                    </div>
+                  }
+
+                  @if (
+                    order.status ===
+                    'accepted'
+                  ) {
+                    <button
+                      class="
+                        primary-action
+                        ready-action
+                      "
+                      type="button"
+                      [disabled]="
+                        actionOrderId() !==
+                        null
+                      "
+                      (click)="
+                        markAsReady(
+                          order._id
+                        )
+                      "
+                    >
+                      @if (
+                        actionOrderId() ===
+                        order._id
+                      ) {
+                        Ažuriranje...
+                      } @else {
+                        <svg
+                          [lucideIcon]="readyIcon"
+                          [size]="17"
+                          [strokeWidth]="1.9"
+                          aria-hidden="true"
+                        ></svg>
+
+                        <span>
+                          Označi kao spremno
+                        </span>
+                      }
+                    </button>
+                  }
+
+                  <a
+                    class="details-link"
+                    [routerLink]="[
+                      '/seller/orders',
+                      order._id
+                    ]"
+                  >
+                    <span>
+                      Detalji porudžbine
+                    </span>
+
+                    <span aria-hidden="true">
+                      →
+                    </span>
+                  </a>
+                </div>
+              </aside>
+            </div>
+          </article>
+        }
+      </section>
+    }
+  </div>
+</main>

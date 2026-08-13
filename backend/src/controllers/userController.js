@@ -1,4 +1,4 @@
-import {getCurrentUserProfile,updateCurrentUserProfile,changeCurrentUserPassword,deactivateCurrentUser} from "../services/userService.js"
+import {getCurrentUserProfile,updateCurrentUserLocation,updateCurrentUserProfile,changeCurrentUserPassword,deactivateCurrentUser} from "../services/userService.js"
 
 const getMyProfile = async (req, res) => {
     const userId = req.auth.userId
@@ -21,6 +21,17 @@ const updateMyProfile = async (req, res) => {
 
     return res.status(200).json({
         message: "User profile updated successfully.",
+        user
+    })
+}
+
+const updateMyLocation = async (req, res) => {
+    const userId = req.auth.userId
+
+    const user = await updateCurrentUserLocation(userId, req.body)
+
+    return res.status(200).json({
+        message: "User location updated successfully.",
         user
     })
 }
@@ -48,4 +59,4 @@ const deactivateMyAccount = async (req, res) => {
     })
 }
 
-export {getMyProfile,updateMyProfile,changeMyPassword,deactivateMyAccount}
+export {getMyProfile,updateMyProfile, updateMyLocation, changeMyPassword,deactivateMyAccount}

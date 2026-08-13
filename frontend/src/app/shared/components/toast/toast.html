@@ -1,0 +1,65 @@
+<div
+  class="toast-container"
+  aria-live="polite"
+  aria-relevant="additions removals"
+>
+  @for (
+    toast of toastService.toasts();
+    track toast.id
+  ) {
+    <article
+      class="toast"
+      [class.success]="toast.type === 'success'"
+      [class.error]="toast.type === 'error'"
+      [class.warning]="toast.type === 'warning'"
+      [class.info]="toast.type === 'info'"
+      [attr.role]="
+        toast.type === 'error'
+          ? 'alert'
+          : 'status'
+      "
+    >
+      <div
+        class="toast-mark"
+        aria-hidden="true"
+      >
+        @if (toast.type === 'success') {
+          <span>✓</span>
+        } @else if (toast.type === 'info') {
+          <span>i</span>
+        } @else {
+          <span>!</span>
+        }
+      </div>
+
+      <div class="toast-content">
+        <strong>
+          {{ toast.title }}
+        </strong>
+
+        <p>
+          {{ toast.message }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="toast-close"
+        aria-label="Zatvori poruku"
+        (click)="toastService.dismiss(toast.id)"
+      >
+        <svg
+          [lucideIcon]="closeIcon"
+          [size]="17"
+          [strokeWidth]="1.8"
+          aria-hidden="true"
+        ></svg>
+      </button>
+
+      <span
+        class="toast-decoration"
+        aria-hidden="true"
+      ></span>
+    </article>
+  }
+</div>

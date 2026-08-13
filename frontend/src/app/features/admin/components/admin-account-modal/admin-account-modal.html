@@ -1,0 +1,373 @@
+@if (isOpen) {
+  <div
+    class="modal-backdrop"
+    role="presentation"
+    (mousedown)="handleBackdropClick($event)"
+  >
+    <section
+      class="account-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="account-modal-title"
+    >
+      <button
+        class="close-button"
+        type="button"
+        aria-label="Zatvori modal"
+        [disabled]="
+          isProfileSubmitting() ||
+          isPasswordSubmitting()
+        "
+        (click)="close()"
+      >
+        <svg
+          [lucideIcon]="closeIcon"
+          [size]="20"
+          [strokeWidth]="1.8"
+          aria-hidden="true"
+        ></svg>
+      </button>
+
+      <header class="modal-header">
+        <span class="modal-eyebrow">
+          Administratorski nalog
+        </span>
+
+        <h2 id="account-modal-title">
+          Promeni podatke
+        </h2>
+
+        <p>
+          Izmeni osnovne podatke ili promeni lozinku administratorskog naloga.
+        </p>
+
+        <div
+          class="modal-decoration"
+          aria-hidden="true"
+        >
+          <span></span>
+
+          <svg viewBox="0 0 24 24">
+            <path d="M5 15c6 0 10-4 12-10"></path>
+            <path d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"></path>
+            <path d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"></path>
+          </svg>
+
+          <span></span>
+        </div>
+      </header>
+
+      <div class="modal-content">
+        <section class="account-section">
+          <div class="section-header">
+            <span class="section-number">
+              <svg
+                [lucideIcon]="profileIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+            </span>
+
+            <div>
+              <h3>Osnovni podaci</h3>
+
+              <p>
+                Promeni ime ili prezime administratorskog naloga.
+              </p>
+            </div>
+          </div>
+
+          <form
+            class="account-form"
+            [formGroup]="profileForm"
+            (ngSubmit)="submitProfile()"
+          >
+            <div class="name-fields">
+              <div class="form-field">
+                <label for="adminFirstName">
+                  Ime
+                </label>
+
+                <input
+                  id="adminFirstName"
+                  type="text"
+                  formControlName="firstName"
+                  autocomplete="given-name"
+                  placeholder="Unesi ime..."
+                >
+
+                <span
+                  class="field-message field-error"
+                  aria-live="polite"
+                >
+                  @if (
+                    profileForm.controls.firstName.touched &&
+                    profileForm.controls.firstName.invalid
+                  ) {
+                    Ime mora imati između 2 i 50 karaktera.
+                  }
+                </span>
+              </div>
+
+              <div class="form-field">
+                <label for="adminLastName">
+                  Prezime
+                </label>
+
+                <input
+                  id="adminLastName"
+                  type="text"
+                  formControlName="lastName"
+                  autocomplete="family-name"
+                  placeholder="Unesi prezime..."
+                >
+
+                <span
+                  class="field-message field-error"
+                  aria-live="polite"
+                >
+                  @if (
+                    profileForm.controls.lastName.touched &&
+                    profileForm.controls.lastName.invalid
+                  ) {
+                    Prezime mora imati između 2 i 50 karaktera.
+                  }
+                </span>
+              </div>
+            </div>
+
+            <div class="section-action">
+              <button
+                class="submit-button"
+                type="submit"
+                [disabled]="isProfileSubmitting()"
+              >
+                @if (isProfileSubmitting()) {
+                  Čuvanje podataka...
+                } @else {
+                  Sačuvaj podatke
+                }
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <section class="account-section">
+          <div class="section-header">
+            <span class="section-number">
+              <svg
+                [lucideIcon]="passwordIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+            </span>
+
+            <div>
+              <h3>Promena lozinke</h3>
+
+              <p>
+                Unesi trenutnu lozinku i zatim postavi novu.
+              </p>
+            </div>
+          </div>
+
+          <form
+            class="account-form"
+            [formGroup]="passwordForm"
+            (ngSubmit)="submitPassword()"
+          >
+            <div class="form-field">
+              <label for="currentPassword">
+                Trenutna lozinka
+              </label>
+
+              <div class="password-field">
+                <input
+                  id="currentPassword"
+                  [type]="
+                    showCurrentPassword()
+                      ? 'text'
+                      : 'password'
+                  "
+                  formControlName="currentPassword"
+                  autocomplete="current-password"
+                  placeholder="Unesi trenutnu lozinku..."
+                >
+
+                <button
+                  class="password-toggle"
+                  type="button"
+                  [attr.aria-label]="
+                    showCurrentPassword()
+                      ? 'Sakrij trenutnu lozinku'
+                      : 'Prikaži trenutnu lozinku'
+                  "
+                  [attr.aria-pressed]="showCurrentPassword()"
+                  (click)="toggleCurrentPassword()"
+                >
+                  {{
+                    showCurrentPassword()
+                      ? 'Sakrij'
+                      : 'Prikaži'
+                  }}
+                </button>
+              </div>
+
+              <span
+                class="field-message field-error"
+                aria-live="polite"
+              >
+                @if (
+                  passwordForm.controls.currentPassword.touched &&
+                  passwordForm.controls.currentPassword.invalid
+                ) {
+                  Unesi trenutnu lozinku.
+                }
+              </span>
+            </div>
+
+            <div class="password-fields">
+              <div class="form-field">
+                <label for="newPassword">
+                  Nova lozinka
+                </label>
+
+                <div class="password-field">
+                  <input
+                    id="newPassword"
+                    [type]="
+                      showNewPassword()
+                        ? 'text'
+                        : 'password'
+                    "
+                    formControlName="newPassword"
+                    autocomplete="new-password"
+                    placeholder="Unesi novu lozinku..."
+                  >
+
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    [attr.aria-label]="
+                      showNewPassword()
+                        ? 'Sakrij novu lozinku'
+                        : 'Prikaži novu lozinku'
+                    "
+                    [attr.aria-pressed]="showNewPassword()"
+                    (click)="toggleNewPassword()"
+                  >
+                    {{
+                      showNewPassword()
+                        ? 'Sakrij'
+                        : 'Prikaži'
+                    }}
+                  </button>
+                </div>
+
+                <span
+                  class="field-message field-error"
+                  aria-live="polite"
+                >
+                  @if (
+                    passwordForm.controls.newPassword.touched &&
+                    passwordForm.controls.newPassword.hasError('required')
+                  ) {
+                    Unesi novu lozinku.
+                  } @else if (
+                    passwordForm.controls.newPassword.touched &&
+                    passwordForm.controls.newPassword.hasError('minlength')
+                  ) {
+                    Lozinka mora imati najmanje 8 karaktera.
+                  } @else if (
+                    passwordForm.controls.newPassword.touched &&
+                    passwordForm.controls.newPassword.hasError('maxlength')
+                  ) {
+                    Lozinka može imati najviše 100 karaktera.
+                  } @else if (
+                    passwordForm.controls.newPassword.touched &&
+                    passwordForm.hasError('samePassword')
+                  ) {
+                    Nova lozinka mora biti drugačija od trenutne.
+                  }
+                </span>
+              </div>
+
+              <div class="form-field">
+                <label for="confirmPassword">
+                  Ponovi lozinku
+                </label>
+
+                <div class="password-field">
+                  <input
+                    id="confirmPassword"
+                    [type]="
+                      showConfirmPassword()
+                        ? 'text'
+                        : 'password'
+                    "
+                    formControlName="confirmPassword"
+                    autocomplete="new-password"
+                    placeholder="Ponovi novu lozinku..."
+                  >
+
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    [attr.aria-label]="
+                      showConfirmPassword()
+                        ? 'Sakrij ponovljenu lozinku'
+                        : 'Prikaži ponovljenu lozinku'
+                    "
+                    [attr.aria-pressed]="showConfirmPassword()"
+                    (click)="toggleConfirmPassword()"
+                  >
+                    {{
+                      showConfirmPassword()
+                        ? 'Sakrij'
+                        : 'Prikaži'
+                    }}
+                  </button>
+                </div>
+
+                <span
+                  class="field-message field-error"
+                  aria-live="polite"
+                >
+                  @if (
+                    passwordForm.controls.confirmPassword.touched &&
+                    passwordForm.controls.confirmPassword.hasError('required')
+                  ) {
+                    Ponovi novu lozinku.
+                  } @else if (
+                    passwordForm.controls.confirmPassword.touched &&
+                    passwordForm.hasError('passwordsMismatch')
+                  ) {
+                    Lozinke se ne poklapaju.
+                  }
+                </span>
+              </div>
+            </div>
+
+            <div class="section-action">
+              <button
+                class="submit-button"
+                type="submit"
+                [disabled]="isPasswordSubmitting()"
+              >
+                @if (isPasswordSubmitting()) {
+                  Promena lozinke...
+                } @else {
+                  Promeni lozinku
+                }
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </section>
+  </div>
+}

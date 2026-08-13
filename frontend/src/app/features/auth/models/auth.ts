@@ -1,4 +1,6 @@
-export type UserRole = 'buyer' | 'seller';
+import { Address, City } from '../../location/models/location';
+
+export type UserRole = 'buyer' | 'seller' | 'admin';
 
 export interface AuthUser {
   id: string;
@@ -8,6 +10,9 @@ export interface AuthUser {
   role: UserRole;
   status: string;
   createdAt?: string;
+  city?: City | null;
+  address?: Address;
+  hasLocation?: boolean;
 }
 
 export interface RegisterRequest {
@@ -32,7 +37,6 @@ export interface ApiErrorResponse {
   };
 }
 
-
 export interface LoginRequest {
   email: string;
   password: string;
@@ -42,4 +46,14 @@ export interface LoginResponse {
   message: string;
   accessToken: string;
   user: AuthUser;
+}
+
+export interface RefreshSessionResponse {
+  message: string;
+  accessToken: string;
+  user: AuthUser;
+}
+
+export interface LogoutResponse {
+  message: string;
 }

@@ -1,0 +1,653 @@
+<section class="admin-page">
+  <header class="page-header">
+    <div class="page-heading">
+      <span
+        class="heading-decoration"
+        aria-hidden="true"
+      >
+        <span></span>
+        <span></span>
+      </span>
+
+      <div>
+        <h1>Prijave korisnika</h1>
+
+        <p>
+          Pregled i moderacija prijava nastalih tokom porudžbina.
+        </p>
+      </div>
+    </div>
+
+    <div class="reports-summary">
+      <svg
+        [lucideIcon]="reportsIcon"
+        [strokeWidth]="1.8"
+        aria-hidden="true"
+      ></svg>
+
+      <div>
+        <strong>{{ reports().length }}</strong>
+
+        <span>
+          {{
+            reports().length === 1
+              ? 'prijava'
+              : 'prijava'
+          }}
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <section class="reports-panel">
+    <div class="toolbar">
+      <label class="search-field">
+        <span class="search-icon">
+          <svg
+            [lucideIcon]="searchIcon"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+        </span>
+
+        <input
+          #searchInput
+          type="search"
+          placeholder="Pretraži korisnike, razlog ili opis..."
+          aria-label="Pretraži prijave"
+          [value]="searchTerm()"
+          (input)="onSearchChange(searchInput.value)"
+        >
+      </label>
+
+      <label class="filter-field">
+        <span>Status</span>
+
+        <select
+          #statusSelect
+          [value]="selectedStatus()"
+          (change)="onStatusChange(statusSelect.value)"
+        >
+          <option value="all">Sve prijave</option>
+          <option value="pending">Na čekanju</option>
+          <option value="approved">Odobrene</option>
+          <option value="rejected">Odbijene</option>
+        </select>
+      </label>
+
+      <label class="filter-field">
+        <span>Sortiranje</span>
+
+        <select
+          #sortSelect
+          [value]="selectedSort()"
+          (change)="onSortChange(sortSelect.value)"
+        >
+          <option value="newest">Najnovije</option>
+          <option value="oldest">Najstarije</option>
+        </select>
+      </label>
+    </div>
+
+    @if (isLoading()) {
+      <div class="page-state">
+        <span
+          class="loader"
+          aria-hidden="true"
+        ></span>
+
+        <strong>Učitavanje prijava</strong>
+
+        <span>
+          Pripremamo podatke za administratorski pregled.
+        </span>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="page-state error-state">
+        <svg
+          [lucideIcon]="reportsIcon"
+          [strokeWidth]="1.7"
+          aria-hidden="true"
+        ></svg>
+
+        <strong>Prijave nisu dostupne</strong>
+
+        <span>{{ errorMessage() }}</span>
+
+        <button
+          type="button"
+          (click)="loadReports()"
+        >
+          Pokušaj ponovo
+        </button>
+      </div>
+    } @else if (reports().length === 0) {
+      <div class="page-state">
+        <svg
+          [lucideIcon]="reportsIcon"
+          [strokeWidth]="1.6"
+          aria-hidden="true"
+        ></svg>
+
+        <strong>Nema pronađenih prijava</strong>
+
+        <span>
+          Trenutno nema prijava koje odgovaraju izabranim filterima.
+        </span>
+      </div>
+    } @else {
+      <div class="reports-list">
+        @for (
+          report of reports();
+          track report._id
+        ) {
+          <article class="report-card">
+            <div class="participants-section">
+              <div class="participant">
+                <span class="user-avatar reporter-avatar">
+                  {{ getInitials(report.reporter) }}
+                </span>
+
+                <div class="participant-details">
+                  <span class="participant-label">
+                    Prijavio
+                  </span>
+
+                  <strong>
+                    {{ getFullName(report.reporter) }}
+                  </strong>
+
+                  <small>
+                    {{ report.reporter.email }}
+                  </small>
+                </div>
+              </div>
+
+              <span
+                class="report-arrow"
+                aria-hidden="true"
+              >
+                <svg
+                  [lucideIcon]="arrowIcon"
+                  [strokeWidth]="1.8"
+                ></svg>
+              </span>
+
+              <div class="participant reported-participant">
+                <span class="user-avatar reported-avatar">
+                  {{ getInitials(report.reportedUser) }}
+                </span>
+
+                <div class="participant-details">
+                  <span class="participant-label">
+                    Prijavljeni korisnik
+                  </span>
+
+                  <strong>
+                    {{ getFullName(report.reportedUser) }}
+                  </strong>
+
+                  <small>
+                    {{ report.reportedUser.email }}
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="card-divider"
+              aria-hidden="true"
+            ></div>
+
+            <div class="information-section reason-section">
+              <span class="information-label">
+                Razlog
+              </span>
+
+              <strong class="reason-title">
+                {{ getReasonLabel(report.reason) }}
+              </strong>
+
+              <p [title]="report.description">
+                {{ report.description }}
+              </p>
+            </div>
+
+            <div
+              class="card-divider"
+              aria-hidden="true"
+            ></div>
+
+            <div class="information-section">
+              <span class="information-label">
+                Status
+              </span>
+
+              <span
+                class="status-badge"
+                [class.pending-status]="
+                  report.status === 'pending'
+                "
+                [class.approved-status]="
+                  report.status === 'approved'
+                "
+                [class.rejected-status]="
+                  report.status === 'rejected'
+                "
+              >
+                <svg
+                  [lucideIcon]="getStatusIcon(report.status)"
+                  [strokeWidth]="1.9"
+                  aria-hidden="true"
+                ></svg>
+
+                {{ getStatusLabel(report.status) }}
+              </span>
+            </div>
+
+            <div
+              class="card-divider"
+              aria-hidden="true"
+            ></div>
+
+            <div class="information-section">
+              <span class="information-label">
+                Datum prijave
+              </span>
+
+              <span class="report-date">
+                <svg
+                  [lucideIcon]="calendarIcon"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <time [attr.datetime]="report.createdAt">
+                  {{
+                    report.createdAt
+                      | date:'dd.MM.yyyy.'
+                  }}
+                </time>
+              </span>
+            </div>
+
+            <button
+              class="view-button"
+              type="button"
+              (click)="openReport(report)"
+            >
+              <svg
+                [lucideIcon]="viewIcon"
+                [strokeWidth]="1.9"
+                aria-hidden="true"
+              ></svg>
+
+              Pregledaj
+            </button>
+          </article>
+        }
+      </div>
+
+      <footer class="list-footer">
+        <span
+          class="footer-decoration"
+          aria-hidden="true"
+        >
+          <span></span>
+          <span></span>
+        </span>
+
+        <p>
+          Prikazano
+          <strong>
+            {{ reports().length }}
+          </strong>
+          {{
+            reports().length === 1
+              ? 'prijava'
+              : 'prijava'
+          }}
+        </p>
+      </footer>
+    }
+  </section>
+</section>
+
+@if (selectedReport(); as report) {
+  <div
+    class="modal-backdrop"
+    role="presentation"
+    (click)="closeReport()"
+  >
+    <section
+      class="report-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="report-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="modal-eyebrow">
+            Detalji prijave
+          </span>
+
+          <h2 id="report-modal-title">
+            {{ getReasonLabel(report.reason) }}
+          </h2>
+        </div>
+
+        <button
+          class="close-button"
+          type="button"
+          aria-label="Zatvori"
+          [disabled]="isProcessing()"
+          (click)="closeReport()"
+        >
+          <svg
+            [lucideIcon]="closeIcon"
+            [strokeWidth]="1.9"
+            aria-hidden="true"
+          ></svg>
+        </button>
+      </header>
+
+      <div class="modal-content">
+        <div class="modal-status-row">
+          <span
+            class="status-badge"
+            [class.pending-status]="
+              report.status === 'pending'
+            "
+            [class.approved-status]="
+              report.status === 'approved'
+            "
+            [class.rejected-status]="
+              report.status === 'rejected'
+            "
+          >
+            <svg
+              [lucideIcon]="getStatusIcon(report.status)"
+              [strokeWidth]="1.9"
+              aria-hidden="true"
+            ></svg>
+
+            {{ getStatusLabel(report.status) }}
+          </span>
+
+          <time [attr.datetime]="report.createdAt">
+            {{
+              report.createdAt
+                | date:'dd.MM.yyyy. HH:mm'
+            }}
+          </time>
+        </div>
+
+        <div class="modal-users">
+          <article class="modal-user">
+            <span class="user-avatar reporter-avatar">
+              {{ getInitials(report.reporter) }}
+            </span>
+
+            <div>
+              <span>Prijavio</span>
+
+              <strong>
+                {{ getFullName(report.reporter) }}
+              </strong>
+
+              <small>
+                {{ report.reporter.email }}
+              </small>
+
+              <em>
+                <svg
+                  [lucideIcon]="
+                    getRoleIcon(report.reporter.role)
+                  "
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                {{
+                  getRoleLabel(
+                    report.reporter.role
+                  )
+                }}
+              </em>
+            </div>
+          </article>
+
+          <span class="modal-arrow">
+            <svg
+              [lucideIcon]="arrowIcon"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
+          </span>
+
+          <article class="modal-user">
+            <span class="user-avatar reported-avatar">
+              {{ getInitials(report.reportedUser) }}
+            </span>
+
+            <div>
+              <span>
+                Prijavljeni korisnik
+              </span>
+
+              <strong>
+                {{ getFullName(report.reportedUser) }}
+              </strong>
+
+              <small>
+                {{ report.reportedUser.email }}
+              </small>
+
+              <em>
+                <svg
+                  [lucideIcon]="
+                    getRoleIcon(
+                      report.reportedUser.role
+                    )
+                  "
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                {{
+                  getRoleLabel(
+                    report.reportedUser.role
+                  )
+                }}
+              </em>
+            </div>
+          </article>
+        </div>
+
+        <div class="details-grid">
+          <section class="detail-section description-card">
+            <span class="detail-title">
+              Opis prijave
+            </span>
+
+            <article class="detail-card">
+              <p>
+                {{ report.description }}
+              </p>
+            </article>
+          </section>
+
+          <section class="detail-section">
+            <span class="detail-title">
+              Porudžbina
+            </span>
+
+            <article class="detail-card">
+              <dl>
+                <div>
+                  <dt>Količina</dt>
+                  <dd>
+                    {{ report.order.quantity }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>Cena po jedinici</dt>
+                  <dd>
+                    {{ report.order.unitPrice }}
+                    RSD
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>Ukupno</dt>
+                  <dd>
+                    {{ report.order.totalPrice }}
+                    RSD
+                  </dd>
+                </div>
+              </dl>
+            </article>
+          </section>
+
+          <section class="detail-section">
+            <span class="detail-title">
+              Istorija korisnika
+            </span>
+
+            <article class="detail-card">
+              <dl>
+                <div>
+                  <dt>Broj prijava</dt>
+                  <dd>
+                    {{
+                      report.reportedUser
+                        .reportsCount
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>Potvrđeni prekršaji</dt>
+                  <dd>
+                    {{
+                      report.reportedUser
+                        .offences
+                    }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>Status naloga</dt>
+                  <dd>
+                    {{
+                      report.reportedUser
+                        .status
+                    }}
+                  </dd>
+                </div>
+              </dl>
+            </article>
+          </section>
+        </div>
+
+        @if (report.status === 'pending') {
+          <label class="admin-note-field">
+            <span>
+              Administratorska napomena
+            </span>
+
+            <textarea
+              #adminNoteInput
+              maxlength="1000"
+              placeholder="Unesi napomenu ili razlog odbijanja prijave..."
+              [value]="adminNote()"
+              [disabled]="isProcessing()"
+              (input)="
+                onAdminNoteChange(
+                  adminNoteInput.value
+                )
+              "
+            ></textarea>
+
+            <small>
+              {{ adminNote().length }} / 1000
+            </small>
+          </label>
+
+          <footer class="modal-actions">
+            <button
+              class="reject-button"
+              type="button"
+              [disabled]="isProcessing()"
+              (click)="rejectSelectedReport()"
+            >
+              <svg
+                [lucideIcon]="rejectedIcon"
+                [strokeWidth]="1.9"
+                aria-hidden="true"
+              ></svg>
+
+              Odbij prijavu
+            </button>
+
+            <button
+              class="approve-button"
+              type="button"
+              [disabled]="isProcessing()"
+              (click)="approveSelectedReport()"
+            >
+              @if (isProcessing()) {
+                <span
+                  class="button-loader"
+                  aria-hidden="true"
+                ></span>
+              } @else {
+                <svg
+                  [lucideIcon]="approvedIcon"
+                  [strokeWidth]="1.9"
+                  aria-hidden="true"
+                ></svg>
+              }
+
+              Odobri prijavu
+            </button>
+          </footer>
+        } @else {
+          <article class="review-card">
+            <span>
+              Administratorska odluka
+            </span>
+
+            <p>
+              {{
+                report.adminNote ||
+                  'Napomena nije navedena.'
+              }}
+            </p>
+
+            @if (report.reviewedBy) {
+              <small>
+                Obradio:
+                {{
+                  getFullName(
+                    report.reviewedBy
+                  )
+                }}
+
+                @if (report.reviewedAt) {
+                  ·
+                  {{
+                    report.reviewedAt
+                      | date:'dd.MM.yyyy. HH:mm'
+                  }}
+                }
+              </small>
+            }
+          </article>
+        }
+      </div>
+    </section>
+  </div>
+}

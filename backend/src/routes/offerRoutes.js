@@ -1,13 +1,28 @@
-import express from 'express'
-import { createOfferListing,getAvailableOfferById, getAvailableOffers, getMyOffers, updateOfferListing, activateOfferListing, deactivateOfferListing } from '../controllers/offerController.js'
-import { authenticate } from '../middleware/authenticate.js'
-import { authorize } from '../middleware/authorize.js'
-import { USER_ROLES } from '../constants/user.js'
-import { validateBody } from '../middleware/validateBody.js'
-import { createOfferSchema, updateOfferSchema } from '../validators/offerValidator.js'
-import { validateObjectId } from "../middleware/validateObjectId.js"
-import { validateQuery } from "../middleware/validateQuery.js"
-import { offerQuerySchema } from "../validators/queryValidator.js"
+import express from "express"
+import {
+    deleteOfferListing,
+    createOfferListing,
+    getAvailableOfferById,
+    getAvailableOffers,
+    getMyOffers,
+    updateOfferListing,
+    activateOfferListing,
+    deactivateOfferListing,
+    uploadOfferImage
+} from "../controllers/offerController.js"
+import {authenticate} from "../middleware/authenticate.js"
+import {authorize} from "../middleware/authorize.js"
+import {USER_ROLES} from "../constants/user.js"
+import {validateBody} from "../middleware/validateBody.js"
+import {
+    createOfferSchema,
+    updateOfferSchema
+} from "../validators/offerValidator.js"
+import {validateObjectId} from "../middleware/validateObjectId.js"
+import {validateQuery} from "../middleware/validateQuery.js"
+import {offerQuerySchema} from "../validators/queryValidator.js"
+import {optionalAuthenticate} from "../middleware/optionalAuthenticate.js"
+import uploadOfferImageMiddleware from "../middleware/uploadOfferImage.js"
 
 const router = express.Router()
 
@@ -26,6 +41,14 @@ router.get(
     getMyOffers
 )
 
+router.patch(
+    "/:offerId/image",
+    authenticate,
+    authorize(USER_ROLES.SELLER),
+    validateObjectId("offerId"),
+    uploadOfferImageMiddleware.single("image"),
+    uploadOfferImage
+)
 
 router.patch(
     "/:offerId/activate",
@@ -54,6 +77,7 @@ router.patch(
 
 router.get(
     "/",
+    optionalAuthenticate,
     validateQuery(offerQuerySchema),
     getAvailableOffers
 )
@@ -62,6 +86,14 @@ router.get(
     "/:offerId",
     validateObjectId("offerId"),
     getAvailableOfferById
+)
+
+router.delete(
+    "/:offerId",
+    authenticate,
+    authorize(USER_ROLES.SELLER),
+    validateObjectId("offerId"),
+    deleteOfferListing
 )
 
 export default router

@@ -1,0 +1,814 @@
+<main class="seller-order-detail-page">
+  <div class="container">
+    <a
+      class="back-link"
+      routerLink="/seller/orders"
+    >
+      <svg
+        [lucideIcon]="backIcon"
+        [size]="17"
+        [strokeWidth]="1.8"
+        aria-hidden="true"
+      ></svg>
+
+      <span>
+        Nazad na primljene porudžbine
+      </span>
+    </a>
+
+    @if (isLoading()) {
+      <section class="state-card">
+        <div
+          class="loader"
+          aria-hidden="true"
+        ></div>
+
+        <div>
+          <h1>
+            Učitavanje porudžbine
+          </h1>
+
+          <p>
+            Prikupljamo podatke o porudžbini.
+          </p>
+        </div>
+      </section>
+    } @else if (loadError()) {
+      <section class="state-card">
+        <span
+          class="error-mark"
+          aria-hidden="true"
+        >
+          !
+        </span>
+
+        <div>
+          <h1>
+            Porudžbina nije dostupna
+          </h1>
+
+          <p>
+            {{ loadError() }}
+          </p>
+        </div>
+
+        <button
+          class="retry-button"
+          type="button"
+          (click)="retry()"
+        >
+          Pokušaj ponovo
+        </button>
+      </section>
+    } @else if (order(); as currentOrder) {
+      <header class="page-header">
+        <div class="header-content">
+          <span class="page-eyebrow">
+            Primljena porudžbina
+            #{{ currentOrder._id.slice(-6).toUpperCase() }}
+          </span>
+
+          <h1>
+            Porudžbina kupca
+            {{ buyerName(currentOrder) }}
+          </h1>
+
+          <div class="header-meta">
+            <span>
+              Kreirana
+              {{ formatDate(currentOrder.createdAt) }}
+            </span>
+
+            <span aria-hidden="true">
+              •
+            </span>
+
+            <span>
+              {{ currentOrder.items.length }}
+              {{
+                currentOrder.items.length === 1
+                  ? 'stavka'
+                  : 'stavki'
+              }}
+            </span>
+
+            <span aria-hidden="true">
+              •
+            </span>
+
+            <strong>
+              {{ currentOrder.totalPrice }} RSD
+            </strong>
+          </div>
+        </div>
+
+        <span
+          class="status-badge"
+          [attr.data-status]="currentOrder.status"
+        >
+          <span
+            class="status-dot"
+            aria-hidden="true"
+          ></span>
+
+          {{ statusLabel(currentOrder.status) }}
+        </span>
+      </header>
+
+      <section class="detail-layout">
+        <div class="main-column">
+          <section class="detail-card order-card">
+            <div class="card-heading">
+              <div class="heading-icon">
+                <svg
+                  [lucideIcon]="orderIcon"
+                  [size]="21"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div>
+                <span>
+                  Sadržaj porudžbine
+                </span>
+
+                <h2>
+                  Poručene stavke
+                </h2>
+              </div>
+            </div>
+
+            <div class="information-list">
+              @for (
+                item of currentOrder.items;
+                track item.offer
+              ) {
+                <div class="information-row">
+                  <div class="item-information">
+                    <strong>
+                      {{ item.name }}
+                    </strong>
+
+                    <span>
+                      {{ item.quantity }}
+                      {{ item.unit }}
+                      ×
+                      {{ item.unitPrice }} RSD
+                    </span>
+                  </div>
+
+                  <strong class="item-price">
+                    {{ item.totalPrice }} RSD
+                  </strong>
+                </div>
+              }
+
+              <div class="information-total">
+                <span>
+                  Ukupna cena
+                </span>
+
+                <strong>
+                  {{ currentOrder.totalPrice }} RSD
+                </strong>
+              </div>
+            </div>
+
+            @if (currentOrder.estimatedPickupAt) {
+              <div class="estimated-pickup-box">
+                <svg
+                  [lucideIcon]="pickupTimeIcon"
+                  [size]="19"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <div>
+                  <span>
+                    Procenjeno vreme preuzimanja
+                  </span>
+
+                  <strong>
+                    {{ formatDate(currentOrder.estimatedPickupAt) }}
+                  </strong>
+                </div>
+              </div>
+            }
+
+            @if (currentOrder.buyerNote) {
+              <div class="note-box">
+                <span>
+                  Napomena kupca
+                </span>
+
+                <p>
+                  {{ currentOrder.buyerNote }}
+                </p>
+              </div>
+            }
+
+            @if (
+              currentOrder.status === 'rejected' &&
+              currentOrder.rejectionReason
+            ) {
+              <div class="note-box rejection-box">
+                <span>
+                  Razlog odbijanja
+                </span>
+
+                <p>
+                  {{ currentOrder.rejectionReason }}
+                </p>
+              </div>
+            }
+          </section>
+
+          <section class="detail-card buyer-card">
+            <div class="card-heading">
+              <div class="heading-icon">
+                <svg
+                  [lucideIcon]="buyerIcon"
+                  [size]="21"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div>
+                <span>
+                  Kupac
+                </span>
+
+                <h2>
+                  Podaci o kupcu
+                </h2>
+              </div>
+            </div>
+
+            <div class="buyer-information">
+              <div class="buyer-row">
+                <svg
+                  [lucideIcon]="buyerIcon"
+                  [size]="18"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+
+                <div>
+                  <span>
+                    Ime i prezime
+                  </span>
+
+                  <strong>
+                    {{ buyerName(currentOrder) }}
+                  </strong>
+                </div>
+              </div>
+
+              <div class="buyer-row">
+                <svg
+                  [lucideIcon]="emailIcon"
+                  [size]="18"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+
+                <div>
+                  <span>
+                    Email adresa
+                  </span>
+
+                  <a
+                    [href]="'mailto:' + currentOrder.buyer.email"
+                  >
+                    {{ currentOrder.buyer.email }}
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            @if (currentOrder.status === 'completed') {
+              <button
+                class="report-button"
+                type="button"
+                (click)="openReportModal()"
+              >
+                <svg
+                  [lucideIcon]="reportIcon"
+                  [size]="17"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                Prijavi kupca
+              </button>
+            }
+          </section>
+        </div>
+
+        <aside class="side-column">
+          <section class="detail-card action-card">
+            <div class="card-heading">
+              <div class="heading-icon">
+                <svg
+                  [lucideIcon]="shoppingIcon"
+                  [size]="21"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div>
+                <span>
+                  Status porudžbine
+                </span>
+
+                <h2>
+                  Upravljanje
+                </h2>
+              </div>
+            </div>
+
+            @if (currentOrder.status === 'pending') {
+              <p class="action-description">
+                Prihvati porudžbinu i kupcu navedi procenjeno vreme preuzimanja,
+                ili je odbij uz kratko objašnjenje.
+              </p>
+
+              <div class="primary-actions">
+                <button
+                  class="primary-button"
+                  type="button"
+                  [disabled]="isPerformingAction()"
+                  (click)="openAcceptForm()"
+                >
+                  <svg
+                    [lucideIcon]="acceptIcon"
+                    [size]="17"
+                    [strokeWidth]="1.9"
+                    aria-hidden="true"
+                  ></svg>
+
+                  Prihvati porudžbinu
+                </button>
+
+                <button
+                  class="danger-button"
+                  type="button"
+                  [disabled]="isPerformingAction()"
+                  (click)="openRejectForm()"
+                >
+                  <svg
+                    [lucideIcon]="rejectIcon"
+                    [size]="17"
+                    [strokeWidth]="1.9"
+                    aria-hidden="true"
+                  ></svg>
+
+                  Odbij porudžbinu
+                </button>
+              </div>
+
+              @if (isAcceptFormOpen()) {
+                <div class="accept-form">
+                  <div class="form-heading">
+                    <svg
+                      [lucideIcon]="pickupTimeIcon"
+                      [size]="19"
+                      [strokeWidth]="1.7"
+                      aria-hidden="true"
+                    ></svg>
+
+                    <div>
+                      <strong>
+                        Procena preuzimanja
+                      </strong>
+
+                      <span>
+                        Navedi kada očekuješ da će porudžbina biti spremna.
+                      </span>
+                    </div>
+                  </div>
+
+                  <label for="estimatedPickupAt">
+                    Datum i vreme
+                  </label>
+
+                  <input
+                    id="estimatedPickupAt"
+                    type="datetime-local"
+                    [min]="minimumPickupDateTime()"
+                    [ngModel]="estimatedPickupAt()"
+                    (ngModelChange)="updateEstimatedPickupAt($event)"
+                  >
+
+                  <div class="form-actions">
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      [disabled]="isPerformingAction()"
+                      (click)="closeAcceptForm()"
+                    >
+                      Odustani
+                    </button>
+
+                    <button
+                      class="primary-button"
+                      type="button"
+                      [disabled]="
+                        isPerformingAction() ||
+                        !estimatedPickupAt()
+                      "
+                      (click)="acceptOrder()"
+                    >
+                      @if (isPerformingAction()) {
+                        Prihvatanje...
+                      } @else {
+                        Potvrdi prihvatanje
+                      }
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @if (isRejectFormOpen()) {
+                <div class="reject-form">
+                  <div class="form-heading danger-form-heading">
+                    <svg
+                      [lucideIcon]="rejectIcon"
+                      [size]="19"
+                      [strokeWidth]="1.8"
+                      aria-hidden="true"
+                    ></svg>
+
+                    <div>
+                      <strong>
+                        Odbijanje porudžbine
+                      </strong>
+
+                      <span>
+                        Kupac će videti razlog koji uneseš.
+                      </span>
+                    </div>
+                  </div>
+
+                  <label for="rejectionReason">
+                    Razlog odbijanja
+                  </label>
+
+                  <textarea
+                    id="rejectionReason"
+                    rows="4"
+                    maxlength="500"
+                    placeholder="Objasni kupcu zašto porudžbina nije prihvaćena..."
+                    [ngModel]="rejectionReason()"
+                    (ngModelChange)="updateRejectionReason($event)"
+                  ></textarea>
+
+                  <div class="form-footer">
+                    <span>
+                      {{ rejectionReason().length }}/500
+                    </span>
+
+                    <div class="form-actions">
+                      <button
+                        class="secondary-button"
+                        type="button"
+                        [disabled]="isPerformingAction()"
+                        (click)="closeRejectForm()"
+                      >
+                        Odustani
+                      </button>
+
+                      <button
+                        class="danger-button"
+                        type="button"
+                        [disabled]="
+                          isPerformingAction() ||
+                          !rejectionReason().trim()
+                        "
+                        (click)="rejectOrder()"
+                      >
+                        @if (isPerformingAction()) {
+                          Odbijanje...
+                        } @else {
+                          Potvrdi odbijanje
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            } @else if (currentOrder.status === 'accepted') {
+              @if (currentOrder.estimatedPickupAt) {
+                <div class="action-pickup-time">
+                  <svg
+                    [lucideIcon]="pickupTimeIcon"
+                    [size]="19"
+                    [strokeWidth]="1.7"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <div>
+                    <span>
+                      Procenjeno preuzimanje
+                    </span>
+
+                    <strong>
+                      {{ formatDate(currentOrder.estimatedPickupAt) }}
+                    </strong>
+                  </div>
+                </div>
+              }
+
+              <p class="action-description">
+                Kada završiš pripremu, označi porudžbinu kao spremnu.
+                Kupac će tada dobiti kod za preuzimanje.
+              </p>
+
+              <button
+                class="primary-button"
+                type="button"
+                [disabled]="isPerformingAction()"
+                (click)="markAsReady()"
+              >
+                <svg
+                  [lucideIcon]="readyIcon"
+                  [size]="17"
+                  [strokeWidth]="1.9"
+                  aria-hidden="true"
+                ></svg>
+
+                @if (isPerformingAction()) {
+                  Ažuriranje...
+                } @else {
+                  Označi kao spremno
+                }
+              </button>
+            } @else if (currentOrder.status === 'ready') {
+              @if (currentOrder.estimatedPickupAt) {
+                <div class="action-pickup-time">
+                  <svg
+                    [lucideIcon]="pickupTimeIcon"
+                    [size]="19"
+                    [strokeWidth]="1.7"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <div>
+                    <span>
+                      Procenjeno preuzimanje
+                    </span>
+
+                    <strong>
+                      {{ formatDate(currentOrder.estimatedPickupAt) }}
+                    </strong>
+                  </div>
+                </div>
+              }
+
+              <p class="action-description">
+                Kada kupac preuzme celu porudžbinu, unesi šestocifreni kod
+                koji ti pokaže.
+              </p>
+
+              @if (currentOrder.buyerOnTheWayAt) {
+                <div class="buyer-on-the-way">
+                  <svg
+                    [lucideIcon]="readyIcon"
+                    [size]="19"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <div>
+                    <strong>
+                      Kupac je krenuo
+                    </strong>
+
+                    <span>
+                      Obaveštenje primljeno
+                      {{ formatDate(currentOrder.buyerOnTheWayAt) }}
+                    </span>
+                  </div>
+                </div>
+              }
+
+              <div class="pickup-code-form">
+                <label for="pickupCode">
+                  Kod za preuzimanje
+                </label>
+
+                <div class="pickup-code-input">
+                  <svg
+                    [lucideIcon]="codeIcon"
+                    [size]="19"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <input
+                    id="pickupCode"
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    maxlength="6"
+                    placeholder="000000"
+                    [value]="pickupCode()"
+                    (input)="updatePickupCode($any($event.target).value)"
+                  >
+                </div>
+
+                <small>
+                  Kod ima tačno 6 cifara.
+                </small>
+
+                <button
+                  class="primary-button"
+                  type="button"
+                  [disabled]="
+                    isPerformingAction() ||
+                    pickupCode().length !== 6
+                  "
+                  (click)="completeOrder()"
+                >
+                  @if (isPerformingAction()) {
+                    Provera koda...
+                  } @else {
+                    Potvrdi preuzimanje
+                  }
+                </button>
+              </div>
+            } @else {
+              <div class="finished-state">
+                <svg
+                  [lucideIcon]="acceptIcon"
+                  [size]="29"
+                  [strokeWidth]="1.6"
+                  aria-hidden="true"
+                ></svg>
+
+                <strong>
+                  {{ statusLabel(currentOrder.status) }}
+                </strong>
+
+                <p>
+                  Za ovu porudžbinu više nema dostupnih akcija domaćina.
+                </p>
+              </div>
+            }
+          </section>
+        </aside>
+      </section>
+    }
+
+    @if (isReportModalOpen()) {
+      <div
+        class="report-modal-backdrop"
+        (click)="closeReportModal()"
+      >
+        <section
+          class="report-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reportModalTitle"
+          (click)="$event.stopPropagation()"
+        >
+          <button
+            class="report-modal-close"
+            type="button"
+            aria-label="Zatvori prijavu"
+            [disabled]="isSubmittingReport()"
+            (click)="closeReportModal()"
+          >
+            <svg
+              [lucideIcon]="closeIcon"
+              [size]="21"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
+          </button>
+
+          <header class="report-modal-header">
+            <svg
+              class="report-modal-symbol"
+              [lucideIcon]="reportIcon"
+              [size]="52"
+              [strokeWidth]="1.45"
+              aria-hidden="true"
+            ></svg>
+
+            <h2 id="reportModalTitle">
+              Prijavi kupca
+            </h2>
+
+            <p>
+              Prijava će biti poslata administratoru na pregled.
+              Opiši problem dovoljno jasno da može da se proveri.
+            </p>
+
+            <div
+              class="modal-heading-decoration"
+              aria-hidden="true"
+            >
+              <span></span>
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M5 15c6 0 10-4 12-10"></path>
+                <path d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"></path>
+                <path d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"></path>
+              </svg>
+
+              <span></span>
+            </div>
+          </header>
+
+          <div class="report-field">
+            <label for="reportReason">
+              Razlog prijave
+            </label>
+
+            <select
+              id="reportReason"
+              [ngModel]="reportReason()"
+              (ngModelChange)="updateReportReason($event)"
+            >
+              <option
+                value=""
+                disabled
+              >
+                Izaberi razlog
+              </option>
+
+              @for (
+                option of reportReasonOptions;
+                track option.value
+              ) {
+                <option [value]="option.value">
+                  {{ option.label }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="report-field">
+            <div class="report-label-row">
+              <label for="reportDescription">
+                Opis problema
+              </label>
+
+              <span>
+                {{ reportDescription().length }}/1000
+              </span>
+            </div>
+
+            <textarea
+              id="reportDescription"
+              rows="5"
+              maxlength="1000"
+              placeholder="Ukratko objasni šta se dogodilo..."
+              [ngModel]="reportDescription()"
+              (ngModelChange)="updateReportDescription($event)"
+            ></textarea>
+
+            <small>
+              Najmanje 10 karaktera.
+            </small>
+          </div>
+
+          <div class="modal-actions">
+            <button
+              class="modal-cancel-button"
+              type="button"
+              [disabled]="isSubmittingReport()"
+              (click)="closeReportModal()"
+            >
+              Otkaži
+            </button>
+
+            <button
+              class="modal-submit-button"
+              type="button"
+              [disabled]="
+                isSubmittingReport() ||
+                !reportReason() ||
+                reportDescription().trim().length < 10
+              "
+              (click)="submitReport()"
+            >
+              @if (isSubmittingReport()) {
+                Slanje...
+              } @else {
+                Pošalji prijavu
+              }
+            </button>
+          </div>
+        </section>
+      </div>
+    }
+  </div>
+</main>

@@ -1,61 +1,93 @@
 <main class="auth-page">
-  @if (errorMessage()) {
-    <div class="auth-toast" role="alert">
-      <div class="toast-mark" aria-hidden="true">
-        <span>!</span>
-      </div>
+  <div
+    class="page-botanical botanical-left"
+    aria-hidden="true"
+  ></div>
 
-      <div class="toast-content">
-        <strong>Registracija nije uspela</strong>
-        <p>{{ errorMessage() }}</p>
-      </div>
-
-      <button
-        type="button"
-        class="toast-close"
-        aria-label="Zatvori poruku"
-        (click)="closeError()"
-      >
-        ×
-      </button>
-
-      <span class="toast-decoration" aria-hidden="true"></span>
-    </div>
-  }
+  <div
+    class="page-botanical botanical-right"
+    aria-hidden="true"
+  ></div>
 
   <section class="auth-card">
-    <a
-      class="auth-logo"
-      routerLink="/"
-      aria-label="Kuvam početna stranica"
-    >
-      <img src="/images/kuvam-logo.png" alt="Kuvam">
-    </a>
+    <div class="auth-brand">
+      <a
+        class="auth-logo"
+        routerLink="/"
+        aria-label="Kuvam početna stranica"
+      >
+        <img
+          src="/images/kuvam-logo.png"
+          alt="Kuvam"
+        >
+      </a>
 
-    <div class="auth-header">
-      <h1>Kreiraj nalog</h1>
-      <p>Pridruži se Kuvam zajednici kao kupac ili domaćin.</p>
+      <span class="brand-line"></span>
     </div>
 
-    <div class="role-options" aria-label="Vrsta naloga">
+    <header class="auth-header">
+      <span class="auth-eyebrow">
+        Postani deo zajednice
+      </span>
+
+      <h1>
+        Kreiraj nalog
+      </h1>
+
+      <p>
+        Registruj se kao kupac ili domaćin i
+        koristi Kuvam na način koji ti odgovara.
+      </p>
+    </header>
+
+    <div
+      class="role-options"
+      aria-label="Vrsta naloga"
+    >
       <button
         type="button"
         class="role-button"
-        [class.active]="registerForm.controls.role.value === 'buyer'"
-        [attr.aria-pressed]="registerForm.controls.role.value === 'buyer'"
+        [class.active]="
+          registerForm.controls.role.value === 'buyer'
+        "
+        [attr.aria-pressed]="
+          registerForm.controls.role.value === 'buyer'
+        "
         (click)="setRole('buyer')"
       >
-        Kupac
+        <svg
+          [lucideIcon]="buyerIcon"
+          [size]="19"
+          [strokeWidth]="1.7"
+          aria-hidden="true"
+        ></svg>
+
+        <span>
+          Kupac
+        </span>
       </button>
 
       <button
         type="button"
         class="role-button"
-        [class.active]="registerForm.controls.role.value === 'seller'"
-        [attr.aria-pressed]="registerForm.controls.role.value === 'seller'"
+        [class.active]="
+          registerForm.controls.role.value === 'seller'
+        "
+        [attr.aria-pressed]="
+          registerForm.controls.role.value === 'seller'
+        "
         (click)="setRole('seller')"
       >
-        Prodavac
+        <svg
+          [lucideIcon]="sellerIcon"
+          [size]="19"
+          [strokeWidth]="1.7"
+          aria-hidden="true"
+        ></svg>
+
+        <span>
+          Domaćin
+        </span>
       </button>
     </div>
 
@@ -64,151 +96,352 @@
       [formGroup]="registerForm"
       (ngSubmit)="register()"
     >
-      <div class="name-fields">
-        <div class="form-field">
-          <label for="firstName">Ime</label>
-
-          <input
-            id="firstName"
-            type="text"
-            formControlName="firstName"
-            autocomplete="given-name"
-            placeholder="Unesi ime..."
-          >
-
-          <span class="field-message field-error" aria-live="polite">
-            @if (
-              registerForm.controls.firstName.touched &&
-              registerForm.controls.firstName.invalid
-            ) {
-              Ime mora imati između 2 i 50 karaktera.
-            }
+      <section class="form-section">
+        <div class="section-heading">
+          <span class="section-icon">
+            <svg
+              [lucideIcon]="userIcon"
+              [size]="19"
+              [strokeWidth]="1.7"
+              aria-hidden="true"
+            ></svg>
           </span>
+
+          <div>
+            <h2>
+              Osnovni podaci
+            </h2>
+
+            <p>
+              Podaci koje koristiš za svoj nalog.
+            </p>
+          </div>
         </div>
 
-        <div class="form-field">
-          <label for="lastName">Prezime</label>
+        <div class="name-fields">
+          <div class="form-field">
+            <label for="firstName">
+              Ime
+            </label>
 
-          <input
-            id="lastName"
-            type="text"
-            formControlName="lastName"
-            autocomplete="family-name"
-            placeholder="Unesi prezime..."
-          >
-
-          <span class="field-message field-error" aria-live="polite">
-            @if (
-              registerForm.controls.lastName.touched &&
-              registerForm.controls.lastName.invalid
-            ) {
-              Prezime mora imati između 2 i 50 karaktera.
-            }
-          </span>
-        </div>
-      </div>
-
-      <div class="form-field">
-        <label for="email">Email adresa</label>
-
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          autocomplete="email"
-          placeholder="ime@example.com"
-        >
-
-        <span class="field-message field-error" aria-live="polite">
-          @if (
-            registerForm.controls.email.touched &&
-            registerForm.controls.email.invalid
-          ) {
-            Unesi ispravnu email adresu.
-          }
-        </span>
-      </div>
-
-      <div class="password-fields">
-        <div class="form-field">
-          <label for="password">Lozinka</label>
-
-          <div class="password-field">
-            <input
-              id="password"
-              [type]="showPassword() ? 'text' : 'password'"
-              formControlName="password"
-              autocomplete="new-password"
-              placeholder="Unesi lozinku..."
-            >
-
-            <button
-              class="password-toggle"
-              type="button"
-              [attr.aria-label]="
-                showPassword()
-                  ? 'Sakrij lozinku'
-                  : 'Prikaži lozinku'
+            <div
+              class="input-wrapper"
+              [class.invalid]="
+                registerForm.controls.firstName.touched &&
+                registerForm.controls.firstName.invalid
               "
-              [attr.aria-pressed]="showPassword()"
-              (click)="togglePassword()"
             >
-              {{ showPassword() ? 'Sakrij' : 'Prikaži' }}
-            </button>
+              <svg
+                [lucideIcon]="userIcon"
+                [size]="18"
+                [strokeWidth]="1.7"
+                aria-hidden="true"
+              ></svg>
+
+              <input
+                id="firstName"
+                type="text"
+                formControlName="firstName"
+                autocomplete="given-name"
+                placeholder="Unesi ime..."
+              >
+            </div>
+
+            <span
+              class="field-message field-error"
+              aria-live="polite"
+            >
+              @if (
+                registerForm.controls.firstName.touched &&
+                registerForm.controls.firstName.hasError('required')
+              ) {
+                Ime je obavezno.
+              } @else if (
+                registerForm.controls.firstName.touched &&
+                registerForm.controls.firstName.hasError('minlength')
+              ) {
+                Ime mora imati najmanje 2 karaktera.
+              } @else if (
+                registerForm.controls.firstName.touched &&
+                registerForm.controls.firstName.hasError('maxlength')
+              ) {
+                Ime može imati najviše 50 karaktera.
+              }
+            </span>
           </div>
 
-          <span class="field-message field-error" aria-live="polite">
-            @if (
-              registerForm.controls.password.touched &&
-              registerForm.controls.password.invalid
-            ) {
-              Lozinka mora imati najmanje 8 karaktera.
-            }
-          </span>
+          <div class="form-field">
+            <label for="lastName">
+              Prezime
+            </label>
+
+            <div
+              class="input-wrapper"
+              [class.invalid]="
+                registerForm.controls.lastName.touched &&
+                registerForm.controls.lastName.invalid
+              "
+            >
+              <svg
+                [lucideIcon]="userIcon"
+                [size]="18"
+                [strokeWidth]="1.7"
+                aria-hidden="true"
+              ></svg>
+
+              <input
+                id="lastName"
+                type="text"
+                formControlName="lastName"
+                autocomplete="family-name"
+                placeholder="Unesi prezime..."
+              >
+            </div>
+
+            <span
+              class="field-message field-error"
+              aria-live="polite"
+            >
+              @if (
+                registerForm.controls.lastName.touched &&
+                registerForm.controls.lastName.hasError('required')
+              ) {
+                Prezime je obavezno.
+              } @else if (
+                registerForm.controls.lastName.touched &&
+                registerForm.controls.lastName.hasError('minlength')
+              ) {
+                Prezime mora imati najmanje 2 karaktera.
+              } @else if (
+                registerForm.controls.lastName.touched &&
+                registerForm.controls.lastName.hasError('maxlength')
+              ) {
+                Prezime može imati najviše 50 karaktera.
+              }
+            </span>
+          </div>
         </div>
 
         <div class="form-field">
-          <label for="confirmPassword">Ponovi lozinku</label>
+          <label for="email">
+            Email adresa
+          </label>
 
-          <div class="password-field">
+          <div
+            class="input-wrapper"
+            [class.invalid]="
+              registerForm.controls.email.touched &&
+              registerForm.controls.email.invalid
+            "
+          >
+            <svg
+              [lucideIcon]="emailIcon"
+              [size]="18"
+              [strokeWidth]="1.7"
+              aria-hidden="true"
+            ></svg>
+
             <input
-              id="confirmPassword"
-              [type]="showConfirmPassword() ? 'text' : 'password'"
-              formControlName="confirmPassword"
-              autocomplete="new-password"
-              placeholder="Ponovi lozinku..."
+              id="email"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              placeholder="ime@example.com"
             >
-
-            <button
-              class="password-toggle"
-              type="button"
-              [attr.aria-label]="
-                showConfirmPassword()
-                  ? 'Sakrij ponovljenu lozinku'
-                  : 'Prikaži ponovljenu lozinku'
-              "
-              [attr.aria-pressed]="showConfirmPassword()"
-              (click)="toggleConfirmPassword()"
-            >
-              {{ showConfirmPassword() ? 'Sakrij' : 'Prikaži' }}
-            </button>
           </div>
 
-          <span class="field-message field-error" aria-live="polite">
+          <span
+            class="field-message field-error"
+            aria-live="polite"
+          >
             @if (
-              registerForm.controls.confirmPassword.touched &&
-              registerForm.controls.confirmPassword.hasError('required')
+              registerForm.controls.email.touched &&
+              registerForm.controls.email.hasError('required')
             ) {
-              Ponovi unetu lozinku.
+              Email adresa je obavezna.
             } @else if (
-              registerForm.controls.confirmPassword.touched &&
-              registerForm.hasError('passwordsMismatch')
+              registerForm.controls.email.touched &&
+              registerForm.controls.email.hasError('email')
             ) {
-              Lozinke se ne poklapaju.
+              Unesi ispravnu email adresu.
             }
           </span>
         </div>
-      </div>
+      </section>
+
+      <section class="form-section password-section">
+        <div class="section-heading">
+          <span class="section-icon">
+            <svg
+              [lucideIcon]="lockIcon"
+              [size]="19"
+              [strokeWidth]="1.7"
+              aria-hidden="true"
+            ></svg>
+          </span>
+
+          <div>
+            <h2>
+              Lozinka
+            </h2>
+
+            <p>
+              Koristi najmanje 8 karaktera.
+            </p>
+          </div>
+        </div>
+
+        <div class="password-fields">
+          <div class="form-field">
+            <label for="password">
+              Lozinka
+            </label>
+
+            <div
+              class="input-wrapper password-field"
+              [class.invalid]="
+                registerForm.controls.password.touched &&
+                registerForm.controls.password.invalid
+              "
+            >
+              <svg
+                [lucideIcon]="lockIcon"
+                [size]="18"
+                [strokeWidth]="1.7"
+                aria-hidden="true"
+              ></svg>
+
+              <input
+                id="password"
+                [type]="
+                  showPassword()
+                    ? 'text'
+                    : 'password'
+                "
+                formControlName="password"
+                autocomplete="new-password"
+                placeholder="Unesi lozinku..."
+              >
+
+              <button
+                class="password-toggle"
+                type="button"
+                [attr.aria-label]="
+                  showPassword()
+                    ? 'Sakrij lozinku'
+                    : 'Prikaži lozinku'
+                "
+                [attr.aria-pressed]="showPassword()"
+                (click)="togglePassword()"
+              >
+                <svg
+                  [lucideIcon]="
+                    showPassword()
+                      ? hideIcon
+                      : showIcon
+                  "
+                  [size]="19"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </button>
+            </div>
+
+            <span
+              class="field-message field-error"
+              aria-live="polite"
+            >
+              @if (
+                registerForm.controls.password.touched &&
+                registerForm.controls.password.hasError('required')
+              ) {
+                Lozinka je obavezna.
+              } @else if (
+                registerForm.controls.password.touched &&
+                registerForm.controls.password.hasError('minlength')
+              ) {
+                Lozinka mora imati najmanje 8 karaktera.
+              }
+            </span>
+          </div>
+
+          <div class="form-field">
+            <label for="confirmPassword">
+              Ponovi lozinku
+            </label>
+
+            <div
+              class="input-wrapper password-field"
+              [class.invalid]="
+                registerForm.controls.confirmPassword.touched &&
+                (
+                  registerForm.controls.confirmPassword.invalid ||
+                  registerForm.hasError('passwordsMismatch')
+                )
+              "
+            >
+              <svg
+                [lucideIcon]="lockIcon"
+                [size]="18"
+                [strokeWidth]="1.7"
+                aria-hidden="true"
+              ></svg>
+
+              <input
+                id="confirmPassword"
+                [type]="
+                  showConfirmPassword()
+                    ? 'text'
+                    : 'password'
+                "
+                formControlName="confirmPassword"
+                autocomplete="new-password"
+                placeholder="Ponovi lozinku..."
+              >
+
+              <button
+                class="password-toggle"
+                type="button"
+                [attr.aria-label]="
+                  showConfirmPassword()
+                    ? 'Sakrij ponovljenu lozinku'
+                    : 'Prikaži ponovljenu lozinku'
+                "
+                [attr.aria-pressed]="showConfirmPassword()"
+                (click)="toggleConfirmPassword()"
+              >
+                <svg
+                  [lucideIcon]="
+                    showConfirmPassword()
+                      ? hideIcon
+                      : showIcon
+                  "
+                  [size]="19"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </button>
+            </div>
+
+            <span
+              class="field-message field-error"
+              aria-live="polite"
+            >
+              @if (
+                registerForm.controls.confirmPassword.touched &&
+                registerForm.controls.confirmPassword.hasError('required')
+              ) {
+                Ponovi unetu lozinku.
+              } @else if (
+                registerForm.controls.confirmPassword.touched &&
+                registerForm.hasError('passwordsMismatch')
+              ) {
+                Lozinke se ne poklapaju.
+              }
+            </span>
+          </div>
+        </div>
+      </section>
 
       <div
         class="seller-fields-wrapper"
@@ -216,51 +449,131 @@
         [attr.aria-hidden]="!isSeller"
       >
         <div class="seller-fields">
-          <div class="form-field">
-            <label for="businessName">Naziv domaćinstva</label>
+          <section class="form-section seller-section">
+            <div class="section-heading">
+              <span class="section-icon seller-section-icon">
+                <svg
+                  [lucideIcon]="sellerIcon"
+                  [size]="19"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
+              </span>
 
-            <input
-              id="businessName"
-              type="text"
-              formControlName="businessName"
-              autocomplete="organization"
-              placeholder="Na primer, Bakina kuhinja"
-              [tabIndex]="isSeller ? 0 : -1"
-            >
+              <div>
+                <h2>
+                  Podaci domaćina
+                </h2>
 
-            <span class="field-message field-error" aria-live="polite">
-              @if (
-                registerForm.controls.businessName.touched &&
-                registerForm.controls.businessName.invalid
-              ) {
-                Naziv mora imati između 2 i 100 karaktera.
-              }
-            </span>
-          </div>
+                <p>
+                  Ove podatke koristićemo za tvoj profil domaćina.
+                </p>
+              </div>
+            </div>
 
-          <div class="form-field">
-            <label for="description">
-              Kratak opis
-              <span>Opciono</span>
-            </label>
+            <div class="form-field">
+              <label for="businessName">
+                Naziv domaćinstva
+              </label>
 
-            <textarea
-              id="description"
-              rows="4"
-              formControlName="description"
-              maxlength="500"
-              placeholder="Opiši svoju ponudu domaće hrane"
-              [tabIndex]="isSeller ? 0 : -1"
-            ></textarea>
+              <div
+                class="input-wrapper"
+                [class.invalid]="
+                  registerForm.controls.businessName.touched &&
+                  registerForm.controls.businessName.invalid
+                "
+              >
+                <svg
+                  [lucideIcon]="sellerIcon"
+                  [size]="18"
+                  [strokeWidth]="1.7"
+                  aria-hidden="true"
+                ></svg>
 
-            <span class="field-message field-hint">
-              Najviše 500 karaktera.
-            </span>
-          </div>
+                <input
+                  id="businessName"
+                  type="text"
+                  formControlName="businessName"
+                  autocomplete="organization"
+                  placeholder="Na primer: Bakina kuhinja"
+                  [tabIndex]="isSeller ? 0 : -1"
+                >
+              </div>
 
-          <p class="seller-note">
-            Prodavci mogu dodavati ponude nakon odobrenja naloga.
-          </p>
+              <span
+                class="field-message field-error"
+                aria-live="polite"
+              >
+                @if (
+                  registerForm.controls.businessName.touched &&
+                  registerForm.controls.businessName.hasError('required')
+                ) {
+                  Naziv domaćinstva je obavezan.
+                } @else if (
+                  registerForm.controls.businessName.touched &&
+                  registerForm.controls.businessName.hasError('minlength')
+                ) {
+                  Naziv mora imati najmanje 2 karaktera.
+                } @else if (
+                  registerForm.controls.businessName.touched &&
+                  registerForm.controls.businessName.hasError('maxlength')
+                ) {
+                  Naziv može imati najviše 100 karaktera.
+                }
+              </span>
+            </div>
+
+            <div class="form-field">
+              <div class="label-row">
+                <label for="description">
+                  Kratak opis
+
+                  <span>
+                    opciono
+                  </span>
+                </label>
+
+                <span>
+                  {{
+                    registerForm.controls.description
+                      .value.length
+                  }}/500
+                </span>
+              </div>
+
+              <textarea
+                id="description"
+                rows="4"
+                formControlName="description"
+                maxlength="500"
+                placeholder="Opiši svoju domaću kuhinju, specijalitete ili način pripreme..."
+                [tabIndex]="isSeller ? 0 : -1"
+              ></textarea>
+
+              <span class="field-message field-error">
+                @if (
+                  registerForm.controls.description.touched &&
+                  registerForm.controls.description.hasError('maxlength')
+                ) {
+                  Opis može imati najviše 500 karaktera.
+                }
+              </span>
+            </div>
+
+            <div class="seller-note">
+              <svg
+                [lucideIcon]="sellerIcon"
+                [size]="19"
+                [strokeWidth]="1.7"
+                aria-hidden="true"
+              ></svg>
+
+              <p>
+                Nakon registracije profil domaćina prolazi odobrenje.
+                Kada bude odobren, moći ćeš da objavljuješ ponude.
+              </p>
+            </div>
+          </section>
         </div>
       </div>
 
@@ -270,16 +583,51 @@
         [disabled]="isSubmitting()"
       >
         @if (isSubmitting()) {
-          Kreiranje naloga...
+          <span
+            class="button-loader"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            Kreiranje naloga...
+          </span>
         } @else {
-          Registruj se
+          <span>
+            Registruj se
+          </span>
         }
       </button>
     </form>
 
+    <div
+      class="auth-decoration"
+      aria-hidden="true"
+    >
+      <span></span>
+
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M5 15c6 0 10-4 12-10"
+        ></path>
+
+        <path
+          d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"
+        ></path>
+
+        <path
+          d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"
+        ></path>
+      </svg>
+
+      <span></span>
+    </div>
+
     <p class="auth-footer">
       Već imaš nalog?
-      <a routerLink="/login">Prijavi se</a>
+
+      <a routerLink="/login">
+        Prijavi se
+      </a>
     </p>
   </section>
 </main>

@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  margin-top: 18px;
+}
+
+.route-map {
+  overflow: hidden;
+  border: 1px solid #dce2d9;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.map-container {
+  width: 100%;
+  height: 320px;
+  z-index: 1;
+  background: #eef2eb;
+}
+
+.route-controls {
+  padding: 16px;
+  border-top: 1px solid #e1e5df;
+}
+
+.route-button {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 18px;
+  color: #ffffff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.route-button:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.route-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.route-summary {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.route-summary > div {
+  padding: 12px;
+  background: #f4f8f2;
+  border-radius: 10px;
+}
+
+.route-summary span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.route-summary strong {
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.route-error {
+  margin: 12px 0 0;
+  color: #b44a38;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+:host ::ng-deep .leaflet-container {
+  font-family: inherit;
+}
+
+:host ::ng-deep .leaflet-control-attribution {
+  font-size: 9px;
+}
+
+@media (max-width: 600px) {
+  .map-container {
+    height: 270px;
+  }
+
+  .route-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+:host ::ng-deep .location-marker {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  color: #ffffff;
+  background: var(--color-primary);
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+
+  box-shadow: 0 4px 12px rgb(28 39 29 / 24%);
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+:host ::ng-deep .seller-location-marker {
+  background: var(--color-primary);
+}
+
+:host ::ng-deep .buyer-location-marker {
+  background: #3b82f6;
+}

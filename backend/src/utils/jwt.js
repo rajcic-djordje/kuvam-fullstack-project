@@ -1,18 +1,17 @@
-import jsonwebtoken from 'jsonwebtoken'
+import jsonwebtoken from "jsonwebtoken"
+import env from "../config/env.js"
 
-const generateAccessToken = (user) =>{
-
+const generateAccessToken = (user) => {
     const payload = {
         userId: user._id,
-        role: user.role,
+        role: user.role
     }
-    return jsonwebtoken.sign(payload, process.env.JWT_SECRET, {expiresIn: process.env.JWT_EXPIRES_IN})
+
+    return jsonwebtoken.sign(payload, env.accessTokenSecret, {expiresIn: env.accessTokenExpiresIn})
 }
 
-const verifyAccessToken = (token) =>{
-
-    return jsonwebtoken.verify(token, process.env.JWT_SECRET)
-
+const verifyAccessToken = (token) => {
+    return jsonwebtoken.verify(token, env.accessTokenSecret)
 }
 
 export {generateAccessToken, verifyAccessToken}

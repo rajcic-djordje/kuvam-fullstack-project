@@ -1,0 +1,122 @@
+<header class="admin-navbar">
+  <div class="admin-navbar-container">
+    <div class="navbar-heading">
+      <span>Admin pregled</span>
+    </div>
+
+    <div class="navbar-actions">
+      <div class="profile-menu">
+        <button
+          class="profile-trigger"
+          type="button"
+          [class.open]="isProfileMenuOpen()"
+          [attr.aria-expanded]="isProfileMenuOpen()"
+          aria-haspopup="menu"
+          (click)="toggleProfileMenu()"
+        >
+          <span class="profile-avatar">
+            <svg
+              [lucideIcon]="userIcon"
+              [size]="19"
+              [strokeWidth]="1.9"
+              aria-hidden="true"
+            ></svg>
+          </span>
+
+          <span class="profile-content">
+            <strong>
+              {{ authService.currentUser()?.firstName }}
+              {{ authService.currentUser()?.lastName }}
+            </strong>
+
+            <small>Administrator</small>
+          </span>
+
+          <svg
+            class="profile-chevron"
+            [class.rotated]="isProfileMenuOpen()"
+            [lucideIcon]="chevronIcon"
+            [size]="15"
+            [strokeWidth]="2"
+            aria-hidden="true"
+          ></svg>
+        </button>
+
+        @if (isProfileMenuOpen()) {
+          <div class="profile-dropdown" role="menu">
+            <div class="profile-summary">
+              <strong>
+                {{ authService.currentUser()?.firstName }}
+                {{ authService.currentUser()?.lastName }}
+              </strong>
+
+              <span>
+                {{ authService.currentUser()?.email }}
+              </span>
+
+              <small>Administrator</small>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            <button
+              class="dropdown-item"
+              type="button"
+              role="menuitem"
+              (click)="openAccountModal()"
+            >
+              <svg
+                class="dropdown-icon"
+                [lucideIcon]="editIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <span>Promeni podatke</span>
+            </button>
+
+            <a
+              class="dropdown-item"
+              routerLink="/"
+              role="menuitem"
+              (click)="closeProfileMenu()"
+            >
+              <svg
+                class="dropdown-icon"
+                [lucideIcon]="homeIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <span>Vrati se na sajt</span>
+            </a>
+
+            <button
+              class="dropdown-item logout-item"
+              type="button"
+              role="menuitem"
+              (click)="logout()"
+            >
+              <svg
+                class="dropdown-icon"
+                [lucideIcon]="logoutIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <span>Odjava</span>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</header>
+
+<app-admin-account-modal
+  [isOpen]="isAccountModalOpen()"
+  (closed)="closeAccountModal()"
+/>

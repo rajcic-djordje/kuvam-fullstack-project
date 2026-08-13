@@ -1,0 +1,138 @@
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <a
+        class="admin-logo"
+        routerLink="/admin/dashboard"
+        aria-label="Kuvam admin pregled"
+      >
+        <img
+          src="/images/kuvam-logo.png"
+          alt="Kuvam"
+        >
+      </a>
+    </div>
+
+    <nav
+      class="admin-navigation"
+      aria-label="Admin navigacija"
+    >
+      <a
+        routerLink="/admin/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <span
+          class="navigation-icon"
+          aria-hidden="true"
+        >
+          <svg
+            [lucideIcon]="dashboardIcon"
+            [size]="21"
+            [strokeWidth]="1.8"
+          ></svg>
+        </span>
+
+        <span>Pregled</span>
+      </a>
+
+      <a
+        routerLink="/admin/users"
+        routerLinkActive="active"
+      >
+        <span
+          class="navigation-icon"
+          aria-hidden="true"
+        >
+          <svg
+            [lucideIcon]="usersIcon"
+            [size]="21"
+            [strokeWidth]="1.8"
+          ></svg>
+        </span>
+
+        <span>Korisnici</span>
+      </a>
+
+      <a
+        routerLink="/admin/banned-users"
+        routerLinkActive="active"
+      >
+        <span
+          class="navigation-icon"
+          aria-hidden="true"
+        >
+          <svg
+            [lucideIcon]="bannedIcon"
+            [size]="21"
+            [strokeWidth]="1.8"
+          ></svg>
+        </span>
+
+        <span>Banovani</span>
+      </a>
+
+      <a
+        routerLink="/admin/pending-sellers"
+        routerLinkActive="active"
+      >
+        <span
+          class="navigation-icon"
+          aria-hidden="true"
+        >
+          <svg
+            [lucideIcon]="sellersIcon"
+            [size]="21"
+            [strokeWidth]="1.8"
+          ></svg>
+        </span>
+
+        <span>Prodavci</span>
+      </a>
+
+      <a
+        routerLink="/admin/suspensions"
+        routerLinkActive="active"
+      >
+        <span
+          class="navigation-icon"
+          aria-hidden="true"
+        >
+          <svg
+            [lucideIcon]="suspensionsIcon"
+            [size]="21"
+            [strokeWidth]="1.8"
+          ></svg>
+        </span>
+
+        <span>Suspenzije</span>
+      </a>
+
+      <a
+        routerLink="/admin/reports"
+        routerLinkActive="active"
+      >
+        <span
+          class="navigation-icon"
+          aria-hidden="true"
+        >
+          <svg
+            [lucideIcon]="reportsIcon"
+            [size]="21"
+            [strokeWidth]="1.8"
+          ></svg>
+        </span>
+
+        <span>Prijave</span>
+      </a>
+    </nav>
+  </aside>
+
+  <section class="admin-main">
+    <app-admin-navbar />
+
+    <main class="admin-content">
+      <router-outlet />
+    </main>
+  </section>
+</div>

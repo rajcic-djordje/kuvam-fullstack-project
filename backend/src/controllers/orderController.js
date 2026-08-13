@@ -1,8 +1,22 @@
-import { createOrder, getBuyerOrders, markSellerOrderAsReady, completeBuyerOrder, acceptSellerOrder, rejectSellerOrder, getSellerOrders, getSellerOrderById, getBuyerOrderById, cancelBuyerOrder } from "../services/orderService.js"
+import {
+    createOrder,
+    getBuyerOrders,
+    getBuyerOrderById,
+    cancelBuyerOrder,
+    markBuyerAsOnTheWay,
+    getSellerOrders,
+    getSellerOrderById,
+    acceptSellerOrder,
+    rejectSellerOrder,
+    markSellerOrderAsReady,
+    completeSellerOrder
+} from "../services/orderService.js"
 
 const createOrderListing = async (req, res) => {
-    const buyerId = req.auth.userId
-    const order = await createOrder(buyerId, req.body)
+    const order = await createOrder(
+        req.auth.userId,
+        req.body
+    )
 
     return res.status(201).json({
         message: "Order created successfully.",
@@ -11,8 +25,10 @@ const createOrderListing = async (req, res) => {
 }
 
 const getMyOrders = async (req, res) => {
-    const buyerId = req.auth.userId
-    const orders = await getBuyerOrders(buyerId, req.queryData)
+    const orders = await getBuyerOrders(
+        req.auth.userId,
+        req.queryData
+    )
 
     return res.status(200).json({
         message: "Buyer orders retrieved successfully.",
@@ -21,12 +37,9 @@ const getMyOrders = async (req, res) => {
 }
 
 const getMyOrderById = async (req, res) => {
-    const buyerId = req.auth.userId
-    const orderId = req.params.orderId
-
     const order = await getBuyerOrderById(
-        buyerId,
-        orderId
+        req.auth.userId,
+        req.params.orderId
     )
 
     return res.status(200).json({
@@ -36,12 +49,9 @@ const getMyOrderById = async (req, res) => {
 }
 
 const cancelMyOrder = async (req, res) => {
-    const buyerId = req.auth.userId
-    const orderId = req.params.orderId
-
     const order = await cancelBuyerOrder(
-        buyerId,
-        orderId
+        req.auth.userId,
+        req.params.orderId
     )
 
     return res.status(200).json({
@@ -50,22 +60,34 @@ const cancelMyOrder = async (req, res) => {
     })
 }
 
+const markMyOrderAsOnTheWay = async (req, res) => {
+    const order = await markBuyerAsOnTheWay(
+        req.auth.userId,
+        req.params.orderId
+    )
+
+    return res.status(200).json({
+        message: "Seller notified that buyer is on the way.",
+        order
+    })
+}
+
 const getReceivedOrders = async (req, res) => {
-    const userId = req.auth.userId
-    const orders = await getSellerOrders(userId, req.queryData)
+    const orders = await getSellerOrders(
+        req.auth.userId,
+        req.queryData
+    )
 
     return res.status(200).json({
         message: "Seller orders retrieved successfully.",
         orders
     })
 }
-const getReceivedOrderById = async (req, res) => {
-    const userId = req.auth.userId
-    const orderId = req.params.orderId
 
+const getReceivedOrderById = async (req, res) => {
     const order = await getSellerOrderById(
-        userId,
-        orderId
+        req.auth.userId,
+        req.params.orderId
     )
 
     return res.status(200).json({
@@ -74,12 +96,12 @@ const getReceivedOrderById = async (req, res) => {
     })
 }
 
-
 const acceptReceivedOrder = async (req, res) => {
-    const userId = req.auth.userId
-    const orderId = req.params.orderId
-
-    const order = await acceptSellerOrder(userId, orderId)
+    const order = await acceptSellerOrder(
+        req.auth.userId,
+        req.params.orderId,
+        req.body.estimatedPickupAt
+    )
 
     return res.status(200).json({
         message: "Order accepted successfully.",
@@ -88,31 +110,25 @@ const acceptReceivedOrder = async (req, res) => {
 }
 
 const rejectReceivedOrder = async (req, res) => {
-    const userId = req.auth.userId
-    const orderId = req.params.orderId
-    const rejectionReason = req.body.rejectionReason
-
     const order = await rejectSellerOrder(
-        userId,
-        orderId,
-        rejectionReason
+        req.auth.userId,
+        req.params.orderId,
+        req.body.rejectionReason
     )
 
     return res.status(200).json({
         message: "Order rejected successfully.",
         order
     })
-
-    
 }
 
-const markReceivedOrderAsReady = async (req, res) => {
-    const userId = req.auth.userId
-    const orderId = req.params.orderId
-
+const markReceivedOrderAsReady = async (
+    req,
+    res
+) => {
     const order = await markSellerOrderAsReady(
-        userId,
-        orderId
+        req.auth.userId,
+        req.params.orderId
     )
 
     return res.status(200).json({
@@ -121,13 +137,11 @@ const markReceivedOrderAsReady = async (req, res) => {
     })
 }
 
-const completeMyOrder = async (req, res) => {
-    const buyerId = req.auth.userId
-    const orderId = req.params.orderId
-
-    const order = await completeBuyerOrder(
-        buyerId,
-        orderId
+const completeReceivedOrder = async (req, res) => {
+    const order = await completeSellerOrder(
+        req.auth.userId,
+        req.params.orderId,
+        req.body.pickupCode
     )
 
     return res.status(200).json({
@@ -136,4 +150,16 @@ const completeMyOrder = async (req, res) => {
     })
 }
 
-export { createOrderListing,markReceivedOrderAsReady, completeMyOrder, acceptReceivedOrder, rejectReceivedOrder,  getMyOrders, getReceivedOrderById, getMyOrderById, cancelMyOrder, getReceivedOrders}
+export {
+    createOrderListing,
+    getMyOrders,
+    getMyOrderById,
+    cancelMyOrder,
+    markMyOrderAsOnTheWay,
+    getReceivedOrders,
+    getReceivedOrderById,
+    acceptReceivedOrder,
+    rejectReceivedOrder,
+    markReceivedOrderAsReady,
+    completeReceivedOrder
+}

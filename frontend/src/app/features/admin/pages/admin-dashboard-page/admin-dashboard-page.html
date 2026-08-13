@@ -1,0 +1,353 @@
+@if (isLoading() && !dashboard()) {
+  <section class="page-state">
+    <span class="loader" aria-hidden="true"></span>
+
+    <div>
+      <h2>Učitavanje dashboarda</h2>
+      <p>Prikupljamo najnovije podatke o platformi.</p>
+    </div>
+  </section>
+} @else if (errorMessage() && !dashboard()) {
+  <section class="page-state error-state">
+    <span class="state-mark" aria-hidden="true">!</span>
+
+    <div>
+      <h2>Dashboard nije dostupan</h2>
+      <p>{{ errorMessage() }}</p>
+    </div>
+
+    <button type="button" (click)="loadDashboard()">
+      Pokušaj ponovo
+    </button>
+  </section>
+} @else if (dashboard(); as data) {
+  <section class="dashboard-intro">
+    <div class="intro-content">
+      <span class="intro-eyebrow">Administracija</span>
+
+      <h1>
+        Pregled platforme
+        <span>Kuvam</span>
+      </h1>
+
+      <p>
+        Najvažniji podaci o korisnicima, domaćinima, prijavama i aktivnosti platforme na jednom mestu.
+      </p>
+    </div>
+
+    <div class="intro-visual" aria-hidden="true"></div>
+  </section>
+
+  <section class="statistics-grid" aria-label="Statistika platforme">
+    <article class="stat-card users-card">
+      <div class="stat-icon">
+        <svg
+          [lucideIcon]="usersIcon"
+          [strokeWidth]="1.9"
+          aria-hidden="true"
+        ></svg>
+      </div>
+
+      <div class="stat-content">
+        <span class="stat-title">Aktivni korisnici</span>
+
+        <strong class="stat-number">
+          {{ data.statistics.activeUsers }}
+        </strong>
+
+        <span class="stat-description">
+          {{ data.statistics.buyers }} kupaca ·
+          {{ data.statistics.sellers }} domaćina
+        </span>
+      </div>
+    </article>
+
+    <article class="stat-card banned-card">
+      <div class="stat-icon">
+        <svg
+          [lucideIcon]="bannedIcon"
+          [strokeWidth]="1.9"
+          aria-hidden="true"
+        ></svg>
+      </div>
+
+      <div class="stat-content">
+        <span class="stat-title">Banovani korisnici</span>
+
+        <strong class="stat-number">
+          {{ data.statistics.bannedUsers }}
+        </strong>
+
+        <span class="stat-description">
+          {{ data.statistics.suspendedUsers }} suspendovanih
+        </span>
+      </div>
+    </article>
+
+    <article class="stat-card sellers-card">
+      <div class="stat-icon">
+        <svg
+          [lucideIcon]="sellersIcon"
+          [strokeWidth]="1.9"
+          aria-hidden="true"
+        ></svg>
+      </div>
+
+      <div class="stat-content">
+        <span class="stat-title">Domaćini na čekanju</span>
+
+        <strong class="stat-number">
+          {{ data.statistics.pendingSellers }}
+        </strong>
+
+        <span class="stat-description">
+          {{ data.statistics.approvedSellers }} odobrenih
+        </span>
+      </div>
+    </article>
+
+    <article class="stat-card reports-card">
+      <div class="stat-icon">
+        <svg
+          [lucideIcon]="reportsIcon"
+          [strokeWidth]="1.9"
+          aria-hidden="true"
+        ></svg>
+      </div>
+
+      <div class="stat-content">
+        <span class="stat-title">Prijave na čekanju</span>
+
+        <strong class="stat-number">
+          {{ data.statistics.pendingReports }}
+        </strong>
+
+        <span class="stat-description">
+          Neobrađene korisničke prijave
+        </span>
+      </div>
+    </article>
+  </section>
+
+  <section class="dashboard-content">
+    <div class="activity-grid">
+      <article class="activity-panel reports-panel">
+        <header class="panel-header">
+          <div class="panel-heading">
+            <svg
+              class="panel-icon"
+              [lucideIcon]="reportsPanelIcon"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
+
+            <div>
+              <h2>Najnovije prijave</h2>
+              <p>Poslednje prijave koje čekaju obradu.</p>
+            </div>
+          </div>
+
+          <a routerLink="/admin/reports">
+            <span>Vidi sve prijave</span>
+
+            <svg
+              [lucideIcon]="chevronIcon"
+              [size]="17"
+              [strokeWidth]="1.9"
+              aria-hidden="true"
+            ></svg>
+          </a>
+        </header>
+
+        @if (data.recentPendingReports.length === 0) {
+          <div class="empty-state">
+            <svg
+              [lucideIcon]="reportsPanelIcon"
+              [strokeWidth]="1.6"
+              aria-hidden="true"
+            ></svg>
+
+            <strong>Nema prijava na čekanju</strong>
+            <span>Sve pristigle prijave su trenutno obrađene.</span>
+          </div>
+        } @else {
+          <div class="activity-list">
+            @for (
+              report of data.recentPendingReports;
+              track report._id
+            ) {
+              <article class="activity-item">
+                <div class="avatar-wrapper">
+                  <div class="activity-avatar report-avatar">
+                    {{ report.reportedUser.firstName.charAt(0) }}{{ report.reportedUser.lastName.charAt(0) }}
+                  </div>
+
+                  <span
+                    class="avatar-status report-status"
+                    aria-hidden="true"
+                  ></span>
+                </div>
+
+                <div class="activity-content">
+                  <div class="activity-title-row">
+                    <strong>
+                      {{ report.reportedUser.firstName }}
+                      {{ report.reportedUser.lastName }}
+                    </strong>
+
+                    <span class="pending-badge">Na čekanju</span>
+                  </div>
+
+                  <p>{{ getReportReasonLabel(report.reason) }}</p>
+
+                  <div class="activity-meta">
+                    <span>{{ report.reportedUser.email }}</span>
+
+                    <time>
+                      {{ report.createdAt | date:'dd.MM.yyyy.' }}
+                    </time>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </article>
+
+      <article class="activity-panel sellers-panel">
+        <header class="panel-header">
+          <div class="panel-heading">
+            <svg
+              class="panel-icon"
+              [lucideIcon]="sellersPanelIcon"
+              [strokeWidth]="1.8"
+              aria-hidden="true"
+            ></svg>
+
+            <div>
+              <h2>Domaćini na čekanju</h2>
+              <p>Novi zahtevi za naloge domaćina.</p>
+            </div>
+          </div>
+
+          <a routerLink="/admin/pending-sellers">
+            <span>Vidi sve</span>
+
+            <svg
+              [lucideIcon]="chevronIcon"
+              [size]="17"
+              [strokeWidth]="1.9"
+              aria-hidden="true"
+            ></svg>
+          </a>
+        </header>
+
+        @if (data.recentPendingSellers.length === 0) {
+          <div class="empty-state">
+            <svg
+              [lucideIcon]="sellersPanelIcon"
+              [strokeWidth]="1.6"
+              aria-hidden="true"
+            ></svg>
+
+            <strong>Nema domaćina na čekanju</strong>
+            <span>Trenutno nema novih zahteva za odobrenje.</span>
+          </div>
+        } @else {
+          <div class="activity-list">
+            @for (
+              seller of data.recentPendingSellers;
+              track seller._id
+            ) {
+              <article class="activity-item">
+                <div class="avatar-wrapper">
+                  <div class="activity-avatar seller-avatar">
+                    {{ seller.user.firstName.charAt(0) }}{{ seller.user.lastName.charAt(0) }}
+                  </div>
+
+                  <span
+                    class="avatar-status seller-status"
+                    aria-hidden="true"
+                  ></span>
+                </div>
+
+                <div class="activity-content">
+                  <div class="activity-title-row">
+                    <strong>{{ seller.businessName }}</strong>
+                    <span class="pending-badge">Na čekanju</span>
+                  </div>
+
+                  <p>
+                    {{ seller.user.firstName }}
+                    {{ seller.user.lastName }}
+                  </p>
+
+                  <div class="activity-meta">
+                    <span>{{ seller.user.email }}</span>
+
+                    <time>
+                      {{ seller.createdAt | date:'dd.MM.yyyy.' }}
+                    </time>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </article>
+    </div>
+
+    <section class="recent-activity-panel">
+      <header class="recent-activity-header">
+        <div class="panel-heading">
+          <svg
+            class="panel-icon"
+            [lucideIcon]="activityPanelIcon"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+
+          <div>
+            <h2>Nedavna aktivnost platforme</h2>
+            <p>Poslednja aktivnost iz najvažnijih delova sistema.</p>
+          </div>
+        </div>
+      </header>
+
+      @if (data.recentActivity.length === 0) {
+        <div class="recent-activity-empty">
+          Trenutno nema zabeleženih aktivnosti.
+        </div>
+      } @else {
+        <div class="recent-activity-grid">
+          @for (
+            activity of data.recentActivity;
+            track activity.type
+          ) {
+            <article
+              class="recent-activity-item"
+              [class]="getActivityClass(activity.type)"
+            >
+              <div class="recent-activity-icon">
+                <svg
+                  [lucideIcon]="getActivityIcon(activity.type)"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+              </div>
+
+              <div class="recent-activity-content">
+                <strong>{{ activity.title }}</strong>
+                <p>{{ activity.description }}</p>
+
+                <time>
+                  {{ activity.createdAt | date:'dd.MM.yyyy. HH:mm' }}
+                </time>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </section>
+}

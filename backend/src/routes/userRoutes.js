@@ -1,8 +1,8 @@
 import express from "express"
-import {getMyProfile,updateMyProfile,changeMyPassword, deactivateMyAccount} from "../controllers/userController.js"
+import {getMyProfile, updateMyLocation, updateMyProfile,changeMyPassword, deactivateMyAccount} from "../controllers/userController.js"
 import { authenticate } from "../middleware/authenticate.js"
 import { validateBody } from "../middleware/validateBody.js"
-import {updateProfileSchema,changePasswordSchema} from "../validators/userValidator.js"
+import {updateProfileSchema,changePasswordSchema, updateLocationSchema} from "../validators/userValidator.js"
 
 const router = express.Router()
 
@@ -30,6 +30,13 @@ router.patch(
     "/me/deactivate",
     authenticate,
     deactivateMyAccount
+)
+
+router.patch(
+    "/me/location",
+    authenticate,
+    validateBody(updateLocationSchema),
+    updateMyLocation
 )
 
 export default router

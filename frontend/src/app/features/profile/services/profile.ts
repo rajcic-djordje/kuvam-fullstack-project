@@ -7,6 +7,8 @@ import {
   DeactivateAccountResponse,
   MessageResponse,
   ProfileResponse,
+  UpdateLocationRequest,
+  UpdateLocationResponse,
   UpdateProfileRequest
 } from '../models/profile';
 
@@ -26,6 +28,15 @@ export class ProfileService {
   ): Observable<ProfileResponse> {
     return this.http.patch<ProfileResponse>(
       this.profileUrl,
+      data
+    );
+  }
+
+  updateLocation(
+    data: UpdateLocationRequest
+  ): Observable<UpdateLocationResponse> {
+    return this.http.patch<UpdateLocationResponse>(
+      `${this.profileUrl}/location`,
       data
     );
   }

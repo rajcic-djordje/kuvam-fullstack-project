@@ -6,4 +6,8 @@ const suspendUserSchema = z.object({
 })
 
 
-export {suspendUserSchema}
+const banUserSchema = z.object({
+    reason: z.string().trim().min(3).max(500)
+})
+
+export {suspendUserSchema, banUserSchema}

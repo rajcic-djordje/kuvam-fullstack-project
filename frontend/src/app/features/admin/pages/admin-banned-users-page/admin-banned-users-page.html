@@ -1,0 +1,579 @@
+<section class="admin-page">
+  @if (openedMenuUserId()) {
+    <button
+      class="actions-backdrop"
+      type="button"
+      aria-label="Zatvori meni"
+      (click)="closeActionsMenu()"
+    ></button>
+  }
+
+  <header class="page-header">
+    <div class="page-heading">
+      <span
+        class="heading-decoration"
+        aria-hidden="true"
+      >
+        <span></span>
+        <span></span>
+      </span>
+
+      <div>
+        <h1>Banovani korisnici</h1>
+
+        <p>
+          Pregled naloga kojima je trajno ograničen pristup Kuvam platformi.
+        </p>
+      </div>
+    </div>
+
+    <div class="users-summary">
+      <svg
+        [lucideIcon]="bannedUsersIcon"
+        [strokeWidth]="1.8"
+        aria-hidden="true"
+      ></svg>
+
+      <div>
+        <strong>{{ users().length }}</strong>
+
+        <span>
+          {{ users().length === 1 ? 'banovan nalog' : 'banovanih naloga' }}
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <section class="users-panel">
+    <div class="toolbar">
+      <label class="search-field">
+        <span class="search-icon">
+          <svg
+            [lucideIcon]="searchIcon"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+        </span>
+
+        <input
+          #searchInput
+          type="search"
+          placeholder="Pretraži po imenu, prezimenu ili email adresi..."
+          aria-label="Pretraži banovane korisnike"
+          [value]="searchTerm()"
+          (input)="onSearchChange(searchInput.value)"
+        >
+      </label>
+
+      <label class="filter-field">
+        <span>Uloga</span>
+
+        <select
+          #roleSelect
+          [value]="selectedRole()"
+          (change)="onRoleChange(roleSelect.value)"
+        >
+          <option value="all">Sve uloge</option>
+          <option value="buyer">Kupci</option>
+          <option value="seller">Prodavci</option>
+        </select>
+      </label>
+
+      <label class="filter-field">
+        <span>Sortiranje</span>
+
+        <select
+          #sortSelect
+          [value]="selectedSort()"
+          (change)="onSortChange(sortSelect.value)"
+        >
+          <option value="newest">Najnoviji</option>
+          <option value="oldest">Najstariji</option>
+        </select>
+      </label>
+    </div>
+
+    @if (isLoading()) {
+      <div class="page-state">
+        <span
+          class="loader"
+          aria-hidden="true"
+        ></span>
+
+        <strong>Učitavanje banovanih korisnika</strong>
+
+        <span>
+          Pripremamo listu ograničenih naloga.
+        </span>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="page-state error-state">
+        <svg
+          [lucideIcon]="bannedUsersIcon"
+          [strokeWidth]="1.7"
+          aria-hidden="true"
+        ></svg>
+
+        <strong>Banovani korisnici nisu dostupni</strong>
+
+        <span>{{ errorMessage() }}</span>
+
+        <button
+          type="button"
+          (click)="loadUsers()"
+        >
+          Pokušaj ponovo
+        </button>
+      </div>
+    } @else if (users().length === 0) {
+      <div class="page-state">
+        <svg
+          [lucideIcon]="bannedUsersIcon"
+          [strokeWidth]="1.6"
+          aria-hidden="true"
+        ></svg>
+
+        <strong>Nema banovanih korisnika</strong>
+
+        <span>
+          Trenutno nema naloga koji odgovaraju unetoj pretrazi i filterima.
+        </span>
+      </div>
+    } @else {
+      <div class="users-list">
+        @for (user of users(); track user._id) {
+          <article
+            class="user-card"
+            [class.seller-card]="user.role === 'seller'"
+            [class.menu-open]="openedMenuUserId() === user._id"
+          >
+            <div class="identity-section">
+              <div class="avatar-wrapper">
+                <span class="user-avatar">
+                  {{ getUserInitials(user) }}
+                </span>
+
+                <span
+                  class="avatar-status"
+                  aria-hidden="true"
+                ></span>
+              </div>
+
+              <div class="user-details">
+                <strong>
+                  {{ user.firstName }} {{ user.lastName }}
+                </strong>
+
+                <span>{{ user.email }}</span>
+              </div>
+            </div>
+
+            <div
+              class="card-divider"
+              aria-hidden="true"
+            ></div>
+
+            <div class="information-section">
+              <span class="information-label">
+                Uloga
+              </span>
+
+              <span
+                class="role-badge"
+                [class.seller-role]="user.role === 'seller'"
+              >
+                <svg
+                  [lucideIcon]="getRoleIcon(user.role)"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                {{ getRoleLabel(user.role) }}
+              </span>
+            </div>
+
+            <div
+              class="card-divider"
+              aria-hidden="true"
+            ></div>
+
+            <div class="information-section">
+              <span class="information-label">
+                Status
+              </span>
+
+              <span class="status-badge">
+                <span class="status-dot"></span>
+                Banovan
+              </span>
+            </div>
+
+            <div
+              class="card-divider"
+              aria-hidden="true"
+            ></div>
+
+            <div class="information-section registration-section">
+              <span class="information-label">
+                Registrovan
+              </span>
+
+              <span class="registration-date">
+                <svg
+                  [lucideIcon]="calendarIcon"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <time [attr.datetime]="user.createdAt">
+                  {{ user.createdAt | date:'dd.MM.yyyy.' }}
+                </time>
+              </span>
+            </div>
+
+            <div class="actions-wrapper">
+              <button
+                class="actions-button"
+                type="button"
+                [class.active]="openedMenuUserId() === user._id"
+                [attr.aria-expanded]="openedMenuUserId() === user._id"
+                [attr.aria-label]="
+                  'Akcije za korisnika ' +
+                  user.firstName +
+                  ' ' +
+                  user.lastName
+                "
+                (click)="toggleActionsMenu(user._id)"
+              >
+                <svg
+                  [lucideIcon]="actionsIcon"
+                  [strokeWidth]="1.9"
+                  aria-hidden="true"
+                ></svg>
+              </button>
+
+              @if (openedMenuUserId() === user._id) {
+                <div class="actions-menu">
+                  <button
+                    type="button"
+                    (click)="openProfile(user)"
+                  >
+                    <svg
+                      [lucideIcon]="viewIcon"
+                      [strokeWidth]="1.8"
+                      aria-hidden="true"
+                    ></svg>
+
+                    Pogledaj profil
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="openUnbanUser(user)"
+                  >
+                    <svg
+                      [lucideIcon]="unbanIcon"
+                      [strokeWidth]="1.8"
+                      aria-hidden="true"
+                    ></svg>
+
+                    Ukini ban
+                  </button>
+                </div>
+              }
+            </div>
+          </article>
+        }
+      </div>
+
+      <footer class="list-footer">
+        <span
+          class="footer-decoration"
+          aria-hidden="true"
+        >
+          <span></span>
+          <span></span>
+        </span>
+
+        <p>
+          Prikazano
+          <strong>{{ users().length }}</strong>
+          {{ users().length === 1 ? 'banovan nalog' : 'banovanih naloga' }}
+        </p>
+      </footer>
+    }
+  </section>
+
+  @if (modalMode() && selectedUser(); as user) {
+    <div
+      class="modal-backdrop"
+      role="presentation"
+      (click)="closeModal()"
+    >
+      <section
+        class="user-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="banned-user-modal-title"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="modal-header">
+          <div class="modal-heading">
+            <span
+              class="modal-icon"
+              [class.warning-icon]="modalMode() === 'unban'"
+            >
+              <svg
+                [lucideIcon]="
+                  modalMode() === 'profile'
+                    ? profileIcon
+                    : warningIcon
+                "
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+            </span>
+
+            <div>
+              <h2 id="banned-user-modal-title">
+                {{
+                  modalMode() === 'profile'
+                    ? 'Profil korisnika'
+                    : 'Ukini ban'
+                }}
+              </h2>
+
+              <p>
+                {{
+                  modalMode() === 'profile'
+                    ? 'Pregled podataka banovanog korisničkog naloga.'
+                    : 'Korisniku će biti vraćen pristup Kuvam platformi.'
+                }}
+              </p>
+            </div>
+          </div>
+
+          <button
+            class="modal-close"
+            type="button"
+            aria-label="Zatvori modal"
+            [disabled]="isSubmitting()"
+            (click)="closeModal()"
+          >
+            <svg
+              [lucideIcon]="closeIcon"
+              [strokeWidth]="1.9"
+              aria-hidden="true"
+            ></svg>
+          </button>
+        </header>
+
+        @if (modalMode() === 'profile') {
+          <div class="profile-content">
+            <div class="profile-identity">
+              <div
+                class="profile-avatar"
+                [class.seller-avatar]="user.role === 'seller'"
+              >
+                {{ getUserInitials(user) }}
+              </div>
+
+              <div>
+                <strong>
+                  {{ user.firstName }} {{ user.lastName }}
+                </strong>
+
+                <span>{{ user.email }}</span>
+              </div>
+            </div>
+
+            <div class="profile-grid">
+              <div class="profile-field">
+                <span class="profile-field-icon">
+                  <svg
+                    [lucideIcon]="emailIcon"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+                </span>
+
+                <div>
+                  <span>Email adresa</span>
+                  <strong>{{ user.email }}</strong>
+                </div>
+              </div>
+
+              <div class="profile-field">
+                <span class="profile-field-icon">
+                  <svg
+                    [lucideIcon]="getRoleIcon(user.role)"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+                </span>
+
+                <div>
+                  <span>Uloga</span>
+                  <strong>{{ getRoleLabel(user.role) }}</strong>
+                </div>
+              </div>
+
+              <div class="profile-field">
+                <span class="profile-field-icon">
+                  <svg
+                    [lucideIcon]="bannedUsersIcon"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+                </span>
+
+                <div>
+                  <span>Status naloga</span>
+                  <strong>Banovan</strong>
+                </div>
+              </div>
+
+              <div class="profile-field">
+                <span class="profile-field-icon">
+                  <svg
+                    [lucideIcon]="calendarIcon"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+                </span>
+
+                <div>
+                  <span>Datum registracije</span>
+
+                  <strong>
+                    {{ user.createdAt | date:'dd.MM.yyyy.' }}
+                  </strong>
+                </div>
+              </div>
+
+              <div class="profile-field">
+                <span class="profile-field-icon">
+                  <svg
+                    [lucideIcon]="reportsIcon"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+                </span>
+
+                <div>
+                  <span>Broj prijava</span>
+                  <strong>{{ user.reportsCount }}</strong>
+                </div>
+              </div>
+
+              <div class="profile-field">
+                <span class="profile-field-icon">
+                  <svg
+                    [lucideIcon]="warningIcon"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+                </span>
+
+                <div>
+                  <span>Potvrđeni prekršaji</span>
+                  <strong>{{ user.offences }}</strong>
+                </div>
+              </div>
+            </div>
+
+            @if (user.banReason) {
+              <div class="account-note">
+                <span>Razlog bana</span>
+                <p>{{ user.banReason }}</p>
+              </div>
+            }
+          </div>
+
+          <footer class="modal-footer">
+            <button
+              class="secondary-button"
+              type="button"
+              (click)="closeModal()"
+            >
+              Zatvori
+            </button>
+          </footer>
+        } @else {
+          <div class="action-content">
+            <div class="selected-user">
+              <span
+                class="selected-user-avatar"
+                [class.seller-avatar]="user.role === 'seller'"
+              >
+                {{ getUserInitials(user) }}
+              </span>
+
+              <div>
+                <strong>
+                  {{ user.firstName }} {{ user.lastName }}
+                </strong>
+
+                <span>{{ user.email }}</span>
+              </div>
+            </div>
+
+            <div class="confirmation-message">
+              <svg
+                [lucideIcon]="warningIcon"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <p>
+                Korisniku će biti vraćen pristup platformi. Istorija prijava
+                i potvrđenih prekršaja ostaće sačuvana.
+              </p>
+            </div>
+
+            @if (modalError()) {
+              <div class="modal-error">
+                <svg
+                  [lucideIcon]="warningIcon"
+                  [strokeWidth]="1.8"
+                  aria-hidden="true"
+                ></svg>
+
+                <span>{{ modalError() }}</span>
+              </div>
+            }
+          </div>
+
+          <footer class="modal-footer">
+            <button
+              class="secondary-button"
+              type="button"
+              [disabled]="isSubmitting()"
+              (click)="closeModal()"
+            >
+              Otkaži
+            </button>
+
+            <button
+              class="confirm-button"
+              type="button"
+              [disabled]="isSubmitting()"
+              (click)="confirmUnban()"
+            >
+              @if (isSubmitting()) {
+                <span
+                  class="button-loader"
+                  aria-hidden="true"
+                ></span>
+
+                Obrada...
+              } @else {
+                Ukini ban
+              }
+            </button>
+          </footer>
+        }
+      </section>
+    </div>
+  }
+</section>

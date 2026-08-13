@@ -1,0 +1,443 @@
+<main class="offers-page">
+  <section class="offers-toolbar container">
+    <div class="toolbar-heading">
+      <span>
+        Ponude iz tvoje okoline
+      </span>
+
+      <h1>
+        Domaći ukusi na jednom mestu
+      </h1>
+
+      <p>
+        Pronađi prodavce, jela i domaće proizvode
+        koji su trenutno dostupni.
+      </p>
+    </div>
+
+    <form
+      class="search-form"
+      (submit)="
+        $event.preventDefault();
+        search()
+      "
+    >
+      <div class="search-field">
+        <svg
+          class="search-icon"
+          [lucideIcon]="searchIcon"
+          [size]="19"
+          [strokeWidth]="1.8"
+          aria-hidden="true"
+        ></svg>
+
+        <input
+          type="search"
+          placeholder="Pretraži jela, proizvode ili prodavce..."
+          aria-label="Pretraži ponude"
+          autocomplete="off"
+          [value]="searchTerm()"
+          (input)="updateSearch($event)"
+        >
+
+        @if (searchTerm()) {
+          <button
+            class="clear-search"
+            type="button"
+            aria-label="Obriši pretragu"
+            (click)="clearSearch()"
+          >
+            <svg
+              [lucideIcon]="clearIcon"
+              [size]="17"
+              [strokeWidth]="2"
+              aria-hidden="true"
+            ></svg>
+          </button>
+        }
+      </div>
+
+      <button
+        class="search-button"
+        type="submit"
+      >
+        <svg
+          [lucideIcon]="searchIcon"
+          [size]="17"
+          [strokeWidth]="2"
+          aria-hidden="true"
+        ></svg>
+
+        <span>
+          Pretraži
+        </span>
+      </button>
+    </form>
+  </section>
+
+  <section
+    class="categories-section container"
+    aria-label="Kategorije hrane"
+  >
+    <div
+      class="categories-list"
+      appHorizontalScroll
+    >
+      @for (
+        category of categories;
+        track category.id
+      ) {
+        <button
+          class="category-button"
+          type="button"
+          [class.active]="
+            selectedCategory() ===
+            category.id
+          "
+          [attr.aria-pressed]="
+            selectedCategory() ===
+            category.id
+          "
+          [style.--category-color]="
+            category.iconColor
+          "
+          (click)="
+            selectCategory(category.id)
+          "
+        >
+          <svg
+            class="category-icon"
+            [lucideIcon]="category.icon"
+            [size]="19"
+            [strokeWidth]="1.8"
+            aria-hidden="true"
+          ></svg>
+
+          <span>
+            {{ category.name }}
+          </span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="sellers-section container">
+    <div class="section-header">
+      <span class="section-label">
+        Lokalni prodavci
+      </span>
+
+      <h2>
+        Domaćini i njihove ponude
+      </h2>
+
+      <p>
+        Pogledaj šta trenutno pripremaju
+        prodavci iz tvoje okoline.
+      </p>
+    </div>
+
+    @if (isLoading()) {
+      <div class="state-card">
+        <div
+          class="loader"
+          aria-hidden="true"
+        ></div>
+
+        <div>
+          <h3>
+            Učitavanje ponuda
+          </h3>
+
+          <p>
+            Tražimo domaće prodavce i njihove
+            proizvode.
+          </p>
+        </div>
+      </div>
+    } @else if (loadError()) {
+      <div class="state-card">
+        <span
+          class="error-mark"
+          aria-hidden="true"
+        >
+          !
+        </span>
+
+        <div>
+          <h3>
+            Ponude trenutno nisu dostupne
+          </h3>
+
+          <p>
+            {{ loadError() }}
+          </p>
+        </div>
+
+        <button
+          class="retry-button"
+          type="button"
+          (click)="retry()"
+        >
+          Pokušaj ponovo
+        </button>
+      </div>
+    } @else if (
+      sellers().length === 0
+    ) {
+      <div class="state-card empty-state">
+        <svg
+          [lucideIcon]="storeIcon"
+          [size]="42"
+          [strokeWidth]="1.5"
+          aria-hidden="true"
+        ></svg>
+
+        <div>
+          <h3>
+            Nema pronađenih prodavaca
+          </h3>
+
+          <p>
+            Promeni pojam pretrage ili izaberi
+            drugu kategoriju hrane.
+          </p>
+        </div>
+      </div>
+    } @else {
+      <div class="sellers-grid">
+        @for (
+          seller of sellers();
+          track seller.id
+        ) {
+          <article class="seller-card">
+            <div
+              class="seller-visual"
+              [class.has-cover-image]="
+                seller.coverImageUrl
+              "
+            >
+              @if (
+                seller.coverImageUrl
+              ) {
+                <img
+                  class="seller-cover-image"
+                  [src]="
+                    seller.coverImageUrl
+                  "
+                  [alt]="
+                    'Naslovna slika domaćina ' +
+                    seller.businessName
+                  "
+                  loading="lazy"
+                  decoding="async"
+                >
+              }
+
+              <div
+                class="visual-pattern"
+                aria-hidden="true"
+              ></div>
+
+              <div class="seller-city">
+                <svg
+                  [lucideIcon]="mapPinIcon"
+                  [size]="15"
+                  [strokeWidth]="1.9"
+                  aria-hidden="true"
+                ></svg>
+
+                <span>
+                  {{ seller.city.name }}
+                </span>
+              </div>
+            </div>
+
+            <div class="seller-avatar-wrapper">
+              @if (
+                seller.profileImageUrl
+              ) {
+                <img
+                  class="
+                    seller-avatar
+                    seller-avatar-image
+                  "
+                  [src]="
+                    seller.profileImageUrl
+                  "
+                  [alt]="
+                    'Profilna slika domaćina ' +
+                    seller.businessName
+                  "
+                  loading="lazy"
+                  decoding="async"
+                >
+              } @else {
+                <div class="seller-avatar">
+                  {{
+                    sellerInitials(
+                      seller.businessName
+                    )
+                  }}
+                </div>
+              }
+
+              <span
+                class="avatar-status"
+                aria-hidden="true"
+              ></span>
+            </div>
+
+            <div class="seller-content">
+              <div class="seller-heading">
+                <div class="seller-name-row">
+                  <h3>
+                    {{ seller.businessName }}
+                  </h3>
+
+                  <svg
+                    class="verified-icon"
+                    [lucideIcon]="verifiedIcon"
+                    [size]="20"
+                    [strokeWidth]="1.8"
+                    aria-label="Proveren domaćin"
+                  ></svg>
+                </div>
+
+                <span class="offer-count">
+                  {{
+                    seller.offers.length === 1
+                      ? '1 aktivna ponuda'
+                      : seller.offers.length +
+                        ' aktivne ponude'
+                  }}
+                </span>
+              </div>
+
+              <p class="seller-description">
+                {{
+                  seller.description ||
+                  'Domaćin još nije uneo opis svog domaćinstva.'
+                }}
+              </p>
+
+              <div class="offers-heading">
+                <div>
+                  <svg
+                    [lucideIcon]="offersIcon"
+                    [size]="19"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <h4>
+                    Aktuelne ponude
+                  </h4>
+                </div>
+
+                <span class="latest-offers-label">
+                  Istaknuto
+
+                  <svg
+                    [lucideIcon]="clockIcon"
+                    [size]="16"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+                </span>
+              </div>
+
+              <div class="seller-offers">
+                @for (
+                  offer of seller.offers;
+                  track offer.id
+                ) {
+                  @let category =
+                    categoryConfig(
+                      offer.category
+                    );
+
+                  <article
+                    class="offer-tile"
+                    [style.--offer-color]="
+                      category.iconColor
+                    "
+                    [style.--offer-soft]="
+                      category.softColor
+                    "
+                  >
+                    <div
+                      class="offer-visual"
+                      [class.has-image]="
+                        offer.imageUrl
+                      "
+                    >
+                      @if (
+                        offer.imageUrl
+                      ) {
+                        <img
+                          [src]="offer.imageUrl"
+                          [alt]="offer.name"
+                          loading="lazy"
+                          decoding="async"
+                        >
+                      } @else {
+                        <svg
+                          [lucideIcon]="
+                            category.icon
+                          "
+                          [size]="30"
+                          [strokeWidth]="1.6"
+                          aria-hidden="true"
+                        ></svg>
+                      }
+                    </div>
+
+                    <div class="offer-info">
+                      <h5
+                        [title]="offer.name"
+                      >
+                        {{ offer.name }}
+                      </h5>
+
+                      <strong>
+                        {{ offer.price }}
+                        RSD
+                      </strong>
+
+                      <span>
+                        {{
+                          offer.availableQuantity
+                        }}
+                        {{ offer.unit }}
+                      </span>
+                    </div>
+                  </article>
+                }
+              </div>
+
+              <a
+                class="seller-button"
+                [routerLink]="[
+                  '/sellers',
+                  seller.slug
+                ]"
+              >
+                <span>
+                  Pogledaj domaćina
+                </span>
+
+                <svg
+                  [lucideIcon]="arrowIcon"
+                  [size]="18"
+                  [strokeWidth]="2"
+                  aria-hidden="true"
+                ></svg>
+              </a>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>
