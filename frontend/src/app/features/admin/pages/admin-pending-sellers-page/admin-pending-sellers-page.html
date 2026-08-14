@@ -450,10 +450,9 @@
         @if (modalMode() === 'profile') {
           <div class="profile-content">
             <div class="profile-identity">
-              <span class="profile-avatar">
-                {{ getSellerInitials(seller) }}
-              </span>
-
+              <div class="profile-avatar seller-avatar">
+  {{ getSellerInitials(seller) }}
+</div>
               <div>
                 <strong>
                   {{ getOwnerName(seller) }}

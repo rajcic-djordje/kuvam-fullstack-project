@@ -11,9 +11,7 @@
         aria-hidden="true"
       ></svg>
 
-      <span>
-        Nazad na moje porudžbine
-      </span>
+      <span>Nazad na moje porudžbine</span>
     </a>
 
     @if (isLoading()) {
@@ -24,32 +22,15 @@
         ></div>
 
         <div>
-          <h1>
-            Učitavanje porudžbine
-          </h1>
-
-          <p>
-            Prikupljamo podatke o porudžbini.
-          </p>
+          <h1>Učitavanje porudžbine</h1>
+          <p>Prikupljamo podatke o porudžbini.</p>
         </div>
       </section>
     } @else if (loadError()) {
       <section class="state-card">
-        <span
-          class="error-mark"
-          aria-hidden="true"
-        >
-          !
-        </span>
-
         <div>
-          <h1>
-            Porudžbina nije dostupna
-          </h1>
-
-          <p>
-            {{ loadError() }}
-          </p>
+          <h1>Porudžbina nije dostupna</h1>
+          <p>{{ loadError() }}</p>
         </div>
 
         <button
@@ -60,48 +41,29 @@
           Pokušaj ponovo
         </button>
       </section>
-    } @else if (
-      order();
-      as currentOrder
-    ) {
+    } @else if (order(); as currentOrder) {
       <header class="page-header">
         <div class="header-content">
           <span class="page-eyebrow">
             Porudžbina
-            #{{
-              currentOrder._id
-                .slice(-6)
-                .toUpperCase()
-            }}
+            #{{ currentOrder._id.slice(-6).toUpperCase() }}
           </span>
 
           <h1>
             Porudžbina kod
-            {{
-              currentOrder.seller
-                .businessName
-            }}
+            {{ currentOrder.seller.businessName }}
           </h1>
 
           <div class="header-meta">
             <span>
               Kreirana
-              {{
-                formatDate(
-                  currentOrder.createdAt
-                )
-              }}
+              {{ formatDate(currentOrder.createdAt) }}
             </span>
 
-            <span aria-hidden="true">
-              •
-            </span>
+            <span aria-hidden="true">•</span>
 
             <span>
-              {{
-                currentOrder.items.length
-              }}
-
+              {{ currentOrder.items.length }}
               {{
                 currentOrder.items.length === 1
                   ? 'stavka'
@@ -109,51 +71,34 @@
               }}
             </span>
 
-            <span aria-hidden="true">
-              •
-            </span>
+            <span aria-hidden="true">•</span>
 
             <strong>
-              {{
-                currentOrder.totalPrice
-              }}
-              RSD
+              {{ currentOrder.totalPrice }} RSD
             </strong>
           </div>
         </div>
 
         <span
           class="status-badge"
-          [attr.data-status]="
-            currentOrder.status
-          "
+          [attr.data-status]="currentOrder.status"
         >
           <span
             class="status-dot"
             aria-hidden="true"
           ></span>
 
-          {{
-            statusLabel(
-              currentOrder.status
-            )
-          }}
+          {{ statusLabel(currentOrder.status) }}
         </span>
       </header>
 
       <section class="detail-layout">
         <div class="main-column">
           @if (
-            currentOrder.status ===
-              'ready' &&
+            currentOrder.status === 'ready' &&
             currentOrder.pickupCode
           ) {
-            <section
-              class="
-                detail-card
-                pickup-code-card
-              "
-            >
+            <section class="detail-card pickup-code-card">
               <div class="pickup-code-heading">
                 <div class="heading-icon">
                   <svg
@@ -165,32 +110,23 @@
                 </div>
 
                 <div>
-                  <span>
-                    Preuzimanje porudžbine
-                  </span>
-
-                  <h2>
-                    Kod za preuzimanje
-                  </h2>
+                  <span>Preuzimanje porudžbine</span>
+                  <h2>Kod za preuzimanje</h2>
                 </div>
               </div>
 
               <div class="pickup-code-content">
                 <p>
-                  Pokaži kod domaćinu tek kada
+                  Pokaži kod prodavcu tek kada
                   preuzmeš celu porudžbinu.
                 </p>
 
                 <strong class="pickup-code">
-                  {{
-                    currentOrder.pickupCode
-                  }}
+                  {{ currentOrder.pickupCode }}
                 </strong>
               </div>
 
-              @if (
-                currentOrder.buyerOnTheWayAt
-              ) {
+              @if (currentOrder.buyerOnTheWayAt) {
                 <div class="on-the-way-confirmation">
                   <svg
                     [lucideIcon]="navigationIcon"
@@ -201,18 +137,12 @@
 
                   <div>
                     <strong>
-                      Domaćin je obavešten da si
-                      krenuo
+                      Prodavac je obavešten da si krenuo
                     </strong>
 
                     <span>
                       Obavešten
-                      {{
-                        formatDate(
-                          currentOrder
-                            .buyerOnTheWayAt
-                        )
-                      }}
+                      {{ formatDate(currentOrder.buyerOnTheWayAt) }}
                     </span>
                   </div>
                 </div>
@@ -220,12 +150,8 @@
                 <button
                   class="on-the-way-button"
                   type="button"
-                  [disabled]="
-                    isMarkingOnTheWay()
-                  "
-                  (click)="
-                    markAsOnTheWay()
-                  "
+                  [disabled]="isMarkingOnTheWay()"
+                  (click)="markAsOnTheWay()"
                 >
                   <svg
                     [lucideIcon]="navigationIcon"
@@ -234,9 +160,7 @@
                     aria-hidden="true"
                   ></svg>
 
-                  @if (
-                    isMarkingOnTheWay()
-                  ) {
+                  @if (isMarkingOnTheWay()) {
                     Obaveštavanje...
                   } @else {
                     Krenuo sam po porudžbinu
@@ -246,12 +170,7 @@
             </section>
           }
 
-          <section
-            class="
-              detail-card
-              order-items-card
-            "
-          >
+          <section class="detail-card order-items-card">
             <div class="card-heading">
               <div class="heading-icon">
                 <svg
@@ -263,13 +182,8 @@
               </div>
 
               <div>
-                <span>
-                  Sadržaj porudžbine
-                </span>
-
-                <h2>
-                  Poručene stavke
-                </h2>
+                <span>Sadržaj porudžbine</span>
+                <h2>Poručene stavke</h2>
               </div>
             </div>
 
@@ -280,87 +194,50 @@
               ) {
                 <div class="information-row">
                   <div class="item-information">
-                    <strong>
-                      {{ item.name }}
-                    </strong>
+                    <strong>{{ item.name }}</strong>
 
                     <span>
                       {{ item.quantity }}
                       {{ item.unit }}
                       ×
-                      {{ item.unitPrice }}
-                      RSD
+                      {{ item.unitPrice }} RSD
                     </span>
                   </div>
 
                   <strong class="item-price">
-                    {{ item.totalPrice }}
-                    RSD
+                    {{ item.totalPrice }} RSD
                   </strong>
                 </div>
               }
 
               <div class="information-total">
-                <span>
-                  Ukupna cena
-                </span>
+                <span>Ukupna cena</span>
 
                 <strong>
-                  {{
-                    currentOrder.totalPrice
-                  }}
-                  RSD
+                  {{ currentOrder.totalPrice }} RSD
                 </strong>
               </div>
             </div>
 
-            @if (
-              currentOrder.buyerNote
-            ) {
+            @if (currentOrder.buyerNote) {
               <div class="note-box">
-                <span>
-                  Napomena domaćinu
-                </span>
-
-                <p>
-                  {{
-                    currentOrder.buyerNote
-                  }}
-                </p>
+                <span>Napomena prodavcu</span>
+                <p>{{ currentOrder.buyerNote }}</p>
               </div>
             }
 
             @if (
-              currentOrder.status ===
-                'rejected' &&
+              currentOrder.status === 'rejected' &&
               currentOrder.rejectionReason
             ) {
-              <div
-                class="
-                  note-box
-                  rejection-box
-                "
-              >
-                <span>
-                  Razlog odbijanja
-                </span>
-
-                <p>
-                  {{
-                    currentOrder
-                      .rejectionReason
-                  }}
-                </p>
+              <div class="note-box rejection-box">
+                <span>Razlog odbijanja</span>
+                <p>{{ currentOrder.rejectionReason }}</p>
               </div>
             }
           </section>
 
-          <section
-            class="
-              detail-card
-              seller-card
-            "
-          >
+          <section class="detail-card seller-card">
             <div class="card-heading">
               <div class="heading-icon">
                 <svg
@@ -372,48 +249,29 @@
               </div>
 
               <div>
-                <span>
-                  Domaćin
-                </span>
-
-                <h2>
-                  Podaci o domaćinu
-                </h2>
+                <span>Domaćin</span>
+                <h2>Prodavac</h2>
               </div>
             </div>
 
             <div class="seller-information">
               <strong>
-                {{
-                  currentOrder.seller
-                    .businessName
-                }}
+                {{ currentOrder.seller.businessName }}
               </strong>
 
-              @if (
-                currentOrder.seller
-                  .description
-              ) {
+              @if (currentOrder.seller.description) {
                 <p>
-                  {{
-                    currentOrder.seller
-                      .description
-                  }}
+                  {{ currentOrder.seller.description }}
                 </p>
               }
             </div>
 
-            @if (
-              currentOrder.status ===
-              'completed'
-            ) {
+            @if (currentOrder.status === 'completed') {
               <div class="seller-completed-actions">
                 <button
                   class="review-button"
                   type="button"
-                  (click)="
-                    openReviewModal()
-                  "
+                  (click)="openReviewModal()"
                 >
                   <svg
                     [lucideIcon]="starIcon"
@@ -422,24 +280,22 @@
                     aria-hidden="true"
                   ></svg>
 
-                  Oceni domaćina
+                  Oceni prodavca
                 </button>
 
                 <button
                   class="report-button"
                   type="button"
-                  (click)="
-                    openReportModal()
-                  "
+                  (click)="openReportModal()"
                 >
                   <svg
-                    [lucideIcon]="reportIcon"
+                    [lucideIcon]="sellerIcon"
                     [size]="17"
                     [strokeWidth]="1.8"
                     aria-hidden="true"
                   ></svg>
 
-                  Prijavi domaćina
+                  Prijavi prodavca
                 </button>
               </div>
             }
@@ -447,12 +303,7 @@
         </div>
 
         <aside class="side-column">
-          <section
-            class="
-              detail-card
-              location-card
-            "
-          >
+          <section class="detail-card location-card">
             <div class="card-heading">
               <div class="heading-icon">
                 <svg
@@ -464,101 +315,40 @@
               </div>
 
               <div>
-                <span>
-                  Lično preuzimanje
-                </span>
-
-                <h2>
-                  Mesto preuzimanja
-                </h2>
+                <span>Lično preuzimanje</span>
+                <h2>Mesto preuzimanja</h2>
               </div>
             </div>
 
             @if (
-              currentOrder.estimatedPickupAt &&
-              (
-                currentOrder.status ===
-                  'accepted' ||
-                currentOrder.status ===
-                  'ready'
-              )
-            ) {
-              <div class="pickup-estimate">
-                <svg
-                  [lucideIcon]="pendingIcon"
-                  [size]="18"
-                  [strokeWidth]="1.8"
-                  aria-hidden="true"
-                ></svg>
-
-                <div>
-                  <span>
-                    Procena vremena preuzimanja
-                  </span>
-
-                  <strong>
-                    {{
-                      formatDate(
-                        currentOrder
-                          .estimatedPickupAt
-                      )
-                    }}
-                  </strong>
-                </div>
-              </div>
-            }
-
-            @if (
-              canShowPickupAddress(
-                currentOrder
-              ) &&
-              currentOrder.seller
-                .pickupAddress
+              canShowPickupAddress(currentOrder) &&
+              currentOrder.seller.pickupAddress
             ) {
               <div class="pickup-address">
-                @if (
-                  currentOrder.seller.city
-                ) {
+                @if (currentOrder.seller.city) {
                   <span class="city-name">
-                    {{
-                      currentOrder.seller
-                        .city.name
-                    }}
+                    {{ currentOrder.seller.city.name }}
                   </span>
                 }
 
                 <strong>
-                  {{
-                    currentOrder.seller
-                      .pickupAddress.street
-                  }}
-                  {{
-                    currentOrder.seller
-                      .pickupAddress
-                      .streetNumber
-                  }}
+                  {{ currentOrder.seller.pickupAddress.street }}
+                  {{ currentOrder.seller.pickupAddress.streetNumber }}
                 </strong>
 
                 @if (
-                  currentOrder.seller
-                    .pickupAddress
-                    .additionalInfo
+                  currentOrder.seller.pickupAddress.additionalInfo
                 ) {
                   <p>
                     {{
-                      currentOrder.seller
-                        .pickupAddress
-                        .additionalInfo
+                      currentOrder.seller.pickupAddress.additionalInfo
                     }}
                   </p>
                 }
 
                 <div class="map-wrapper">
                   <app-order-route-map
-                    [pickupAddress]="
-                      currentOrder.seller
-                        .pickupAddress
-                    "
+                    [pickupAddress]="currentOrder.seller.pickupAddress"
                   />
                 </div>
               </div>
@@ -576,8 +366,7 @@
                 </strong>
 
                 <p>
-                  Mesto preuzimanja će biti
-                  prikazano kada domaćin prihvati
+                  Mesto preuzimanja će biti prikazano kada prodavac prihvati
                   porudžbinu.
                 </p>
               </div>
@@ -587,9 +376,7 @@
       </section>
     }
 
-    @if (
-      isReviewModalOpen()
-    ) {
+    @if (isReviewModalOpen()) {
       <div
         class="review-modal-backdrop"
         (click)="closeReviewModal()"
@@ -599,17 +386,13 @@
           role="dialog"
           aria-modal="true"
           aria-labelledby="reviewModalTitle"
-          (click)="
-            $event.stopPropagation()
-          "
+          (click)="$event.stopPropagation()"
         >
           <button
             class="review-modal-close"
             type="button"
             aria-label="Zatvori ocenjivanje"
-            [disabled]="
-              isSubmittingReview()
-            "
+            [disabled]="isSubmittingReview()"
             (click)="closeReviewModal()"
           >
             <svg
@@ -634,38 +417,25 @@
 
             <div class="review-modal-heading">
               <h2 id="reviewModalTitle">
-                Oceni domaćina
+                Oceni prodavca
               </h2>
 
               <p>
-                Kako si zadovoljan ovom
-                porudžbinom? Tvoja ocena pomaže
-                drugim kupcima pri izboru
-                domaćina.
+                Kako si zadovoljan ovom porudžbinom?
+                Tvoja ocena pomaže drugim kupcima pri izboru domaćina.
               </p>
             </div>
 
             <div
-              class="modal-heading-decoration"
+              class="review-heading-decoration"
               aria-hidden="true"
             >
               <span></span>
 
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  d="M5 15c6 0 10-4 12-10"
-                ></path>
-
-                <path
-                  d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"
-                ></path>
-
-                <path
-                  d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"
-                ></path>
+              <svg viewBox="0 0 24 24">
+                <path d="M5 15c6 0 10-4 12-10"></path>
+                <path d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"></path>
+                <path d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"></path>
               </svg>
 
               <span></span>
@@ -680,33 +450,18 @@
             <div
               class="rating-stars"
               role="radiogroup"
-              aria-label="Ocena domaćina"
+              aria-label="Ocena prodavca"
             >
-              @for (
-                rating of ratingOptions;
-                track rating
-              ) {
+              @for (rating of ratingOptions; track rating) {
                 <button
                   class="rating-star"
                   type="button"
                   role="radio"
-                  [class.active]="
-                    rating <=
-                    reviewRating()
-                  "
-                  [attr.aria-checked]="
-                    reviewRating() ===
-                    rating
-                  "
-                  [attr.aria-label]="
-                    rating + ' od 5'
-                  "
-                  [disabled]="
-                    isSubmittingReview()
-                  "
-                  (click)="
-                    selectRating(rating)
-                  "
+                  [class.active]="rating <= reviewRating()"
+                  [attr.aria-checked]="reviewRating() === rating"
+                  [attr.aria-label]="rating + ' od 5'"
+                  [disabled]="isSubmittingReview()"
+                  (click)="selectRating(rating)"
                 >
                   <svg
                     [lucideIcon]="starIcon"
@@ -718,9 +473,7 @@
               }
             </div>
 
-            @if (
-              reviewRating() > 0
-            ) {
+            @if (reviewRating() > 0) {
               <span class="rating-value">
                 {{ reviewRating() }}/5
               </span>
@@ -735,15 +488,11 @@
             <div class="review-label-row">
               <label for="reviewComment">
                 Komentar
-                <span>
-                  opciono
-                </span>
+                <span>opciono</span>
               </label>
 
               <span>
-                {{
-                  reviewComment().length
-                }}/1000
+                {{ reviewComment().length }}/1000
               </span>
             </div>
 
@@ -751,30 +500,24 @@
               id="reviewComment"
               rows="5"
               maxlength="1000"
-              placeholder="Podeli svoje iskustvo sa ovim domaćinom..."
+              placeholder="Podeli svoje iskustvo sa ovim prodavcem..."
               [ngModel]="reviewComment()"
-              (ngModelChange)="
-                updateReviewComment(
-                  $event
-                )
-              "
+              (ngModelChange)="updateReviewComment($event)"
             ></textarea>
           </div>
 
-          <div class="modal-actions">
+          <div class="review-modal-actions">
             <button
-              class="modal-cancel-button"
+              class="review-cancel-button"
               type="button"
-              [disabled]="
-                isSubmittingReview()
-              "
+              [disabled]="isSubmittingReview()"
               (click)="closeReviewModal()"
             >
               Otkaži
             </button>
 
             <button
-              class="modal-submit-button"
+              class="review-submit-button"
               type="button"
               [disabled]="
                 isSubmittingReview() ||
@@ -782,9 +525,7 @@
               "
               (click)="submitReview()"
             >
-              @if (
-                isSubmittingReview()
-              ) {
+              @if (isSubmittingReview()) {
                 Slanje...
               } @else {
                 Pošalji ocenu
@@ -795,9 +536,7 @@
       </div>
     }
 
-    @if (
-      isReportModalOpen()
-    ) {
+    @if (isReportModalOpen()) {
       <div
         class="report-modal-backdrop"
         (click)="closeReportModal()"
@@ -807,17 +546,13 @@
           role="dialog"
           aria-modal="true"
           aria-labelledby="reportModalTitle"
-          (click)="
-            $event.stopPropagation()
-          "
+          (click)="$event.stopPropagation()"
         >
           <button
             class="report-modal-close"
             type="button"
             aria-label="Zatvori prijavu"
-            [disabled]="
-              isSubmittingReport()
-            "
+            [disabled]="isSubmittingReport()"
             (click)="closeReportModal()"
           >
             <svg
@@ -834,46 +569,33 @@
               aria-hidden="true"
             >
               <svg
-                [lucideIcon]="reportIcon"
-                [size]="52"
+                [lucideIcon]="sellerIcon"
+                [size]="54"
                 [strokeWidth]="1.45"
               ></svg>
             </div>
 
             <div class="report-modal-heading">
               <h2 id="reportModalTitle">
-                Prijavi domaćina
+                Prijavi prodavca
               </h2>
 
               <p>
-                Prijava će biti poslata
-                administratoru na pregled.
-                Ukratko opiši problem koji se
-                dogodio.
+                Prijava će biti poslata administratoru na pregled.
+                Ukratko opiši problem koji se dogodio.
               </p>
             </div>
 
             <div
-              class="modal-heading-decoration"
+              class="report-heading-decoration"
               aria-hidden="true"
             >
               <span></span>
 
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  d="M5 15c6 0 10-4 12-10"
-                ></path>
-
-                <path
-                  d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"
-                ></path>
-
-                <path
-                  d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"
-                ></path>
+              <svg viewBox="0 0 24 24">
+                <path d="M5 15c6 0 10-4 12-10"></path>
+                <path d="M11 10c-3-1-5 0-6 2 3 1 5 0 6-2Z"></path>
+                <path d="M15 7c0-3 2-5 5-5 0 3-2 5-5 5Z"></path>
               </svg>
 
               <span></span>
@@ -888,11 +610,7 @@
             <select
               id="reportReason"
               [ngModel]="reportReason()"
-              (ngModelChange)="
-                updateReportReason(
-                  $event
-                )
-              "
+              (ngModelChange)="updateReportReason($event)"
             >
               <option
                 value=""
@@ -902,13 +620,10 @@
               </option>
 
               @for (
-                option of
-                  reportReasonOptions;
+                option of reportReasonOptions;
                 track option.value
               ) {
-                <option
-                  [value]="option.value"
-                >
+                <option [value]="option.value">
                   {{ option.label }}
                 </option>
               }
@@ -917,17 +632,12 @@
 
           <div class="report-field">
             <div class="report-label-row">
-              <label
-                for="reportDescription"
-              >
+              <label for="reportDescription">
                 Opis problema
               </label>
 
               <span>
-                {{
-                  reportDescription()
-                    .length
-                }}/1000
+                {{ reportDescription().length }}/1000
               </span>
             </div>
 
@@ -936,14 +646,8 @@
               rows="5"
               maxlength="1000"
               placeholder="Ukratko objasni šta se dogodilo..."
-              [ngModel]="
-                reportDescription()
-              "
-              (ngModelChange)="
-                updateReportDescription(
-                  $event
-                )
-              "
+              [ngModel]="reportDescription()"
+              (ngModelChange)="updateReportDescription($event)"
             ></textarea>
 
             <small>
@@ -951,33 +655,27 @@
             </small>
           </div>
 
-          <div class="modal-actions">
+          <div class="report-modal-actions">
             <button
-              class="modal-cancel-button"
+              class="report-cancel-button"
               type="button"
-              [disabled]="
-                isSubmittingReport()
-              "
+              [disabled]="isSubmittingReport()"
               (click)="closeReportModal()"
             >
               Otkaži
             </button>
 
             <button
-              class="modal-submit-button"
+              class="report-submit-button"
               type="button"
               [disabled]="
                 isSubmittingReport() ||
                 !reportReason() ||
-                reportDescription()
-                  .trim()
-                  .length < 10
+                reportDescription().trim().length < 10
               "
               (click)="submitReport()"
             >
-              @if (
-                isSubmittingReport()
-              ) {
+              @if (isSubmittingReport()) {
                 Slanje...
               } @else {
                 Pošalji prijavu
