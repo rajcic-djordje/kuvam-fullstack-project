@@ -17,6 +17,7 @@ import {
   LucideUsersRound,
   type LucideIcon
 } from '@lucide/angular';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import {
   AdminActivityType,
   AdminDashboard
@@ -35,6 +36,7 @@ import { AdminDashboardService } from '../../services/admin-dashboard';
 })
 export class AdminDashboardPage implements OnInit {
   private readonly adminDashboardService = inject(AdminDashboardService);
+  private readonly apiErrorService = inject(ApiErrorService);
 
   readonly dashboard = signal<AdminDashboard | null>(null);
   readonly isLoading = signal(true);
@@ -64,8 +66,10 @@ export class AdminDashboardPage implements OnInit {
       },
       error: error => {
         this.errorMessage.set(
-          error.error?.error?.message ??
-          'Došlo je do greške pri učitavanju dashboarda.'
+          this.apiErrorService.getMessage(
+            error,
+            'Došlo je do greške pri učitavanju dashboarda.'
+          )
         );
 
         this.isLoading.set(false);

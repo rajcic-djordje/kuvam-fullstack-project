@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -16,19 +15,13 @@ import {
   LucideStore
 } from '@lucide/angular';
 import { HorizontalScrollDirective } from '../../../../shared/directives/horizontal-scroll/horizontal-scroll';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { ToastService } from '../../../../shared/services/toast';
 import {
   BuyerOrder,
   OrderStatus
 } from '../../models/order';
 import { OrderService } from '../../services/order';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 interface StatusOption {
   value: OrderStatus | 'all';
@@ -48,6 +41,9 @@ interface StatusOption {
 export class MyOrdersPage implements OnInit {
   private readonly orderService =
     inject(OrderService);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   private readonly toastService =
     inject(ToastService);
@@ -157,8 +153,15 @@ export class MyOrdersPage implements OnInit {
 
           this.actionOrderId.set(null);
         },
+
         error: error => {
-          this.handleActionError(error);
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Akcija trenutno nije moguća.'
+            )
+          );
+
           this.actionOrderId.set(null);
         }
       });
@@ -200,8 +203,15 @@ export class MyOrdersPage implements OnInit {
 
           this.actionOrderId.set(null);
         },
+
         error: error => {
-          this.handleActionError(error);
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Akcija trenutno nije moguća.'
+            )
+          );
+
           this.actionOrderId.set(null);
         }
       });
@@ -266,12 +276,16 @@ export class MyOrdersPage implements OnInit {
 
           this.isLoading.set(false);
         },
+
         error: error => {
           this.orders.set([]);
           this.isLoading.set(false);
 
-          this.handleLoadError(
-            error
+          this.loadError.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Porudžbine trenutno nisu dostupne.'
+            )
           );
         }
       });
@@ -311,81 +325,6 @@ export class MyOrdersPage implements OnInit {
           }
         );
       }
-    );
-  }
-
-  private handleLoadError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    this.loadError.set(
-      response?.error?.message ??
-      'Porudžbine trenutno nisu dostupne.'
-    );
-  }
-
-  private handleActionError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code ===
-      'ORDER_CANNOT_BE_CANCELLED'
-    ) {
-      this.toastService.error(
-        'Samo porudžbine na čekanju mogu da se otkažu.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'BUYER_ALREADY_ON_THE_WAY'
-    ) {
-      this.toastService.error(
-        'Domaćin je već obavešten da si krenuo po porudžbinu.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'BUYER_CANNOT_BE_MARKED_ON_THE_WAY'
-    ) {
-      this.toastService.error(
-        'Domaćina možeš da obavestiš tek kada porudžbina bude spremna.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'ORDER_CANNOT_BE_COMPLETED'
-    ) {
-      this.toastService.error(
-        'Ova porudžbina trenutno ne može da bude završena.'
-      );
-
-      return;
-    }
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Akcija trenutno nije moguća.'
     );
   }
 }

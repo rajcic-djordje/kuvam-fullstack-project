@@ -31,6 +31,7 @@ import {
   Subscription,
   switchMap
 } from 'rxjs';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { FormDraftService } from '../../../../shared/services/form-draft';
 import { ToastService } from '../../../../shared/services/toast';
 import { AuthService } from '../../../auth/services/auth';
@@ -58,6 +59,7 @@ export class AdminAccountModal
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly adminAccountService = inject(AdminAccountService);
+  private readonly apiErrorService = inject(ApiErrorService);
   private readonly formDraftService = inject(FormDraftService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
@@ -66,7 +68,6 @@ export class AdminAccountModal
 
   readonly isProfileSubmitting = signal(false);
   readonly isPasswordSubmitting = signal(false);
-
   readonly showCurrentPassword = signal(false);
   readonly showNewPassword = signal(false);
   readonly showConfirmPassword = signal(false);
@@ -177,7 +178,6 @@ export class AdminAccountModal
     document.body.classList.remove('modal-open');
 
     this.passwordForm.reset();
-
     this.resetPasswordVisibility();
 
     this.closed.emit();
@@ -222,9 +222,10 @@ export class AdminAccountModal
             'Ime i prezime su uspešno sačuvani.'
           );
         },
+
         error: error => {
           this.toastService.error(
-            this.getErrorMessage(
+            this.apiErrorService.getMessage(
               error,
               'Čuvanje podataka nije uspelo.'
             )
@@ -274,9 +275,10 @@ export class AdminAccountModal
             }
           });
         },
+
         error: error => {
           this.toastService.error(
-            this.getErrorMessage(
+            this.apiErrorService.getMessage(
               error,
               'Promena lozinke nije uspela.'
             )
@@ -430,28 +432,5 @@ export class AdminAccountModal
     this.showCurrentPassword.set(false);
     this.showNewPassword.set(false);
     this.showConfirmPassword.set(false);
-  }
-
-  private getErrorMessage(
-    error: unknown,
-    fallbackMessage: string
-  ): string {
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'error' in error
-    ) {
-      const response = error as {
-        error?: {
-          message?: string;
-        };
-      };
-
-      if (response.error?.message) {
-        return response.error.message;
-      }
-    }
-
-    return fallbackMessage;
   }
 }

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   computed,
@@ -21,6 +20,7 @@ import {
   Subscription
 } from 'rxjs';
 import { API_BASE_URL } from '../../../../core/constants/api.constants';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { FormDraftService } from '../../../../shared/services/form-draft';
 import { ToastService } from '../../../../shared/services/toast';
 import { AuthService } from '../../../auth/services/auth';
@@ -94,13 +94,6 @@ const passwordFormValidator: ValidatorFn = (
     : null;
 };
 
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
-
 interface PersonalProfileDraft {
   firstName: string;
   lastName: string;
@@ -146,6 +139,9 @@ implements OnInit, OnDestroy {
 
   private readonly authService =
     inject(AuthService);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   private readonly formDraftService =
     inject(FormDraftService);
@@ -274,7 +270,6 @@ implements OnInit, OnDestroy {
             )
           ]
         ],
-
         lastName: [
           '',
           [
@@ -311,7 +306,6 @@ implements OnInit, OnDestroy {
             )
           ]
         ],
-
         description: [
           '',
           [
@@ -529,8 +523,11 @@ implements OnInit, OnDestroy {
             false
           );
 
-          this.handleProfileError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Izmena podataka trenutno nije uspela.'
+            )
           );
         }
       });
@@ -747,8 +744,11 @@ implements OnInit, OnDestroy {
             false
           );
 
-          this.handleProfileError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Izmena podataka trenutno nije uspela.'
+            )
           );
         }
       });
@@ -812,8 +812,11 @@ implements OnInit, OnDestroy {
 
           input.value = '';
 
-          this.handleImageUploadError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Upload slike trenutno nije uspeo.'
+            )
           );
         }
       });
@@ -877,8 +880,11 @@ implements OnInit, OnDestroy {
 
           input.value = '';
 
-          this.handleImageUploadError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Upload slike trenutno nije uspeo.'
+            )
           );
         }
       });
@@ -956,8 +962,11 @@ implements OnInit, OnDestroy {
           this.isUpdatingAvailability
             .set(false);
 
-          this.handleProfileError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Izmena podataka trenutno nije uspela.'
+            )
           );
         }
       });
@@ -1075,8 +1084,11 @@ implements OnInit, OnDestroy {
           this.isChangingPassword
             .set(false);
 
-          this.handlePasswordError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Promena lozinke trenutno nije uspela.'
+            )
           );
         }
       });
@@ -1122,8 +1134,11 @@ implements OnInit, OnDestroy {
             false
           );
 
-          this.handleDeactivateError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Deaktivacija naloga trenutno nije uspela.'
+            )
           );
         }
       });
@@ -1655,111 +1670,5 @@ implements OnInit, OnDestroy {
     }
 
     return true;
-  }
-
-  private handleImageUploadError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Upload slike trenutno nije uspeo.'
-    );
-  }
-
-  private handleProfileError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code ===
-      'VALIDATION_ERROR'
-    ) {
-      this.toastService.error(
-        'Uneti podaci nisu ispravni.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'SELLER_PROFILE_NOT_FOUND'
-    ) {
-      this.toastService.error(
-        'Profil prodavca nije pronađen.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'CITY_NOT_FOUND'
-    ) {
-      this.toastService.error(
-        'Izabrani grad nije pronađen.'
-      );
-
-      return;
-    }
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Izmena podataka trenutno nije uspela.'
-    );
-  }
-
-  private handlePasswordError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code ===
-      'INVALID_CURRENT_PASSWORD'
-    ) {
-      this.toastService.error(
-        'Trenutna lozinka nije ispravna.'
-      );
-
-      return;
-    }
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Promena lozinke trenutno nije uspela.'
-    );
-  }
-
-  private handleDeactivateError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Deaktivacija naloga trenutno nije uspela.'
-    );
   }
 }

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -21,6 +20,7 @@ import {
   LucideX
 } from '@lucide/angular';
 import { HorizontalScrollDirective } from '../../../../shared/directives/horizontal-scroll/horizontal-scroll';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import {
   getOfferCategoryConfig,
   OFFER_CATEGORY_FILTERS,
@@ -32,13 +32,6 @@ import {
   PublicSeller
 } from '../../models/seller';
 import { SellerService } from '../../services/seller';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 @Component({
   selector: 'app-offers-page',
@@ -56,6 +49,9 @@ export class OffersPage implements OnInit {
 
   private readonly activatedRoute =
     inject(ActivatedRoute);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   readonly searchIcon =
     LucideScanSearch;
@@ -214,11 +210,17 @@ export class OffersPage implements OnInit {
 
           this.isLoading.set(false);
         },
+
         error: error => {
           this.sellers.set([]);
           this.isLoading.set(false);
 
-          this.handleLoadError(error);
+          this.loadError.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Prodavci trenutno nisu dostupni.'
+            )
+          );
         }
       });
   }
@@ -230,31 +232,6 @@ export class OffersPage implements OnInit {
       option =>
         option.id !== 'all' &&
         option.id === category
-    );
-  }
-
-  private handleLoadError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    if (
-      response?.error?.code ===
-      'INVALID_OFFER_CATEGORY'
-    ) {
-      this.loadError.set(
-        'Izabrana kategorija nije dostupna.'
-      );
-
-      return;
-    }
-
-    this.loadError.set(
-      response?.error?.message ??
-      'Prodavci trenutno nisu dostupni.'
     );
   }
 }

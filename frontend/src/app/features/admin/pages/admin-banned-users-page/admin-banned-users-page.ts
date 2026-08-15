@@ -23,6 +23,7 @@ import {
   LucideX,
   type LucideIcon
 } from '@lucide/angular';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import {
   AdminUser,
   AdminUsersRoleFilter,
@@ -47,6 +48,9 @@ type BannedUserModalMode =
 export class AdminBannedUsersPage implements OnInit, OnDestroy {
   private readonly adminUserService =
     inject(AdminUserService);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
@@ -176,9 +180,10 @@ export class AdminBannedUsersPage implements OnInit, OnDestroy {
         this.users.set([]);
 
         this.errorMessage.set(
-          error.error?.error?.message ??
-          error.error?.message ??
-          'Došlo je do greške pri učitavanju banovanih korisnika.'
+          this.apiErrorService.getMessage(
+            error,
+            'Došlo je do greške pri učitavanju banovanih korisnika.'
+          )
         );
 
         this.isLoading.set(false);
@@ -229,29 +234,35 @@ export class AdminBannedUsersPage implements OnInit, OnDestroy {
   confirmUnban(): void {
     const user = this.selectedUser();
 
-    if (!user || this.modalMode() !== 'unban') {
+    if (
+      !user ||
+      this.modalMode() !== 'unban'
+    ) {
       return;
     }
 
     this.isSubmitting.set(true);
     this.modalError.set('');
 
-    this.adminUserService.unbanUser(user._id).subscribe({
-      next: () => {
-        this.isSubmitting.set(false);
-        this.closeModal();
-        this.loadUsers();
-      },
-      error: error => {
-        this.modalError.set(
-          error.error?.error?.message ??
-          error.error?.message ??
-          'Došlo je do greške pri ukidanju bana.'
-        );
+    this.adminUserService
+      .unbanUser(user._id)
+      .subscribe({
+        next: () => {
+          this.isSubmitting.set(false);
+          this.closeModal();
+          this.loadUsers();
+        },
+        error: error => {
+          this.modalError.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Došlo je do greške pri ukidanju bana.'
+            )
+          );
 
-        this.isSubmitting.set(false);
-      }
-    });
+          this.isSubmitting.set(false);
+        }
+      });
   }
 
   getUserInitials(user: AdminUser): string {
@@ -262,12 +273,12 @@ export class AdminBannedUsersPage implements OnInit, OnDestroy {
   }
 
   getRoleLabel(role: 'buyer' | 'seller'): string {
-  if (role === 'seller') {
-    return 'Domaćin';
-  }
+    if (role === 'seller') {
+      return 'Domaćin';
+    }
 
-  return 'Kupac';
-}
+    return 'Kupac';
+  }
 
   getRoleIcon(role: AdminUser['role']): LucideIcon {
     return role === 'seller'

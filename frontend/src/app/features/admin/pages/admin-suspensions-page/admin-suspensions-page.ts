@@ -23,6 +23,7 @@ import {
   LucideX,
   type LucideIcon
 } from '@lucide/angular';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import {
   AdminUser,
   AdminUsersRoleFilter,
@@ -50,6 +51,9 @@ export class AdminSuspensionsPage
   implements OnInit, OnDestroy {
   private readonly adminUserService =
     inject(AdminUserService);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   private readonly document =
     inject(DOCUMENT);
@@ -184,9 +188,10 @@ export class AdminSuspensionsPage
         this.users.set([]);
 
         this.errorMessage.set(
-          error.error?.error?.message ??
-          error.error?.message ??
-          'Došlo je do greške pri učitavanju suspendovanih korisnika.'
+          this.apiErrorService.getMessage(
+            error,
+            'Došlo je do greške pri učitavanju suspendovanih korisnika.'
+          )
         );
 
         this.isLoading.set(false);
@@ -256,9 +261,10 @@ export class AdminSuspensionsPage
       },
       error: error => {
         this.modalError.set(
-          error.error?.error?.message ??
-          error.error?.message ??
-          'Došlo je do greške pri ukidanju suspenzije.'
+          this.apiErrorService.getMessage(
+            error,
+            'Došlo je do greške pri ukidanju suspenzije.'
+          )
         );
 
         this.isSubmitting.set(false);

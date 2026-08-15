@@ -25,6 +25,7 @@ import {
   type LucideIcon
 } from '@lucide/angular';
 import { Observable } from 'rxjs';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { FormDraftService } from '../../../../shared/services/form-draft';
 import {
   AdminPendingSeller,
@@ -56,6 +57,9 @@ interface RejectSellerDraft {
 export class AdminPendingSellersPage implements OnInit, OnDestroy {
   private readonly adminPendingSellerService =
     inject(AdminPendingSellerService);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   private readonly formDraftService =
     inject(FormDraftService);
@@ -188,7 +192,6 @@ export class AdminPendingSellersPage implements OnInit, OnDestroy {
   loadSellers(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
-
     this.closeActionsMenu();
 
     this.adminPendingSellerService
@@ -209,9 +212,10 @@ export class AdminPendingSellersPage implements OnInit, OnDestroy {
           this.sellers.set([]);
 
           this.errorMessage.set(
-            error.error?.error?.message ??
-            error.error?.message ??
-            'Došlo je do greške pri učitavanju prijava domaćina.'
+            this.apiErrorService.getMessage(
+              error,
+              'Došlo je do greške pri učitavanju prijava domaćina.'
+            )
           );
 
           this.isLoading.set(false);
@@ -395,9 +399,8 @@ export class AdminPendingSellersPage implements OnInit, OnDestroy {
 
       error: error => {
         this.modalError.set(
-          error.error?.error?.message ??
-          error.error?.message ??
-          (
+          this.apiErrorService.getMessage(
+            error,
             mode === 'approve'
               ? 'Došlo je do greške pri odobravanju prijave.'
               : 'Došlo je do greške pri odbijanju prijave.'

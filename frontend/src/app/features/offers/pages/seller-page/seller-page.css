@@ -485,7 +485,7 @@
 
 .information-label,
 .section-eyebrow,
-.seller-map ::ng-deep .location-label {
+.seller-map ::ng-deep .location-heading > span {
   color:
     var(--color-primary);
 
@@ -559,7 +559,7 @@
 }
 
 .seller-about-content h2,
-.seller-map ::ng-deep .location-heading h2 {
+.seller-map ::ng-deep .location-card .location-heading h2 {
   margin: 5px 0 0;
 
   color: #17251c;
@@ -1106,7 +1106,10 @@
 
 .category-navigation {
   margin-top: 18px;
-  padding-bottom: 5px;
+  padding:
+    3px
+    0
+    5px;
 
   display: flex;
   align-items: center;

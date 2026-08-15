@@ -29,6 +29,7 @@ import {
 } from 'rxjs';
 import { ApiErrorService } from '../../../../shared/services/api-error';
 import { FormDraftService } from '../../../../shared/services/form-draft';
+import { ToastService } from '../../../../shared/services/toast';
 import { OfferService } from '../../../offers/services/offer';
 import { OrderService } from '../../../orders/services/order';
 import { CartService } from '../../services/cart';
@@ -65,6 +66,9 @@ implements OnInit, OnDestroy {
 
   private readonly formDraftService =
     inject(FormDraftService);
+
+  private readonly toastService =
+    inject(ToastService);
 
   private readonly noteDraftKey =
     'cart-buyer-note';
@@ -384,6 +388,10 @@ implements OnInit, OnDestroy {
           );
 
           this.cartService.close();
+
+          this.toastService.success(
+            'Porudžbina je uspešno poslata.'
+          );
         },
 
         error: error => {

@@ -1,5 +1,4 @@
 import { DatePipe, DOCUMENT } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -22,6 +21,7 @@ import {
   LucideX,
   type LucideIcon
 } from '@lucide/angular';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { FormDraftService } from '../../../../shared/services/form-draft';
 import { ToastService } from '../../../../shared/services/toast';
 import {
@@ -51,6 +51,9 @@ export class AdminReportsPage implements OnInit, OnDestroy {
   private readonly adminReportService =
     inject(AdminReportService);
 
+  private readonly apiErrorService =
+    inject(ApiErrorService);
+
   private readonly formDraftService =
     inject(FormDraftService);
 
@@ -62,15 +65,23 @@ export class AdminReportsPage implements OnInit, OnDestroy {
 
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
-  readonly reports = signal<AdminReport[]>([]);
-  readonly selectedReport = signal<AdminReport | null>(null);
+  readonly reports =
+    signal<AdminReport[]>([]);
 
-  readonly isLoading = signal(true);
-  readonly isProcessing = signal(false);
+  readonly selectedReport =
+    signal<AdminReport | null>(null);
 
-  readonly errorMessage = signal('');
+  readonly isLoading =
+    signal(true);
 
-  readonly searchTerm = signal('');
+  readonly isProcessing =
+    signal(false);
+
+  readonly errorMessage =
+    signal('');
+
+  readonly searchTerm =
+    signal('');
 
   readonly selectedStatus =
     signal<AdminReportsStatusFilter>('all');
@@ -78,7 +89,8 @@ export class AdminReportsPage implements OnInit, OnDestroy {
   readonly selectedSort =
     signal<AdminReportsSort>('newest');
 
-  readonly adminNote = signal('');
+  readonly adminNote =
+    signal('');
 
   readonly reportsIcon: LucideIcon =
     LucideFileWarning;
@@ -122,7 +134,9 @@ export class AdminReportsPage implements OnInit, OnDestroy {
       clearTimeout(this.searchTimeout);
     }
 
-    this.document.body.classList.remove('modal-open');
+    this.document.body.classList.remove(
+      'modal-open'
+    );
   }
 
   onSearchChange(value: string): void {
@@ -138,7 +152,8 @@ export class AdminReportsPage implements OnInit, OnDestroy {
   }
 
   onStatusChange(value: string): void {
-    const status: AdminReportsStatusFilter =
+    const status:
+      AdminReportsStatusFilter =
       value === 'pending' ||
       value === 'approved' ||
       value === 'rejected'
@@ -150,7 +165,8 @@ export class AdminReportsPage implements OnInit, OnDestroy {
   }
 
   onSortChange(value: string): void {
-    const sort: AdminReportsSort =
+    const sort:
+      AdminReportsSort =
       value === 'oldest'
         ? 'oldest'
         : 'newest';
@@ -163,37 +179,53 @@ export class AdminReportsPage implements OnInit, OnDestroy {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    this.adminReportService.getReports(
-      this.searchTerm(),
-      this.selectedStatus(),
-      this.selectedSort()
-    ).subscribe({
-      next: response => {
-        this.reports.set(response.reports ?? []);
-        this.isLoading.set(false);
-      },
-      error: error => {
-        this.reports.set([]);
+    this.adminReportService
+      .getReports(
+        this.searchTerm(),
+        this.selectedStatus(),
+        this.selectedSort()
+      )
+      .subscribe({
+        next: response => {
+          this.reports.set(
+            response.reports ?? []
+          );
 
-        this.errorMessage.set(
-          error.error?.error?.message ??
-          error.error?.message ??
-          'Došlo je do greške pri učitavanju prijava.'
-        );
+          this.isLoading.set(false);
+        },
 
-        this.isLoading.set(false);
-      }
-    });
+        error: error => {
+          this.reports.set([]);
+
+          this.errorMessage.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Došlo je do greške pri učitavanju prijava.'
+            )
+          );
+
+          this.isLoading.set(false);
+        }
+      });
   }
 
-  openReport(report: AdminReport): void {
-    this.selectedReport.set(report);
+  openReport(
+    report: AdminReport
+  ): void {
+    this.selectedReport.set(
+      report
+    );
 
-    if (report.status === 'pending') {
+    if (
+      report.status === 'pending'
+    ) {
       const draft =
-        this.formDraftService.load<AdminReportNoteDraft>(
-          this.getDraftKey(report._id)
-        );
+        this.formDraftService
+          .load<AdminReportNoteDraft>(
+            this.getDraftKey(
+              report._id
+            )
+          );
 
       this.adminNote.set(
         draft?.adminNote ??
@@ -202,11 +234,14 @@ export class AdminReportsPage implements OnInit, OnDestroy {
       );
     } else {
       this.adminNote.set(
-        report.adminNote ?? ''
+        report.adminNote ??
+        ''
       );
     }
 
-    this.document.body.classList.add('modal-open');
+    this.document.body
+      .classList
+      .add('modal-open');
   }
 
   closeReport(): void {
@@ -214,23 +249,36 @@ export class AdminReportsPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.selectedReport.set(null);
+    this.selectedReport.set(
+      null
+    );
+
     this.adminNote.set('');
 
-    this.document.body.classList.remove('modal-open');
+    this.document.body
+      .classList
+      .remove('modal-open');
   }
 
-  onAdminNoteChange(value: string): void {
+  onAdminNoteChange(
+    value: string
+  ): void {
     this.adminNote.set(value);
 
-    const report = this.selectedReport();
+    const report =
+      this.selectedReport();
 
-    if (!report || report.status !== 'pending') {
+    if (
+      !report ||
+      report.status !== 'pending'
+    ) {
       return;
     }
 
     this.formDraftService.save(
-      this.getDraftKey(report._id),
+      this.getDraftKey(
+        report._id
+      ),
       {
         adminNote: value
       } satisfies AdminReportNoteDraft
@@ -238,51 +286,77 @@ export class AdminReportsPage implements OnInit, OnDestroy {
   }
 
   approveSelectedReport(): void {
-    const report = this.selectedReport();
+    const report =
+      this.selectedReport();
 
-    if (!report || report.status !== 'pending') {
+    if (
+      !report ||
+      report.status !== 'pending'
+    ) {
       return;
     }
 
     this.isProcessing.set(true);
 
-    this.adminReportService.approveReport(
-      report._id,
-      this.adminNote()
-    ).subscribe({
-      next: response => {
-        const wasBanned =
-          response.reportedUser?.status === 'banned';
+    this.adminReportService
+      .approveReport(
+        report._id,
+        this.adminNote()
+      )
+      .subscribe({
+        next: response => {
+          const wasBanned =
+            response.reportedUser
+              ?.status === 'banned';
 
-        this.formDraftService.clear(
-          this.getDraftKey(report._id)
-        );
+          this.formDraftService.clear(
+            this.getDraftKey(
+              report._id
+            )
+          );
 
-        this.isProcessing.set(false);
-        this.selectedReport.set(null);
-        this.adminNote.set('');
+          this.isProcessing.set(
+            false
+          );
 
-        this.document.body.classList.remove('modal-open');
+          this.selectedReport.set(
+            null
+          );
 
-        this.loadReports();
+          this.adminNote.set('');
 
-        this.toastService.success(
-          wasBanned
-            ? 'Prijava je odobrena, a korisnik je automatski banovan.'
-            : 'Prijava je uspešno odobrena.'
-        );
-      },
-      error: error => {
-        this.handleActionError(error);
-      }
-    });
+          this.document.body
+            .classList
+            .remove('modal-open');
+
+          this.loadReports();
+
+          this.toastService.success(
+            wasBanned
+              ? 'Prijava je odobrena, a korisnik je automatski banovan.'
+              : 'Prijava je uspešno odobrena.'
+          );
+        },
+
+        error: error => {
+          this.handleActionError(
+            error
+          );
+        }
+      });
   }
 
   rejectSelectedReport(): void {
-    const report = this.selectedReport();
-    const note = this.adminNote().trim();
+    const report =
+      this.selectedReport();
 
-    if (!report || report.status !== 'pending') {
+    const note =
+      this.adminNote().trim();
+
+    if (
+      !report ||
+      report.status !== 'pending'
+    ) {
       return;
     }
 
@@ -296,31 +370,46 @@ export class AdminReportsPage implements OnInit, OnDestroy {
 
     this.isProcessing.set(true);
 
-    this.adminReportService.rejectReport(
-      report._id,
-      note
-    ).subscribe({
-      next: () => {
-        this.formDraftService.clear(
-          this.getDraftKey(report._id)
-        );
+    this.adminReportService
+      .rejectReport(
+        report._id,
+        note
+      )
+      .subscribe({
+        next: () => {
+          this.formDraftService.clear(
+            this.getDraftKey(
+              report._id
+            )
+          );
 
-        this.isProcessing.set(false);
-        this.selectedReport.set(null);
-        this.adminNote.set('');
+          this.isProcessing.set(
+            false
+          );
 
-        this.document.body.classList.remove('modal-open');
+          this.selectedReport.set(
+            null
+          );
 
-        this.loadReports();
+          this.adminNote.set('');
 
-        this.toastService.success(
-          'Prijava je uspešno odbijena.'
-        );
-      },
-      error: error => {
-        this.handleActionError(error);
-      }
-    });
+          this.document.body
+            .classList
+            .remove('modal-open');
+
+          this.loadReports();
+
+          this.toastService.success(
+            'Prijava je uspešno odbijena.'
+          );
+        },
+
+        error: error => {
+          this.handleActionError(
+            error
+          );
+        }
+      });
   }
 
   getFullName(
@@ -329,7 +418,9 @@ export class AdminReportsPage implements OnInit, OnDestroy {
       lastName: string;
     }
   ): string {
-    return `${user.firstName} ${user.lastName}`;
+    return (
+      `${user.firstName} ${user.lastName}`
+    );
   }
 
   getInitials(
@@ -341,72 +432,108 @@ export class AdminReportsPage implements OnInit, OnDestroy {
     ).toUpperCase();
   }
 
-  getRoleLabel(role: AdminReportUserRole): string {
+  getRoleLabel(
+    role: AdminReportUserRole
+  ): string {
     return role === 'seller'
       ? 'Domaćin'
       : 'Kupac';
   }
 
-  getRoleIcon(role: AdminReportUserRole): LucideIcon {
+  getRoleIcon(
+    role: AdminReportUserRole
+  ): LucideIcon {
     return role === 'seller'
       ? this.sellerIcon
       : this.buyerIcon;
   }
 
-  getReasonLabel(reason: AdminReportReason): string {
-    const labels: Record<AdminReportReason, string> = {
-      no_show: 'Nedolazak',
-      inappropriate_behavior: 'Neprimereno ponašanje',
-      misleading_information: 'Obmanjujuće informacije',
-      food_quality_or_safety: 'Kvalitet ili bezbednost hrane',
-      payment_issue: 'Problem sa plaćanjem',
-      other: 'Drugi razlog'
-    };
+  getReasonLabel(
+    reason: AdminReportReason
+  ): string {
+    const labels:
+      Record<
+        AdminReportReason,
+        string
+      > = {
+        no_show:
+          'Nedolazak',
+
+        inappropriate_behavior:
+          'Neprimereno ponašanje',
+
+        misleading_information:
+          'Obmanjujuće informacije',
+
+        food_quality_or_safety:
+          'Kvalitet ili bezbednost hrane',
+
+        payment_issue:
+          'Problem sa plaćanjem',
+
+        other:
+          'Drugi razlog'
+      };
 
     return labels[reason];
   }
 
-  getStatusLabel(status: AdminReportStatus): string {
-    const labels: Record<AdminReportStatus, string> = {
-      pending: 'Na čekanju',
-      approved: 'Odobrena',
-      rejected: 'Odbijena'
-    };
+  getStatusLabel(
+    status: AdminReportStatus
+  ): string {
+    const labels:
+      Record<
+        AdminReportStatus,
+        string
+      > = {
+        pending:
+          'Na čekanju',
+
+        approved:
+          'Odobrena',
+
+        rejected:
+          'Odbijena'
+      };
 
     return labels[status];
   }
 
-  getStatusIcon(status: AdminReportStatus): LucideIcon {
-    if (status === 'approved') {
+  getStatusIcon(
+    status: AdminReportStatus
+  ): LucideIcon {
+    if (
+      status === 'approved'
+    ) {
       return this.approvedIcon;
     }
 
-    if (status === 'rejected') {
+    if (
+      status === 'rejected'
+    ) {
       return this.rejectedIcon;
     }
 
     return this.pendingIcon;
   }
 
-  private getDraftKey(reportId: string): string {
-    return `admin-report-note:${reportId}`;
+  private getDraftKey(
+    reportId: string
+  ): string {
+    return (
+      `admin-report-note:${reportId}`
+    );
   }
 
-  private handleActionError(error: HttpErrorResponse): void {
-    const code =
-      error.error?.error?.code;
-
-    if (code === 'REPORT_ALREADY_REVIEWED') {
-      this.toastService.error(
-        'Ovu prijavu je u međuvremenu već obradio drugi administrator.'
-      );
-    } else {
-      this.toastService.error(
-        error.error?.error?.message ??
-        error.error?.message ??
+  private handleActionError(
+    error: unknown
+  ): void {
+    this.toastService.error(
+      this.apiErrorService.getMessage(
+        error,
         'Došlo je do greške pri obradi prijave.'
-      );
-    }
+      )
+    );
 
     this.isProcessing.set(false);
   }

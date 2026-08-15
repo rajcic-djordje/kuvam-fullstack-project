@@ -15,6 +15,20 @@ import {
 const MAX_PICKUP_CODE_ATTEMPTS = 5
 const PICKUP_CODE_BLOCK_DURATION_MS = 15 * 60 * 1000
 
+const getOrderNotificationLabel = order => {
+    const firstItem = order.items[0]
+
+    if (!firstItem) {
+        return "porudžbinu"
+    }
+
+    if (order.items.length === 1) {
+        return `„${firstItem.name}“`
+    }
+
+    return `„${firstItem.name}“ + još ${order.items.length - 1}`
+}
+
 const populateBuyerOrder = query => {
     return query
         .populate({
@@ -212,16 +226,13 @@ const createOrder = async (buyerId, orderData) => {
             buyerNote: orderData.buyerNote || ""
         })
 
-        const notificationMessage =
-            createdOrder.items.length === 1
-                ? `Primili ste novu porudžbinu za ponudu „${createdOrder.items[0].name}“.`
-                : `Primili ste novu porudžbinu sa ${createdOrder.items.length} stavki.`
+        const orderLabel = getOrderNotificationLabel(createdOrder)
 
         await createNotification({
             recipient: seller.user,
             type: NOTIFICATION_TYPE.NEW_ORDER,
             title: "Nova porudžbina",
-            message: notificationMessage,
+            message: `Primili ste novu porudžbinu: ${orderLabel}.`,
             order: createdOrder._id
         })
 
@@ -357,6 +368,7 @@ const cancelBuyerOrder = async (buyerId, orderId) => {
     }
     catch (error) {
         order.status = ORDER_STATUS.PENDING
+
         await order.save()
 
         throw error
@@ -405,11 +417,13 @@ const markBuyerAsOnTheWay = async (
 
     await order.save()
 
+    const orderLabel = getOrderNotificationLabel(order)
+
     await createNotification({
         recipient: order.seller.user,
         type: NOTIFICATION_TYPE.BUYER_ON_THE_WAY,
         title: "Kupac je krenuo",
-        message: "Kupac je krenuo po porudžbinu.",
+        message: `Kupac je krenuo po porudžbinu: ${orderLabel}.`,
         order: order._id
     })
 
@@ -537,11 +551,13 @@ const acceptSellerOrder = async (
 
     await order.save()
 
+    const orderLabel = getOrderNotificationLabel(order)
+
     await createNotification({
         recipient: order.buyer,
         type: NOTIFICATION_TYPE.ORDER_ACCEPTED,
         title: "Porudžbina je prihvaćena",
-        message: "Prodavac je prihvatio tvoju porudžbinu.",
+        message: `Prodavac je prihvatio tvoju porudžbinu: ${orderLabel}.`,
         order: order._id
     })
 
@@ -603,11 +619,13 @@ const rejectSellerOrder = async (
         throw error
     }
 
+    const orderLabel = getOrderNotificationLabel(order)
+
     await createNotification({
         recipient: order.buyer,
         type: NOTIFICATION_TYPE.ORDER_REJECTED,
         title: "Porudžbina je odbijena",
-        message: "Prodavac je odbio tvoju porudžbinu.",
+        message: `Prodavac je odbio tvoju porudžbinu: ${orderLabel}.`,
         order: order._id
     })
 
@@ -661,11 +679,13 @@ const markSellerOrderAsReady = async (
 
     await order.save()
 
+    const orderLabel = getOrderNotificationLabel(order)
+
     await createNotification({
         recipient: order.buyer,
         type: NOTIFICATION_TYPE.ORDER_READY,
         title: "Porudžbina je spremna",
-        message: "Tvoja porudžbina je spremna za preuzimanje.",
+        message: `Tvoja porudžbina ${orderLabel} je spremna za preuzimanje.`,
         order: order._id
     })
 
@@ -769,11 +789,13 @@ const completeSellerOrder = async (
 
     await order.save()
 
+    const orderLabel = getOrderNotificationLabel(order)
+
     await createNotification({
         recipient: order.buyer,
         type: NOTIFICATION_TYPE.ORDER_COMPLETED,
         title: "Porudžbina je završena",
-        message: "Preuzimanje porudžbine je uspešno potvrđeno.",
+        message: `Preuzimanje porudžbine ${orderLabel} je uspešno potvrđeno.`,
         order: order._id
     })
 

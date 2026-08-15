@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -29,6 +28,7 @@ import {
   debounceTime,
   Subscription
 } from 'rxjs';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { FormDraftService } from '../../../../shared/services/form-draft';
 import { ToastService } from '../../../../shared/services/toast';
 import { OFFER_CATEGORIES } from '../../constants/offer-categories';
@@ -37,13 +37,6 @@ import {
   UpdateOfferRequest
 } from '../../models/offer';
 import { OfferService } from '../../services/offer';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 interface SelectOption {
   value: string;
@@ -73,6 +66,7 @@ export class EditOfferPage implements OnInit, OnDestroy {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly formBuilder = inject(FormBuilder);
   private readonly offerService = inject(OfferService);
+  private readonly apiErrorService = inject(ApiErrorService);
   private readonly formDraftService = inject(FormDraftService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
@@ -333,22 +327,30 @@ export class EditOfferPage implements OnInit, OnDestroy {
                   '/seller/offers'
                 ]);
               },
+
               error: error => {
                 this.isSubmitting.set(
                   false
                 );
 
-                this.handleImageUploadError(
-                  error
+                this.toastService.error(
+                  this.apiErrorService.getMessage(
+                    error,
+                    'Podaci ponude su sačuvani, ali sliku trenutno nije moguće otpremiti.'
+                  )
                 );
               }
             });
         },
+
         error: error => {
           this.isSubmitting.set(false);
 
-          this.handleSubmitError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Ponudu trenutno nije moguće izmeniti.'
+            )
           );
         }
       });
@@ -416,11 +418,15 @@ export class EditOfferPage implements OnInit, OnDestroy {
 
           this.isLoading.set(false);
         },
+
         error: error => {
           this.isLoading.set(false);
 
-          this.handleLoadError(
-            error
+          this.loadError.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Ponudu trenutno nije moguće učitati.'
+            )
           );
         }
       });
@@ -511,97 +517,5 @@ export class EditOfferPage implements OnInit, OnDestroy {
     }
 
     return true;
-  }
-
-  private handleLoadError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code ===
-      'SELLER_PROFILE_NOT_FOUND'
-    ) {
-      this.loadError.set(
-        'Profil domaćina nije pronađen.'
-      );
-
-      return;
-    }
-
-    this.loadError.set(
-      response?.error?.message ??
-      'Ponudu trenutno nije moguće učitati.'
-    );
-  }
-
-  private handleImageUploadError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Podaci ponude su sačuvani, ali sliku trenutno nije moguće otpremiti.'
-    );
-  }
-
-  private handleSubmitError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code ===
-      'VALIDATION_ERROR'
-    ) {
-      this.toastService.error(
-        'Uneti podaci nisu ispravni. Proveri sva polja.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'OFFER_NOT_FOUND'
-    ) {
-      this.toastService.error(
-        'Ponuda više ne postoji.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'OFFER_ACCESS_DENIED'
-    ) {
-      this.toastService.error(
-        'Nemaš dozvolu da menjaš ovu ponudu.'
-      );
-
-      return;
-    }
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Ponudu trenutno nije moguće izmeniti.'
-    );
   }
 }

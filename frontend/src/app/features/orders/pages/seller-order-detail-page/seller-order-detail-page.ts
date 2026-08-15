@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -17,6 +16,7 @@ import {
   LucideUser,
   LucideX
 } from '@lucide/angular';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { ReportReason } from '../../../reports/models/report';
 import { ReportService } from '../../../reports/services/report';
 import {
@@ -24,13 +24,6 @@ import {
   SellerOrder
 } from '../../models/order';
 import { OrderService } from '../../services/order';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 @Component({
   selector: 'app-seller-order-detail-page',
@@ -46,6 +39,7 @@ export class SellerOrderDetailPage implements OnInit {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly orderService = inject(OrderService);
   private readonly reportService = inject(ReportService);
+  private readonly apiErrorService = inject(ApiErrorService);
 
   readonly backIcon = LucideArrowLeft;
   readonly orderIcon = LucidePackage;
@@ -107,21 +101,28 @@ export class SellerOrderDetailPage implements OnInit {
   ];
 
   ngOnInit(): void {
-    const orderId =
-      this.activatedRoute.snapshot.paramMap.get('orderId');
+    this.activatedRoute.paramMap.subscribe(paramMap => {
+      const orderId = paramMap.get('orderId');
 
-    if (!orderId) {
-      this.loadError.set('Porudžbina nije pronađena.');
-      this.isLoading.set(false);
-      return;
-    }
+      if (!orderId) {
+        this.loadError.set(
+          'Porudžbina nije pronađena.'
+        );
 
-    this.loadOrder(orderId);
+        this.isLoading.set(false);
+
+        return;
+      }
+
+      this.loadOrder(orderId);
+    });
   }
 
   retry(): void {
     const orderId =
-      this.activatedRoute.snapshot.paramMap.get('orderId');
+      this.activatedRoute.snapshot.paramMap.get(
+        'orderId'
+      );
 
     if (!orderId) {
       return;
@@ -166,6 +167,7 @@ export class SellerOrderDetailPage implements OnInit {
       this.actionError.set(
         'Izaberi procenjeno vreme preuzimanja.'
       );
+
       return;
     }
 
@@ -178,6 +180,7 @@ export class SellerOrderDetailPage implements OnInit {
       this.actionError.set(
         'Procenjeno vreme preuzimanja mora biti u budućnosti.'
       );
+
       return;
     }
 
@@ -195,7 +198,13 @@ export class SellerOrderDetailPage implements OnInit {
         this.isPerformingAction.set(false);
       },
       error: error => {
-        this.handleActionError(error);
+        this.actionError.set(
+          this.apiErrorService.getMessage(
+            error,
+            'Akcija trenutno nije moguća.'
+          )
+        );
+
         this.isPerformingAction.set(false);
       }
     });
@@ -237,6 +246,7 @@ export class SellerOrderDetailPage implements OnInit {
       this.actionError.set(
         'Unesi razlog odbijanja porudžbine.'
       );
+
       return;
     }
 
@@ -253,7 +263,13 @@ export class SellerOrderDetailPage implements OnInit {
         this.closeRejectForm();
       },
       error: error => {
-        this.handleActionError(error);
+        this.actionError.set(
+          this.apiErrorService.getMessage(
+            error,
+            'Akcija trenutno nije moguća.'
+          )
+        );
+
         this.isPerformingAction.set(false);
       }
     });
@@ -282,7 +298,13 @@ export class SellerOrderDetailPage implements OnInit {
         this.isPerformingAction.set(false);
       },
       error: error => {
-        this.handleActionError(error);
+        this.actionError.set(
+          this.apiErrorService.getMessage(
+            error,
+            'Akcija trenutno nije moguća.'
+          )
+        );
+
         this.isPerformingAction.set(false);
       }
     });
@@ -310,6 +332,7 @@ export class SellerOrderDetailPage implements OnInit {
       this.actionError.set(
         'Unesi šestocifreni kod koji ti je dao kupac.'
       );
+
       return;
     }
 
@@ -328,7 +351,13 @@ export class SellerOrderDetailPage implements OnInit {
         this.isPerformingAction.set(false);
       },
       error: error => {
-        this.handleActionError(error);
+        this.actionError.set(
+          this.apiErrorService.getMessage(
+            error,
+            'Akcija trenutno nije moguća.'
+          )
+        );
+
         this.isPerformingAction.set(false);
       }
     });
@@ -456,7 +485,13 @@ export class SellerOrderDetailPage implements OnInit {
       error: error => {
         this.order.set(null);
         this.isLoading.set(false);
-        this.handleLoadError(error);
+
+        this.loadError.set(
+          this.apiErrorService.getMessage(
+            error,
+            'Porudžbinu trenutno nije moguće učitati.'
+          )
+        );
       }
     });
   }
@@ -466,110 +501,23 @@ export class SellerOrderDetailPage implements OnInit {
     this.actionSuccess.set('');
   }
 
-  private handleLoadError(error: HttpErrorResponse): void {
-    const response = error.error as ApiErrorBody | undefined;
+  private handleReportError(error: unknown): void {
+    const code = this.apiErrorService.getCode(error);
 
-    if (response?.error?.code === 'ORDER_NOT_FOUND') {
-      this.loadError.set(
-        'Porudžbina nije pronađena ili ne pripada tvom profilu domaćina.'
-      );
-      return;
-    }
-
-    this.loadError.set(
-      response?.error?.message ??
-      'Porudžbinu trenutno nije moguće učitati.'
-    );
-  }
-
-  private handleActionError(error: HttpErrorResponse): void {
-    const response = error.error as ApiErrorBody | undefined;
-    const code = response?.error?.code;
-
-    if (code === 'VALIDATION_ERROR') {
-      this.actionError.set(
-        response?.error?.message ??
-        'Proveri unete podatke.'
-      );
-      return;
-    }
-
-    if (code === 'ORDER_CANNOT_BE_ACCEPTED') {
-      this.actionError.set(
-        'Samo porudžbina na čekanju može da se prihvati.'
-      );
-      return;
-    }
-
-    if (code === 'ORDER_CANNOT_BE_REJECTED') {
-      this.actionError.set(
-        'Samo porudžbina na čekanju može da se odbije.'
-      );
-      return;
-    }
-
-    if (code === 'ORDER_CANNOT_BE_MARKED_READY') {
-      this.actionError.set(
-        'Samo prihvaćena porudžbina može da bude označena kao spremna.'
-      );
-      return;
-    }
-
-    if (code === 'INVALID_PICKUP_CODE') {
-      this.actionError.set(
-        response?.error?.message ??
-        'Uneti kod nije tačan.'
-      );
-      return;
-    }
-
-    if (code === 'PICKUP_CODE_TEMPORARILY_BLOCKED') {
-      this.actionError.set(
-        'Unos koda je privremeno blokiran zbog previše pogrešnih pokušaja.'
-      );
-      return;
-    }
-
-    if (code === 'ORDER_CANNOT_BE_COMPLETED') {
-      this.actionError.set(
-        'Samo porudžbina spremna za preuzimanje može da bude završena.'
-      );
-      return;
-    }
-
-    this.actionError.set(
-      response?.error?.message ??
-      'Akcija trenutno nije moguća.'
-    );
-  }
-
-  private handleReportError(error: HttpErrorResponse): void {
-    const response = error.error as ApiErrorBody | undefined;
-    const code = response?.error?.code;
-
-    if (code === 'ORDER_ALREADY_REPORTED') {
+    if (
+      code === 'ORDER_ALREADY_REPORTED' ||
+      code === 'ORDER_CANNOT_BE_REPORTED'
+    ) {
       this.isReportModalOpen.set(false);
       this.reportReason.set('');
       this.reportDescription.set('');
-      this.actionError.set(
-        'Već si poslao prijavu za ovu porudžbinu.'
-      );
-      return;
-    }
-
-    if (code === 'ORDER_CANNOT_BE_REPORTED') {
-      this.isReportModalOpen.set(false);
-      this.reportReason.set('');
-      this.reportDescription.set('');
-      this.actionError.set(
-        'Samo završena porudžbina može da bude prijavljena.'
-      );
-      return;
     }
 
     this.actionError.set(
-      response?.error?.message ??
-      'Prijavu trenutno nije moguće poslati.'
+      this.apiErrorService.getMessage(
+        error,
+        'Prijavu trenutno nije moguće poslati.'
+      )
     );
   }
 }

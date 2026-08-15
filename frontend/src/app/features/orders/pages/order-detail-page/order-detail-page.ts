@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -15,23 +14,17 @@ import {
   LucideStore,
   LucideX
 } from '@lucide/angular';
+import { ApiErrorService } from '../../../../shared/services/api-error';
+import { ToastService } from '../../../../shared/services/toast';
+import { ReportReason } from '../../../reports/models/report';
+import { ReportService } from '../../../reports/services/report';
+import { ReviewService } from '../../../reviews/services/review';
+import { OrderRouteMap } from '../../components/order-route-map';
 import {
   BuyerOrder,
   OrderStatus
 } from '../../models/order';
 import { OrderService } from '../../services/order';
-import { OrderRouteMap } from '../../components/order-route-map';
-import { ReportReason } from '../../../reports/models/report';
-import { ReportService } from '../../../reports/services/report';
-import { ReviewService } from '../../../reviews/services/review';
-import { ToastService } from '../../../../shared/services/toast';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 @Component({
   selector: 'app-order-detail-page',
@@ -49,6 +42,7 @@ export class OrderDetailPage implements OnInit {
   private readonly orderService = inject(OrderService);
   private readonly reportService = inject(ReportService);
   private readonly reviewService = inject(ReviewService);
+  private readonly apiErrorService = inject(ApiErrorService);
   private readonly toastService = inject(ToastService);
 
   readonly backIcon = LucideArrowLeft;
@@ -110,19 +104,28 @@ export class OrderDetailPage implements OnInit {
   ];
 
   ngOnInit(): void {
-    const orderId = this.activatedRoute.snapshot.paramMap.get('orderId');
+    this.activatedRoute.paramMap.subscribe(paramMap => {
+      const orderId = paramMap.get('orderId');
 
-    if (!orderId) {
-      this.loadError.set('Porudžbina nije pronađena.');
-      this.isLoading.set(false);
-      return;
-    }
+      if (!orderId) {
+        this.loadError.set(
+          'Porudžbina nije pronađena.'
+        );
 
-    this.loadOrder(orderId);
+        this.isLoading.set(false);
+
+        return;
+      }
+
+      this.loadOrder(orderId);
+    });
   }
 
   retry(): void {
-    const orderId = this.activatedRoute.snapshot.paramMap.get('orderId');
+    const orderId =
+      this.activatedRoute.snapshot.paramMap.get(
+        'orderId'
+      );
 
     if (!orderId) {
       return;
@@ -145,30 +148,45 @@ export class OrderDetailPage implements OnInit {
 
     this.isMarkingOnTheWay.set(true);
 
-    this.orderService.markMyOrderAsOnTheWay(currentOrder._id).subscribe({
-      next: response => {
-        this.order.set({
-          ...currentOrder,
-          buyerOnTheWayAt: response.order.buyerOnTheWayAt
-        });
+    this.orderService
+      .markMyOrderAsOnTheWay(
+        currentOrder._id
+      )
+      .subscribe({
+        next: response => {
+          this.order.set({
+            ...currentOrder,
+            buyerOnTheWayAt:
+              response.order.buyerOnTheWayAt
+          });
 
-        this.isMarkingOnTheWay.set(false);
+          this.isMarkingOnTheWay.set(false);
 
-        this.toastService.success(
-          'Prodavac je obavešten da si krenuo po porudžbinu.'
-        );
-      },
-      error: error => {
-        this.isMarkingOnTheWay.set(false);
-        this.handleActionError(error);
-      }
-    });
+          this.toastService.success(
+            'Prodavac je obavešten da si krenuo po porudžbinu.'
+          );
+        },
+
+        error: error => {
+          this.isMarkingOnTheWay.set(false);
+
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Prodavca trenutno nije moguće obavestiti.'
+            )
+          );
+        }
+      });
   }
 
   openReviewModal(): void {
     const currentOrder = this.order();
 
-    if (!currentOrder || currentOrder.status !== 'completed') {
+    if (
+      !currentOrder ||
+      currentOrder.status !== 'completed'
+    ) {
       return;
     }
 
@@ -187,11 +205,15 @@ export class OrderDetailPage implements OnInit {
     this.reviewComment.set('');
   }
 
-  selectRating(rating: number): void {
+  selectRating(
+    rating: number
+  ): void {
     this.reviewRating.set(rating);
   }
 
-  updateReviewComment(value: string): void {
+  updateReviewComment(
+    value: string
+  ): void {
     this.reviewComment.set(value);
   }
 
@@ -218,28 +240,34 @@ export class OrderDetailPage implements OnInit {
       ...(comment ? { comment } : {})
     };
 
-    this.reviewService.createReview(request).subscribe({
-      next: () => {
-        this.isSubmittingReview.set(false);
-        this.isReviewModalOpen.set(false);
-        this.reviewRating.set(0);
-        this.reviewComment.set('');
+    this.reviewService
+      .createReview(request)
+      .subscribe({
+        next: () => {
+          this.isSubmittingReview.set(false);
+          this.isReviewModalOpen.set(false);
+          this.reviewRating.set(0);
+          this.reviewComment.set('');
 
-        this.toastService.success(
-          'Hvala! Tvoja ocena prodavca je uspešno poslata.'
-        );
-      },
-      error: error => {
-        this.isSubmittingReview.set(false);
-        this.handleReviewError(error);
-      }
-    });
+          this.toastService.success(
+            'Hvala! Tvoja ocena prodavca je uspešno poslata.'
+          );
+        },
+
+        error: error => {
+          this.isSubmittingReview.set(false);
+          this.handleReviewError(error);
+        }
+      });
   }
 
   openReportModal(): void {
     const currentOrder = this.order();
 
-    if (!currentOrder || currentOrder.status !== 'completed') {
+    if (
+      !currentOrder ||
+      currentOrder.status !== 'completed'
+    ) {
       return;
     }
 
@@ -258,18 +286,25 @@ export class OrderDetailPage implements OnInit {
     this.reportDescription.set('');
   }
 
-  updateReportReason(value: string): void {
-    this.reportReason.set(value as ReportReason);
+  updateReportReason(
+    value: string
+  ): void {
+    this.reportReason.set(
+      value as ReportReason
+    );
   }
 
-  updateReportDescription(value: string): void {
+  updateReportDescription(
+    value: string
+  ): void {
     this.reportDescription.set(value);
   }
 
   submitReport(): void {
     const currentOrder = this.order();
     const reason = this.reportReason();
-    const description = this.reportDescription().trim();
+    const description =
+      this.reportDescription().trim();
 
     if (
       !currentOrder ||
@@ -283,30 +318,38 @@ export class OrderDetailPage implements OnInit {
 
     this.isSubmittingReport.set(true);
 
-    this.reportService.createReport({
-      orderId: currentOrder._id,
-      reason,
-      description
-    }).subscribe({
-      next: () => {
-        this.isSubmittingReport.set(false);
-        this.isReportModalOpen.set(false);
-        this.reportReason.set('');
-        this.reportDescription.set('');
+    this.reportService
+      .createReport({
+        orderId: currentOrder._id,
+        reason,
+        description
+      })
+      .subscribe({
+        next: () => {
+          this.isSubmittingReport.set(false);
+          this.isReportModalOpen.set(false);
+          this.reportReason.set('');
+          this.reportDescription.set('');
 
-        this.toastService.success(
-          'Prijava prodavca je poslata administratoru.'
-        );
-      },
-      error: error => {
-        this.isSubmittingReport.set(false);
-        this.handleReportError(error);
-      }
-    });
+          this.toastService.success(
+            'Prijava prodavca je poslata administratoru.'
+          );
+        },
+
+        error: error => {
+          this.isSubmittingReport.set(false);
+          this.handleReportError(error);
+        }
+      });
   }
 
-  statusLabel(status: OrderStatus): string {
-    const labels: Record<OrderStatus, string> = {
+  statusLabel(
+    status: OrderStatus
+  ): string {
+    const labels: Record<
+      OrderStatus,
+      string
+    > = {
       pending: 'Na čekanju',
       accepted: 'Prihvaćena',
       rejected: 'Odbijena',
@@ -318,17 +361,26 @@ export class OrderDetailPage implements OnInit {
     return labels[status];
   }
 
-  formatDate(value: string): string {
-    return new Intl.DateTimeFormat('sr-Latn-RS', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(value));
+  formatDate(
+    value: string
+  ): string {
+    return new Intl.DateTimeFormat(
+      'sr-Latn-RS',
+      {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }
+    ).format(
+      new Date(value)
+    );
   }
 
-  canShowPickupAddress(order: BuyerOrder): boolean {
+  canShowPickupAddress(
+    order: BuyerOrder
+  ): boolean {
     return [
       'accepted',
       'ready',
@@ -336,124 +388,80 @@ export class OrderDetailPage implements OnInit {
     ].includes(order.status);
   }
 
-  private loadOrder(orderId: string): void {
+  private loadOrder(
+    orderId: string
+  ): void {
     this.isLoading.set(true);
     this.loadError.set('');
 
-    this.orderService.getMyOrderById(orderId).subscribe({
-      next: response => {
-        this.order.set(response.order);
-        this.isLoading.set(false);
-      },
-      error: error => {
-        this.order.set(null);
-        this.isLoading.set(false);
-        this.handleLoadError(error);
-      }
-    });
+    this.orderService
+      .getMyOrderById(orderId)
+      .subscribe({
+        next: response => {
+          this.order.set(
+            response.order
+          );
+
+          this.isLoading.set(false);
+        },
+
+        error: error => {
+          this.order.set(null);
+          this.isLoading.set(false);
+
+          this.loadError.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Porudžbinu trenutno nije moguće učitati.'
+            )
+          );
+        }
+      });
   }
 
-  private handleLoadError(error: HttpErrorResponse): void {
-    const response = error.error as ApiErrorBody | undefined;
+  private handleReviewError(
+    error: unknown
+  ): void {
+    const code =
+      this.apiErrorService.getCode(error);
 
-    if (response?.error?.code === 'ORDER_NOT_FOUND') {
-      this.loadError.set(
-        'Porudžbina nije pronađena ili nemaš pristup njenim podacima.'
-      );
-      return;
-    }
-
-    this.loadError.set(
-      response?.error?.message ??
-      'Porudžbinu trenutno nije moguće učitati.'
-    );
-  }
-
-  private handleActionError(error: HttpErrorResponse): void {
-    const response = error.error as ApiErrorBody | undefined;
-    const code = response?.error?.code;
-
-    if (code === 'BUYER_ALREADY_ON_THE_WAY') {
-      this.toastService.error(
-        'Prodavac je već obavešten da si krenuo.'
-      );
-      return;
-    }
-
-    if (code === 'BUYER_CANNOT_BE_MARKED_ON_THE_WAY') {
-      this.toastService.error(
-        'Prodavca možeš obavestiti tek kada je porudžbina spremna.'
-      );
-      return;
-    }
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Prodavca trenutno nije moguće obavestiti.'
-    );
-  }
-
-  private handleReviewError(error: HttpErrorResponse): void {
-    const response = error.error as ApiErrorBody | undefined;
-    const code = response?.error?.code;
-
-    if (code === 'ORDER_ALREADY_REVIEWED') {
+    if (
+      code === 'ORDER_ALREADY_REVIEWED' ||
+      code === 'ORDER_CANNOT_BE_REVIEWED'
+    ) {
       this.isReviewModalOpen.set(false);
       this.reviewRating.set(0);
       this.reviewComment.set('');
-
-      this.toastService.error(
-        'Već si ocenio prodavca za ovu porudžbinu.'
-      );
-      return;
-    }
-
-    if (code === 'ORDER_CANNOT_BE_REVIEWED') {
-      this.isReviewModalOpen.set(false);
-      this.reviewRating.set(0);
-      this.reviewComment.set('');
-
-      this.toastService.error(
-        'Samo završena porudžbina može da bude ocenjena.'
-      );
-      return;
     }
 
     this.toastService.error(
-      response?.error?.message ??
-      'Ocenu trenutno nije moguće poslati.'
+      this.apiErrorService.getMessage(
+        error,
+        'Ocenu trenutno nije moguće poslati.'
+      )
     );
   }
 
-  private handleReportError(error: HttpErrorResponse): void {
-    const response = error.error as ApiErrorBody | undefined;
-    const code = response?.error?.code;
+  private handleReportError(
+    error: unknown
+  ): void {
+    const code =
+      this.apiErrorService.getCode(error);
 
-    if (code === 'ORDER_ALREADY_REPORTED') {
+    if (
+      code === 'ORDER_ALREADY_REPORTED' ||
+      code === 'ORDER_CANNOT_BE_REPORTED'
+    ) {
       this.isReportModalOpen.set(false);
       this.reportReason.set('');
       this.reportDescription.set('');
-
-      this.toastService.error(
-        'Već si poslao prijavu za ovu porudžbinu.'
-      );
-      return;
-    }
-
-    if (code === 'ORDER_CANNOT_BE_REPORTED') {
-      this.isReportModalOpen.set(false);
-      this.reportReason.set('');
-      this.reportDescription.set('');
-
-      this.toastService.error(
-        'Samo završena porudžbina može da bude prijavljena.'
-      );
-      return;
     }
 
     this.toastService.error(
-      response?.error?.message ??
-      'Prijavu trenutno nije moguće poslati.'
+      this.apiErrorService.getMessage(
+        error,
+        'Prijavu trenutno nije moguće poslati.'
+      )
     );
   }
 }

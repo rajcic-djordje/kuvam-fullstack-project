@@ -517,10 +517,6 @@
     );
 }
 
-.seller-visual.has-cover-image {
-  height: 168px;
-  flex-basis: 168px;
-}
 
 .seller-cover-image {
   position: absolute;
@@ -606,10 +602,6 @@
   z-index: 5;
 }
 
-.has-cover-image +
-.seller-avatar-wrapper {
-  top: 123px;
-}
 
 .seller-avatar {
   width: 68px;

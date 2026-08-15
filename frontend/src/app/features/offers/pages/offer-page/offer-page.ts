@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   computed,
@@ -27,22 +26,16 @@ import {
   LucideShoppingBasket,
   LucideStore
 } from '@lucide/angular';
+import { ApiErrorService } from '../../../../shared/services/api-error';
+import { ToastService } from '../../../../shared/services/toast';
 import { AuthService } from '../../../auth/services/auth';
 import { CartService } from '../../../cart/services/cart';
-import { ToastService } from '../../../../shared/services/toast';
 import {
   getOfferCategoryConfig,
   OfferCategoryConfig
 } from '../../constants/offer-categories';
 import { Offer } from '../../models/offer';
 import { OfferService } from '../../services/offer';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 @Component({
   selector: 'app-offer-page',
@@ -55,33 +48,14 @@ interface ApiErrorBody {
   styleUrl: './offer-page.css'
 })
 export class OfferPage implements OnInit {
-  private readonly activatedRoute = inject(
-    ActivatedRoute
-  );
-
-  private readonly authService = inject(
-    AuthService
-  );
-
-  private readonly formBuilder = inject(
-    FormBuilder
-  );
-
-  private readonly offerService = inject(
-    OfferService
-  );
-
-  private readonly cartService = inject(
-    CartService
-  );
-
-  private readonly toastService = inject(
-    ToastService
-  );
-
-  private readonly router = inject(
-    Router
-  );
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly offerService = inject(OfferService);
+  private readonly cartService = inject(CartService);
+  private readonly apiErrorService = inject(ApiErrorService);
+  private readonly toastService = inject(ToastService);
+  private readonly router = inject(Router);
 
   private wasCartOpen = false;
 
@@ -93,119 +67,68 @@ export class OfferPage implements OnInit {
   readonly arrowIcon = LucideChevronRight;
   readonly storeIcon = LucideStore;
 
-  readonly offer = signal<Offer | null>(
-    null
-  );
-
+  readonly offer = signal<Offer | null>(null);
   readonly isLoading = signal(true);
-
   readonly loadError = signal('');
 
-  readonly currentUser =
-    this.authService.currentUser;
-
-  readonly isAuthenticated =
-    this.authService.isAuthenticated;
+  readonly currentUser = this.authService.currentUser;
+  readonly isAuthenticated = this.authService.isAuthenticated;
 
   readonly isBuyer = computed(() => {
-    return (
-      this.currentUser()?.role ===
-      'buyer'
-    );
+    return this.currentUser()?.role === 'buyer';
   });
 
   readonly isSeller = computed(() => {
-    return (
-      this.currentUser()?.role ===
-      'seller'
-    );
+    return this.currentUser()?.role === 'seller';
   });
 
   readonly isAdmin = computed(() => {
-    return (
-      this.currentUser()?.role ===
-      'admin'
-    );
+    return this.currentUser()?.role === 'admin';
   });
 
-  readonly quantityInCart =
-    computed(() => {
-      const currentOffer =
-        this.offer();
-
-      if (!currentOffer) {
-        return 0;
-      }
-
-      const item =
-        this.cartService
-          .items()
-          .find(item => {
-            return (
-              item.offerId ===
-              currentOffer._id
-            );
-          });
-
-      return item?.quantity ?? 0;
-    });
-
-  readonly remainingAvailableQuantity =
-    computed(() => {
-      const currentOffer =
-        this.offer();
-
-      if (!currentOffer) {
-        return 0;
-      }
-
-      return Math.max(
-        0,
-        currentOffer.availableQuantity -
-        this.quantityInCart()
-      );
-    });
-
-  readonly orderForm =
-    this.formBuilder.nonNullable.group({
-      quantity: [
-        1,
-        [
-          Validators.required,
-          Validators.min(1)
-        ]
-      ]
-    });
-
-  readonly totalPrice = computed(() => {
-    const currentOffer =
-      this.offer();
+  readonly quantityInCart = computed(() => {
+    const currentOffer = this.offer();
 
     if (!currentOffer) {
       return 0;
     }
 
-    const quantity = Number(
-      this.orderForm.controls.quantity.value
-    );
+    const item = this.cartService
+      .items()
+      .find(item => {
+        return item.offerId === currentOffer._id;
+      });
 
-    if (
-      !Number.isFinite(quantity) ||
-      quantity <= 0
-    ) {
+    return item?.quantity ?? 0;
+  });
+
+  readonly remainingAvailableQuantity = computed(() => {
+    const currentOffer = this.offer();
+
+    if (!currentOffer) {
       return 0;
     }
 
-    return (
-      quantity *
-      currentOffer.price
+    return Math.max(
+      0,
+      currentOffer.availableQuantity -
+      this.quantityInCart()
     );
+  });
+
+  readonly orderForm = this.formBuilder.nonNullable.group({
+    quantity: [
+      1,
+      [
+        Validators.required,
+        Validators.min(1)
+      ]
+    ]
   });
 
   constructor() {
     effect(() => {
-      const isCartOpen =
-        this.cartService.isOpen();
+      const isCartOpen = this.cartService.isOpen();
 
       if (isCartOpen) {
         this.wasCartOpen = true;
@@ -275,9 +198,29 @@ export class OfferPage implements OnInit {
     );
   }
 
+  totalPrice(): number {
+    const currentOffer = this.offer();
+
+    if (!currentOffer) {
+      return 0;
+    }
+
+    const quantity = Number(
+      this.orderForm.controls.quantity.value
+    );
+
+    if (
+      !Number.isFinite(quantity) ||
+      quantity <= 0
+    ) {
+      return 0;
+    }
+
+    return quantity * currentOffer.price;
+  }
+
   createOrder(): void {
-    const currentOffer =
-      this.offer();
+    const currentOffer = this.offer();
 
     if (
       !currentOffer ||
@@ -386,12 +329,16 @@ export class OfferPage implements OnInit {
 
           this.isLoading.set(false);
         },
+
         error: error => {
           this.offer.set(null);
           this.isLoading.set(false);
 
-          this.handleLoadError(
-            error
+          this.loadError.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Podaci o ponudi trenutno nisu dostupni.'
+            )
           );
         }
       });
@@ -419,48 +366,24 @@ export class OfferPage implements OnInit {
             response.offer
           );
         },
-        error: error => {
-          const response =
-            error.error as
-              | ApiErrorBody
-              | undefined;
 
+        error: error => {
           if (
-            response?.error?.code ===
+            this.apiErrorService.getCode(error) !==
             'OFFER_NOT_FOUND'
           ) {
-            this.offer.set(null);
-
-            this.loadError.set(
-              'Ponuda nije pronađena ili više nije dostupna.'
-            );
+            return;
           }
+
+          this.offer.set(null);
+
+          this.loadError.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Podaci o ponudi trenutno nisu dostupni.'
+            )
+          );
         }
       });
-  }
-
-  private handleLoadError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    if (
-      response?.error?.code ===
-      'OFFER_NOT_FOUND'
-    ) {
-      this.loadError.set(
-        'Ponuda nije pronađena ili više nije dostupna.'
-      );
-
-      return;
-    }
-
-    this.loadError.set(
-      response?.error?.message ??
-      'Podaci o ponudi trenutno nisu dostupni.'
-    );
   }
 }

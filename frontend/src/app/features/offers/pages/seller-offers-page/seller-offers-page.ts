@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -16,6 +15,7 @@ import {
   LucideTrash2
 } from '@lucide/angular';
 import { HorizontalScrollDirective } from '../../../../shared/directives/horizontal-scroll/horizontal-scroll';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { ToastService } from '../../../../shared/services/toast';
 import {
   getOfferCategoryConfig,
@@ -23,13 +23,6 @@ import {
 } from '../../constants/offer-categories';
 import { SellerOffer } from '../../models/offer';
 import { OfferService } from '../../services/offer';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 type OfferFilter =
   | 'all'
@@ -54,6 +47,9 @@ interface FilterOption {
 export class SellerOffersPage implements OnInit {
   private readonly offerService =
     inject(OfferService);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   private readonly toastService =
     inject(ToastService);
@@ -182,9 +178,13 @@ export class SellerOffersPage implements OnInit {
 
           this.actionOfferId.set(null);
         },
+
         error: error => {
-          this.handleActionError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Status ponude trenutno nije moguće promeniti.'
+            )
           );
 
           this.actionOfferId.set(null);
@@ -218,9 +218,13 @@ export class SellerOffersPage implements OnInit {
 
           this.actionOfferId.set(null);
         },
+
         error: error => {
-          this.handleActionError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Status ponude trenutno nije moguće promeniti.'
+            )
           );
 
           this.actionOfferId.set(null);
@@ -276,9 +280,13 @@ export class SellerOffersPage implements OnInit {
             null
           );
         },
+
         error: error => {
-          this.handleDeleteError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Ponudu trenutno nije moguće obrisati.'
+            )
           );
 
           this.deletingOfferId.set(
@@ -317,12 +325,16 @@ export class SellerOffersPage implements OnInit {
 
           this.isLoading.set(false);
         },
+
         error: error => {
           this.offers.set([]);
           this.isLoading.set(false);
 
-          this.handleLoadError(
-            error
+          this.loadError.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Ponude trenutno nisu dostupne.'
+            )
           );
         }
       });
@@ -344,120 +356,6 @@ export class SellerOffersPage implements OnInit {
           }
         );
       }
-    );
-  }
-
-  private handleLoadError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    if (
-      response?.error?.code ===
-      'SELLER_PROFILE_NOT_FOUND'
-    ) {
-      this.loadError.set(
-        'Profil domaćina nije pronađen.'
-      );
-
-      return;
-    }
-
-    this.loadError.set(
-      response?.error?.message ??
-      'Ponude trenutno nisu dostupne.'
-    );
-  }
-
-  private handleActionError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code ===
-      'OFFER_NOT_FOUND'
-    ) {
-      this.toastService.error(
-        'Ponuda nije pronađena.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'OFFER_ACCESS_DENIED'
-    ) {
-      this.toastService.error(
-        'Nemaš dozvolu za izmenu ove ponude.'
-      );
-
-      return;
-    }
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Status ponude trenutno nije moguće promeniti.'
-    );
-  }
-
-  private handleDeleteError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code ===
-      'OFFER_HAS_ORDERS'
-    ) {
-      this.toastService.error(
-        'Ponuda koja ima porudžbine ne može da se obriše. Možeš samo da je deaktiviraš.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'OFFER_NOT_FOUND'
-    ) {
-      this.toastService.error(
-        'Ponuda više ne postoji.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'OFFER_ACCESS_DENIED'
-    ) {
-      this.toastService.error(
-        'Nemaš dozvolu da obrišeš ovu ponudu.'
-      );
-
-      return;
-    }
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Ponudu trenutno nije moguće obrisati.'
     );
   }
 }

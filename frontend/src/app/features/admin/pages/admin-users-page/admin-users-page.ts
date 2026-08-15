@@ -26,6 +26,7 @@ import {
   type LucideIcon
 } from '@lucide/angular';
 import { Observable } from 'rxjs';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import {
   AdminUser,
   AdminUserActionResponse,
@@ -54,6 +55,9 @@ type AdminUserModalMode =
 export class AdminUsersPage implements OnInit, OnDestroy {
   private readonly adminUserService =
     inject(AdminUserService);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
@@ -104,7 +108,6 @@ export class AdminUsersPage implements OnInit, OnDestroy {
 
   readonly suspendIcon: LucideIcon =
     LucideShieldOff;
-
 
   readonly banIcon: LucideIcon =
     LucideBan;
@@ -188,9 +191,10 @@ export class AdminUsersPage implements OnInit, OnDestroy {
         this.users.set([]);
 
         this.errorMessage.set(
-          error.error?.error?.message ??
-          error.error?.message ??
-          'Došlo je do greške pri učitavanju korisnika.'
+          this.apiErrorService.getMessage(
+            error,
+            'Došlo je do greške pri učitavanju korisnika.'
+          )
         );
 
         this.isLoading.set(false);
@@ -218,10 +222,10 @@ export class AdminUsersPage implements OnInit, OnDestroy {
     this.openModal('suspend', user);
   }
 
-
   openBanUser(user: AdminUser): void {
     this.openModal('ban', user);
   }
+
   openModal(
     mode: Exclude<AdminUserModalMode, null>,
     user: AdminUser
@@ -317,9 +321,10 @@ export class AdminUsersPage implements OnInit, OnDestroy {
       },
       error: error => {
         this.modalError.set(
-          error.error?.error?.message ??
-          error.error?.message ??
-          'Došlo je do greške pri izvršavanju akcije.'
+          this.apiErrorService.getMessage(
+            error,
+            'Došlo je do greške pri izvršavanju akcije.'
+          )
         );
 
         this.isSubmitting.set(false);
@@ -411,7 +416,10 @@ export class AdminUsersPage implements OnInit, OnDestroy {
   }
 
   getRoleLabel(role: AdminUser['role']): string {
-    const labels: Record<AdminUser['role'], string> = {
+    const labels: Record<
+      AdminUser['role'],
+      string
+    > = {
       buyer: 'Kupac',
       seller: 'Prodavac'
     };

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -25,18 +24,12 @@ import {
   debounceTime,
   Subscription
 } from 'rxjs';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { FormDraftService } from '../../../../shared/services/form-draft';
 import { ToastService } from '../../../../shared/services/toast';
 import { OFFER_CATEGORIES } from '../../constants/offer-categories';
 import { CreateOfferRequest } from '../../models/offer';
 import { OfferService } from '../../services/offer';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 interface SelectOption {
   value: string;
@@ -65,10 +58,10 @@ interface CreateOfferDraft {
 export class CreateOfferPage implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly offerService = inject(OfferService);
+  private readonly apiErrorService = inject(ApiErrorService);
   private readonly formDraftService = inject(FormDraftService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
-
   private readonly draftKey = 'create-offer';
 
   private draftSubscription: Subscription | null = null;
@@ -240,8 +233,11 @@ export class CreateOfferPage implements OnInit, OnDestroy {
                   false
                 );
 
-                this.handleImageUploadError(
-                  error
+                this.toastService.error(
+                  this.apiErrorService.getMessage(
+                    error,
+                    'Ponuda je kreirana, ali sliku trenutno nije moguće otpremiti. Možeš je dodati kroz izmenu ponude.'
+                  )
                 );
               }
             });
@@ -249,8 +245,11 @@ export class CreateOfferPage implements OnInit, OnDestroy {
         error: error => {
           this.isSubmitting.set(false);
 
-          this.handleSubmitError(
-            error
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Ponudu trenutno nije moguće kreirati.'
+            )
           );
         }
       });
@@ -337,69 +336,5 @@ export class CreateOfferPage implements OnInit, OnDestroy {
     }
 
     return true;
-  }
-
-  private handleImageUploadError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Ponuda je kreirana, ali sliku trenutno nije moguće otpremiti. Možeš je dodati kroz izmenu ponude.'
-    );
-  }
-
-  private handleSubmitError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code ===
-      'VALIDATION_ERROR'
-    ) {
-      this.toastService.error(
-        'Uneti podaci nisu ispravni. Proveri sva polja.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'SELLER_PROFILE_NOT_FOUND'
-    ) {
-      this.toastService.error(
-        'Profil domaćina nije pronađen.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'SELLER_NOT_APPROVED'
-    ) {
-      this.toastService.error(
-        'Samo odobren domaćin može da kreira ponude.'
-      );
-
-      return;
-    }
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Ponudu trenutno nije moguće kreirati.'
-    );
   }
 }

@@ -22,6 +22,8 @@
 .cart-modal {
   position: relative;
 
+  translate: 0 -24px;
+
   width:
     min(
       700px,
@@ -30,7 +32,7 @@
 
   max-height:
     calc(
-      100dvh - 48px
+      100dvh - 96px
     );
 
   padding:
@@ -826,6 +828,10 @@
 }
 
 .modal-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+
   margin:
     0
     calc(
@@ -1098,6 +1104,8 @@ textarea:disabled {
 
   .cart-modal {
     width: 100%;
+
+    translate: none;
 
     max-height:
       calc(

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -19,6 +18,9 @@ import {
   LucideStore
 } from '@lucide/angular';
 import { HorizontalScrollDirective } from '../../../../shared/directives/horizontal-scroll/horizontal-scroll';
+import { ApiErrorService } from '../../../../shared/services/api-error';
+import { Review } from '../../../reviews/models/review';
+import { ReviewService } from '../../../reviews/services/review';
 import { SellerLocationMap } from '../../components/seller-location-map/seller-location-map';
 import {
   OFFER_CATEGORIES,
@@ -30,15 +32,6 @@ import {
   SellerOfferPreview
 } from '../../models/seller';
 import { SellerService } from '../../services/seller';
-import { Review } from '../../../reviews/models/review';
-import { ReviewService } from '../../../reviews/services/review';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 @Component({
   selector: 'app-seller-page',
@@ -60,6 +53,9 @@ export class SellerPage implements OnInit {
 
   private readonly reviewService =
     inject(ReviewService);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   readonly backIcon = LucideArrowLeft;
   readonly mapPinIcon = LucideMapPin;
@@ -112,6 +108,7 @@ export class SellerPage implements OnInit {
       );
 
       this.isLoading.set(false);
+
       return;
     }
 
@@ -248,12 +245,16 @@ export class SellerPage implements OnInit {
             response.seller.id
           );
         },
+
         error: error => {
           this.seller.set(null);
           this.isLoading.set(false);
 
-          this.handleLoadError(
-            error
+          this.loadError.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Podaci domaćina trenutno nisu dostupni.'
+            )
           );
         }
       });
@@ -285,6 +286,7 @@ export class SellerPage implements OnInit {
             false
           );
         },
+
         error: () => {
           this.reviews.set([]);
           this.reviewsCount.set(0);
@@ -299,30 +301,5 @@ export class SellerPage implements OnInit {
           );
         }
       });
-  }
-
-  private handleLoadError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    if (
-      response?.error?.code ===
-      'SELLER_NOT_FOUND'
-    ) {
-      this.loadError.set(
-        'Domaćin nije pronađen ili više nije dostupan.'
-      );
-
-      return;
-    }
-
-    this.loadError.set(
-      response?.error?.message ??
-      'Podaci domaćina trenutno nisu dostupni.'
-    );
   }
 }
