@@ -1,49 +1,35 @@
-import {
-  SERVER_BASE_URL
-} from '../../core/constants/api.constants';
+import { SERVER_BASE_URL } from '../../core/constants/api.constants';
 
 export const resolveMediaUrl = (
-  imageUrl: string | null | undefined
-): string => {
-  if (!imageUrl) {
-    return '';
+  mediaUrl: string | null | undefined
+): string | null => {
+  if (!mediaUrl) {
+    return null;
+  }
+
+  if (mediaUrl.startsWith('/uploads/')) {
+    return `${SERVER_BASE_URL}${mediaUrl}`;
   }
 
   if (
-    imageUrl.startsWith(
-      '/uploads/'
-    )
-  ) {
-    return (
-      `${SERVER_BASE_URL}${imageUrl}`
-    );
-  }
-
-  if (
-    imageUrl.startsWith(
-      'http://'
-    ) ||
-    imageUrl.startsWith(
-      'https://'
-    )
+    mediaUrl.startsWith('http://') ||
+    mediaUrl.startsWith('https://')
   ) {
     try {
-      const url =
-        new URL(imageUrl);
+      const url = new URL(mediaUrl);
 
-      if (
-        url.pathname.startsWith(
-          '/uploads/'
-        )
-      ) {
+      if (url.pathname.startsWith('/uploads/')) {
         return (
-          `${SERVER_BASE_URL}${url.pathname}`
+          `${SERVER_BASE_URL}` +
+          `${url.pathname}` +
+          `${url.search}` +
+          `${url.hash}`
         );
       }
     } catch {
-      return imageUrl;
+      return mediaUrl;
     }
   }
 
-  return imageUrl;
+  return mediaUrl;
 };
