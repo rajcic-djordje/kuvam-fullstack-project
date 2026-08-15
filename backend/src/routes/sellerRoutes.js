@@ -3,7 +3,9 @@ import {
     getMySellerProfile,
     updateMySellerProfile,
     uploadMySellerProfileImage,
+    deleteMySellerProfileImage,
     uploadMySellerCoverImage,
+    deleteMySellerCoverImage,
     getSellers,
     getSellerBySlug
 } from "../controllers/sellerController.js"
@@ -46,12 +48,26 @@ router.patch(
     uploadMySellerProfileImage
 )
 
+router.delete(
+    "/me/profile-image",
+    authenticate,
+    authorize(USER_ROLES.SELLER),
+    deleteMySellerProfileImage
+)
+
 router.patch(
     "/me/cover-image",
     authenticate,
     authorize(USER_ROLES.SELLER),
     uploadSellerImage.single("image"),
     uploadMySellerCoverImage
+)
+
+router.delete(
+    "/me/cover-image",
+    authenticate,
+    authorize(USER_ROLES.SELLER),
+    deleteMySellerCoverImage
 )
 
 router.get(

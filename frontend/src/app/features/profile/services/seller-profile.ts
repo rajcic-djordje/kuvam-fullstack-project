@@ -40,6 +40,12 @@ export class SellerProfileService {
     );
   }
 
+  deleteProfileImage(): Observable<SellerProfileResponse> {
+    return this.http.delete<SellerProfileResponse>(
+      `${this.sellerProfileUrl}/profile-image`
+    );
+  }
+
   uploadCoverImage(file: File): Observable<SellerProfileResponse> {
     const formData = new FormData();
 
@@ -48,6 +54,12 @@ export class SellerProfileService {
     return this.http.patch<SellerProfileResponse>(
       `${this.sellerProfileUrl}/cover-image`,
       formData
+    );
+  }
+
+  deleteCoverImage(): Observable<SellerProfileResponse> {
+    return this.http.delete<SellerProfileResponse>(
+      `${this.sellerProfileUrl}/cover-image`
     );
   }
 }

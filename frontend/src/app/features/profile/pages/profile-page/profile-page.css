@@ -1426,6 +1426,15 @@
   line-height: 1.4;
 }
 
+.seller-image-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+
+  flex-wrap: wrap;
+}
+
 .image-upload-button {
   min-width: 135px;
   min-height: 42px;
@@ -1476,6 +1485,84 @@
 
 .image-upload-button.uploading {
   opacity: 0.6;
+}
+
+.image-remove-button {
+  min-width: 105px;
+  min-height: 42px;
+  padding-inline: 13px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  color:
+    var(--color-danger);
+
+  background:
+    #fffdfa;
+
+  border:
+    1px solid
+    #dfc3bb;
+
+  border-radius:
+    var(--radius-sm);
+
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+
+  transition:
+    color
+      var(--transition-fast),
+    background-color
+      var(--transition-fast),
+    border-color
+      var(--transition-fast);
+}
+
+.image-remove-button:hover:not(:disabled) {
+  background:
+    var(--color-danger-soft);
+
+  border-color:
+    #d4a99d;
+}
+
+.image-remove-button svg {
+  width: 16px;
+  height: 16px;
+
+  fill: none;
+  stroke: currentColor;
+
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.image-remove-spinner {
+  width: 15px;
+  height: 15px;
+
+  flex-shrink: 0;
+
+  border:
+    2px solid
+    #ead7d2;
+
+  border-top-color:
+    var(--color-danger);
+
+  border-radius: 50%;
+
+  animation:
+    profile-loader
+    700ms
+    linear
+    infinite;
 }
 
 .image-upload-button input {
@@ -2193,6 +2280,7 @@ button:disabled {
 .form-field textarea:focus-visible,
 .availability-button:focus-visible,
 .image-upload-button:focus-within,
+.image-remove-button:focus-visible,
 .action-button:focus-visible,
 .modal-close:focus-visible,
 .password-field button:focus-visible,
@@ -2343,7 +2431,19 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
-  .image-upload-button {
+  .seller-image-actions {
+    width: 100%;
+
+    display: grid;
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .image-upload-button,
+  .image-remove-button {
     width: 100%;
   }
 
@@ -2475,6 +2575,10 @@ button:disabled {
     height: 120px;
   }
 
+  .seller-image-actions {
+    grid-template-columns: 1fr;
+  }
+
   .seller-location-section {
     padding:
       14px;
@@ -2544,6 +2648,7 @@ button:disabled {
   .save-button,
   .availability-button,
   .image-upload-button,
+  .image-remove-button,
   .action-button,
   .modal-close,
   .password-field button,
@@ -2560,6 +2665,7 @@ button:disabled {
 
   .loader,
   .image-upload-spinner,
+  .image-remove-spinner,
   .password-modal {
     animation: none;
   }

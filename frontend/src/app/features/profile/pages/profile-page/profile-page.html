@@ -737,52 +737,96 @@
                         </span>
                       </div>
 
-                      <label
-                        class="image-upload-button"
-                        [class.uploading]="
-                          isUploadingProfileImage()
-                        "
-                      >
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          [disabled]="
+                      <div class="seller-image-actions">
+                        <label
+                          class="image-upload-button"
+                          [class.uploading]="
                             isUploadingProfileImage()
                           "
-                          (change)="
-                            uploadSellerProfileImage($event)
-                          "
                         >
-
-                        @if (isUploadingProfileImage()) {
-                          <span class="image-upload-spinner"></span>
-
-                          Otpremanje...
-                        } @else {
-                          <svg
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            [disabled]="
+                              isUploadingProfileImage() ||
+                              isDeletingProfileImage()
+                            "
+                            (change)="
+                              uploadSellerProfileImage($event)
+                            "
                           >
-                            <path
-                              d="M12 16V4"
-                            ></path>
 
-                            <path
-                              d="m7 9 5-5 5 5"
-                            ></path>
+                          @if (isUploadingProfileImage()) {
+                            <span class="image-upload-spinner"></span>
 
-                            <path
-                              d="M5 20h14"
-                            ></path>
-                          </svg>
+                            Otpremanje...
+                          } @else {
+                            <svg
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M12 16V4"
+                              ></path>
 
-                          {{
-                            user.sellerProfile.profileImageUrl
-                              ? 'Promeni logo'
-                              : 'Dodaj logo'
-                          }}
+                              <path
+                                d="m7 9 5-5 5 5"
+                              ></path>
+
+                              <path
+                                d="M5 20h14"
+                              ></path>
+                            </svg>
+
+                            {{
+                              user.sellerProfile.profileImageUrl
+                                ? 'Promeni logo'
+                                : 'Dodaj logo'
+                            }}
+                          }
+                        </label>
+
+                        @if (user.sellerProfile.profileImageUrl) {
+                          <button
+                            class="image-remove-button"
+                            type="button"
+                            [disabled]="
+                              isUploadingProfileImage() ||
+                              isDeletingProfileImage()
+                            "
+                            (click)="deleteSellerProfileImage()"
+                          >
+                            @if (isDeletingProfileImage()) {
+                              <span class="image-remove-spinner"></span>
+
+                              Uklanjanje...
+                            } @else {
+                              <svg
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  d="M4 7h16"
+                                ></path>
+
+                                <path
+                                  d="M9 7V4h6v3"
+                                ></path>
+
+                                <path
+                                  d="m6 7 1 13h10l1-13"
+                                ></path>
+
+                                <path
+                                  d="M10 11v5M14 11v5"
+                                ></path>
+                              </svg>
+
+                              Ukloni
+                            }
+                          </button>
                         }
-                      </label>
+                      </div>
                     </div>
                   </article>
 
@@ -865,52 +909,96 @@
                         </span>
                       </div>
 
-                      <label
-                        class="image-upload-button"
-                        [class.uploading]="
-                          isUploadingCoverImage()
-                        "
-                      >
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          [disabled]="
+                      <div class="seller-image-actions">
+                        <label
+                          class="image-upload-button"
+                          [class.uploading]="
                             isUploadingCoverImage()
                           "
-                          (change)="
-                            uploadSellerCoverImage($event)
-                          "
                         >
-
-                        @if (isUploadingCoverImage()) {
-                          <span class="image-upload-spinner"></span>
-
-                          Otpremanje...
-                        } @else {
-                          <svg
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            [disabled]="
+                              isUploadingCoverImage() ||
+                              isDeletingCoverImage()
+                            "
+                            (change)="
+                              uploadSellerCoverImage($event)
+                            "
                           >
-                            <path
-                              d="M12 16V4"
-                            ></path>
 
-                            <path
-                              d="m7 9 5-5 5 5"
-                            ></path>
+                          @if (isUploadingCoverImage()) {
+                            <span class="image-upload-spinner"></span>
 
-                            <path
-                              d="M5 20h14"
-                            ></path>
-                          </svg>
+                            Otpremanje...
+                          } @else {
+                            <svg
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M12 16V4"
+                              ></path>
 
-                          {{
-                            user.sellerProfile.coverImageUrl
-                              ? 'Promeni fotografiju'
-                              : 'Dodaj fotografiju'
-                          }}
+                              <path
+                                d="m7 9 5-5 5 5"
+                              ></path>
+
+                              <path
+                                d="M5 20h14"
+                              ></path>
+                            </svg>
+
+                            {{
+                              user.sellerProfile.coverImageUrl
+                                ? 'Promeni fotografiju'
+                                : 'Dodaj fotografiju'
+                            }}
+                          }
+                        </label>
+
+                        @if (user.sellerProfile.coverImageUrl) {
+                          <button
+                            class="image-remove-button"
+                            type="button"
+                            [disabled]="
+                              isUploadingCoverImage() ||
+                              isDeletingCoverImage()
+                            "
+                            (click)="deleteSellerCoverImage()"
+                          >
+                            @if (isDeletingCoverImage()) {
+                              <span class="image-remove-spinner"></span>
+
+                              Uklanjanje...
+                            } @else {
+                              <svg
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  d="M4 7h16"
+                                ></path>
+
+                                <path
+                                  d="M9 7V4h6v3"
+                                ></path>
+
+                                <path
+                                  d="m6 7 1 13h10l1-13"
+                                ></path>
+
+                                <path
+                                  d="M10 11v5M14 11v5"
+                                ></path>
+                              </svg>
+
+                              Ukloni
+                            }
+                          </button>
                         }
-                      </label>
+                      </div>
                     </div>
                   </article>
                 </div>

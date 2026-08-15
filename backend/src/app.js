@@ -23,11 +23,28 @@ const app = express()
 
 app.use(helmet())
 
+const isAllowedOrigin = origin => {
+    if(!origin)
+        return true
+
+    if(origin === env.nodeClientOrigin)
+        return true
+
+    if(env.nodeEnv === "development" && /^http:\/\/(?:192\.168|10\.|172\.(?:1[6-9]|2\d|3[01]))\.\d+\.\d+:4200$/.test(origin))
+        return true
+
+    return false
+}
+
 app.use(cors({
-    origin: env.nodeClientOrigin,
+    origin: (origin, callback) => {
+        if(isAllowedOrigin(origin))
+            return callback(null, true)
+
+        return callback(new Error("Origin not allowed by CORS."))
+    },
     credentials: true
 }))
-
 app.use(express.json())
 app.use(cookieParser())
 

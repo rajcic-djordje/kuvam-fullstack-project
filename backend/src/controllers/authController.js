@@ -1,5 +1,12 @@
 import env from "../config/env.js"
-import {loginUser, registerUser, refreshUserSession, logoutUser} from "../services/authService.js"
+import {
+    loginUser,
+    registerUser,
+    requestPasswordReset,
+    resetUserPassword,
+    refreshUserSession,
+    logoutUser
+} from "../services/authService.js"
 
 const refreshCookieOptions = {
     httpOnly: true,
@@ -30,6 +37,26 @@ const login = async(req, res) => {
     })
 }
 
+const forgotPassword = async(req, res) => {
+    await requestPasswordReset(
+        req.body.email
+    )
+
+    return res.status(200).json({
+        message: "If an account with that email exists, a password reset code has been sent."
+    })
+}
+
+const resetPassword = async(req, res) => {
+    await resetUserPassword(
+        req.body
+    )
+
+    return res.status(200).json({
+        message: "Password reset successfully."
+    })
+}
+
 const refresh = async(req, res) => {
     const result = await refreshUserSession(req.cookies.refreshToken)
 
@@ -52,4 +79,11 @@ const logout = async(req, res) => {
     })
 }
 
-export {register, login, refresh, logout}
+export {
+    register,
+    login,
+    forgotPassword,
+    resetPassword,
+    refresh,
+    logout
+}

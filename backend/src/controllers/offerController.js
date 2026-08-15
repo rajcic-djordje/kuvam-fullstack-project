@@ -96,6 +96,19 @@ const uploadOfferImage = async (req, res) => {
     })
 }
 
+const deleteOfferImage = async (req, res) => {
+    const offer = await updateSellerOfferImage(
+        req.auth.userId,
+        req.params.offerId,
+        null
+    )
+
+    return res.status(200).json({
+        message: "Offer image removed successfully.",
+        offer
+    })
+}
+
 const getAvailableOffers = async (req, res) => {
     const offers = await getPublicOffers(
         req.queryData,
@@ -139,5 +152,6 @@ export {
     deactivateOfferListing,
     updateOfferListing,
     uploadOfferImage,
+    deleteOfferImage,
     getAvailableOffers
 }

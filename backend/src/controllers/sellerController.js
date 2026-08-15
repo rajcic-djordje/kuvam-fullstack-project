@@ -35,11 +35,23 @@ const uploadMySellerProfileImage = async (req, res) => {
         })
     }
 
-    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/sellers/${req.file.filename}`
+    const imageUrl = `/uploads/sellers/${req.file.filename}`
     const seller = await updateCurrentSellerProfileImage(req.auth.userId, imageUrl)
 
     return res.status(200).json({
         message: "Seller profile image uploaded successfully.",
+        seller
+    })
+}
+
+const deleteMySellerProfileImage = async (req, res) => {
+    const seller = await updateCurrentSellerProfileImage(
+        req.auth.userId,
+        null
+    )
+
+    return res.status(200).json({
+        message: "Seller profile image removed successfully.",
         seller
     })
 }
@@ -54,11 +66,23 @@ const uploadMySellerCoverImage = async (req, res) => {
         })
     }
 
-    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/sellers/${req.file.filename}`
+    const imageUrl = `/uploads/sellers/${req.file.filename}`
     const seller = await updateCurrentSellerCoverImage(req.auth.userId, imageUrl)
 
     return res.status(200).json({
         message: "Seller cover image uploaded successfully.",
+        seller
+    })
+}
+
+const deleteMySellerCoverImage = async (req, res) => {
+    const seller = await updateCurrentSellerCoverImage(
+        req.auth.userId,
+        null
+    )
+
+    return res.status(200).json({
+        message: "Seller cover image removed successfully.",
         seller
     })
 }
@@ -89,7 +113,9 @@ export {
     getMySellerProfile,
     updateMySellerProfile,
     uploadMySellerProfileImage,
+    deleteMySellerProfileImage,
     uploadMySellerCoverImage,
+    deleteMySellerCoverImage,
     getSellers,
     getSellerBySlug
 }

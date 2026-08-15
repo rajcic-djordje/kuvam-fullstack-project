@@ -85,6 +85,7 @@ export class EditOfferPage implements OnInit, OnDestroy {
   readonly isLoading = signal(true);
   readonly loadError = signal('');
   readonly isSubmitting = signal(false);
+  readonly isDeletingImage = signal(false);
   readonly selectedImage = signal<File | null>(null);
   readonly imagePreview = signal<string | null>(null);
 
@@ -250,6 +251,54 @@ export class EditOfferPage implements OnInit, OnDestroy {
   removeSelectedImage(): void {
     this.selectedImage.set(null);
     this.imagePreview.set(null);
+  }
+
+  deleteCurrentImage(): void {
+    const currentOffer =
+      this.offer();
+
+    if (
+      !currentOffer?.imageUrl ||
+      this.isSubmitting() ||
+      this.isDeletingImage()
+    ) {
+      return;
+    }
+
+    this.isDeletingImage.set(true);
+
+    this.offerService
+      .deleteOfferImage(
+        currentOffer._id
+      )
+      .subscribe({
+        next: response => {
+          this.offer.set(
+            response.offer
+          );
+
+          this.isDeletingImage.set(
+            false
+          );
+
+          this.toastService.success(
+            'Slika ponude je uspešno uklonjena.'
+          );
+        },
+
+        error: error => {
+          this.isDeletingImage.set(
+            false
+          );
+
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Sliku ponude trenutno nije moguće ukloniti.'
+            )
+          );
+        }
+      });
   }
 
   updateOffer(): void {

@@ -18,10 +18,15 @@ import {
   UpdateLocationRequest
 } from '../../models/location';
 import { CityService } from '../../services/city';
+import {
+  LucideDynamicIcon,
+  LucideMapPin
+} from '@lucide/angular';
+
 
 @Component({
   selector: 'app-location-modal',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, LucideDynamicIcon],
   templateUrl: './location-modal.html',
   styleUrl: './location-modal.css'
 })
@@ -30,6 +35,8 @@ export class LocationModal implements OnInit {
   private readonly cityService = inject(CityService);
   private readonly profileService = inject(ProfileService);
   private readonly apiErrorService = inject(ApiErrorService);
+
+  readonly locationIcon = LucideMapPin;
 
   readonly saved = output<UserProfile>();
   readonly dismissed = output<void>();

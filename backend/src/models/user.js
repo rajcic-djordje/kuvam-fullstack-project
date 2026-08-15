@@ -16,6 +16,10 @@ const userSchema = new mongoose.Schema({
     suspensionReason: {type:String, trim: true, maxlength: 500, default:null},
     suspendedAt: {type: Date, default: null},
     banReason: {type: String, trim: true, maxlength: 500, default: null},
+    passwordResetCodeHash: {type: String, default: null, select: false},
+    passwordResetCodeExpiresAt: {type: Date, default: null, select: false},
+    passwordResetAttempts: {type: Number, default: 0, min: 0, select: false},
+    passwordResetLastSentAt: {type: Date, default: null, select: false},
     city: {type: mongoose.Schema.Types.ObjectId, ref: "City", default: null},
     address: {
     street: {type: String, trim: true, maxlength: 150, default: null},
@@ -29,6 +33,7 @@ const userSchema = new mongoose.Schema({
 
 
 const userModel = mongoose.model("User", userSchema)
+
 
 
 export default userModel

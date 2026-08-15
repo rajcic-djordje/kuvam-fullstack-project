@@ -1,10 +1,20 @@
 import express from "express"
-import { register, login, refresh, logout } from "../controllers/authController.js"
+import {
+    register,
+    login,
+    forgotPassword,
+    resetPassword,
+    refresh,
+    logout
+} from "../controllers/authController.js"
 import { validateBody } from "../middleware/validateBody.js"
-import { loginSchema, registerSchema } from "../validators/authValidator.js"
-import { authenticate } from "../middleware/authenticate.js"
-import { authorize } from "../middleware/authorize.js"
-import { USER_ROLES } from "../constants/user.js"
+import {
+    forgotPasswordSchema,
+    loginSchema,
+    registerSchema,
+    resetPasswordSchema
+} from "../validators/authValidator.js"
+
 const router = express.Router()
 
 router.post(
@@ -20,14 +30,25 @@ router.post(
 )
 
 router.post(
+    "/forgot-password",
+    validateBody(forgotPasswordSchema),
+    forgotPassword
+)
+
+router.post(
+    "/reset-password",
+    validateBody(resetPasswordSchema),
+    resetPassword
+)
+
+router.post(
     "/refresh",
-     refresh
+    refresh
 )
 
 router.post(
     "/logout",
-     logout
+    logout
 )
-
 
 export default router

@@ -5,18 +5,22 @@ const nodeMongoDBUri = process.env.MONGODB_URI?.trim()
 const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET?.trim()
 const accessTokenExpiresIn = process.env.ACCESS_TOKEN_EXPIRES_IN?.trim()
 const refreshSessionExpiresInDays = Number(process.env.REFRESH_SESSION_EXPIRES_IN_DAYS)
-
 const adminFirstName = process.env.ADMIN_FIRST_NAME?.trim()
 const adminLastName = process.env.ADMIN_LAST_NAME?.trim()
 const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
 const adminPassword = process.env.ADMIN_PASSWORD
 const pickupCodeSecret = process.env.PICKUP_CODE_SECRET?.trim()
+const smtpHost = process.env.SMTP_HOST?.trim()
+const smtpPort = Number(process.env.SMTP_PORT)
+const smtpSecure = process.env.SMTP_SECURE === "true"
+const smtpUser = process.env.SMTP_USER?.trim()
+const smtpPassword = process.env.SMTP_PASSWORD
+const mailFrom = process.env.MAIL_FROM?.trim()
 
 const allowedValues = ["development", "test", "production"]
 
 if(!allowedValues.includes(nodeEnv))
     throw new Error("Mode not allowed!")
-
 if(!Number.isInteger(nodePort) || nodePort < 1 || nodePort > 65535)
     throw new Error("Port is not valid.")
 
@@ -29,7 +33,7 @@ if(!nodeMongoDBUri)
 if(!accessTokenSecret || accessTokenSecret.length < 64)
     throw new Error("Access token secret is not valid.")
 
-if (!pickupCodeSecret || pickupCodeSecret.length < 64)
+if(!pickupCodeSecret || pickupCodeSecret.length < 64)
     throw new Error("Pickup code secret is not valid.")
 
 if(!accessTokenExpiresIn)
@@ -62,7 +66,13 @@ const env = {
     adminLastName,
     adminEmail,
     adminPassword,
-    pickupCodeSecret
+    pickupCodeSecret,
+    smtpHost,
+    smtpPort,
+    smtpSecure,
+    smtpUser,
+    smtpPassword,
+    mailFrom
 }
 
 export default env

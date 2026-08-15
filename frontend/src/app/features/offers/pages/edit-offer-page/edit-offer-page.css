@@ -541,6 +541,14 @@
   line-height: 1.45;
 }
 
+.image-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  flex-wrap: wrap;
+}
+
 .image-upload-button {
   width: fit-content;
   min-height: 42px;
@@ -587,6 +595,48 @@
 
   border-color:
     #8eb293;
+}
+
+.image-remove-button {
+  min-height: 42px;
+  padding-inline: 14px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color:
+    var(--color-danger);
+
+  background:
+    #fffdfa;
+
+  border:
+    1px solid
+    #dfc3bb;
+
+  border-radius:
+    var(--radius-sm);
+
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+
+  transition:
+    color
+      var(--transition-fast),
+    background-color
+      var(--transition-fast),
+    border-color
+      var(--transition-fast);
+}
+
+.image-remove-button:hover:not(:disabled) {
+  background:
+    var(--color-danger-soft);
+
+  border-color:
+    #d4a99d;
 }
 
 .image-upload-button input {
@@ -836,6 +886,7 @@
 
 .submit-button:disabled,
 .image-upload-button:has(input:disabled),
+.image-remove-button:disabled,
 .selected-image-info button:disabled {
   opacity: 0.55;
 }
@@ -975,6 +1026,7 @@
 .form-field select:focus-visible,
 .form-field textarea:focus-visible,
 .image-upload-button:focus-within,
+.image-remove-button:focus-visible,
 .selected-image-info button:focus-visible,
 .cancel-link:focus-visible,
 .submit-button:focus-visible,
@@ -1105,7 +1157,13 @@
     font-size: 18px;
   }
 
-  .image-upload-button {
+  .image-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .image-upload-button,
+  .image-remove-button {
     width: 100%;
   }
 
@@ -1128,6 +1186,7 @@
 @media (prefers-reduced-motion: reduce) {
   .back-link,
   .image-upload-button,
+  .image-remove-button,
   .cancel-link,
   .submit-button,
   .retry-button {

@@ -1,14 +1,21 @@
 import bcrypt from 'bcrypt'
+import {randomInt} from 'crypto'
 import User from '../models/user.js'
 import { USER_ROLES, USER_STATUS } from '../constants/user.js'
 import AppError from '../errors/appError.js'
 import Seller from '../models/seller.js'
 import { generateAccessToken } from '../utils/jwt.js'
+import {sendPasswordResetCode} from './emailService.js'
 import {
     createRefreshSession,
     rotateRefreshSession,
+    revokeAllUserSessions,
     revokeRefreshSession
 } from './refreshSessionService.js'
+
+const PASSWORD_RESET_EXPIRATION_MINUTES = 15
+const PASSWORD_RESET_MAX_ATTEMPTS = 5
+const PASSWORD_RESET_RESEND_COOLDOWN_MS = 60 * 1000
 
 const allowedRoles = [
     USER_ROLES.BUYER,
@@ -31,7 +38,6 @@ const registerUser = async(userData) => {
 
     const transformedEmail =
         email.trim().toLowerCase()
-
     const existing = await User.findOne({
         email: transformedEmail
     })
@@ -175,6 +181,194 @@ const loginUser = async(credentials) => {
     }
 }
 
+const requestPasswordReset = async(email) => {
+    const transformedEmail =
+        email.trim().toLowerCase()
+
+    const user = await User.findOne({
+        email: transformedEmail
+    }).select(
+        '+passwordResetLastSentAt'
+    )
+
+    if(!user)
+        return
+
+    if(
+        user.passwordResetLastSentAt &&
+        Date.now() - user.passwordResetLastSentAt.getTime() <
+        PASSWORD_RESET_RESEND_COOLDOWN_MS
+    )
+        return
+
+    const code =
+        randomInt(
+            100000,
+            1000000
+        ).toString()
+
+    const codeHash =
+        await bcrypt.hash(
+            code,
+            12
+        )
+
+    const expiresAt =
+        new Date(
+            Date.now() +
+            PASSWORD_RESET_EXPIRATION_MINUTES *
+            60 *
+            1000
+        )
+
+    user.passwordResetCodeHash =
+        codeHash
+
+    user.passwordResetCodeExpiresAt =
+        expiresAt
+
+    user.passwordResetAttempts =
+        0
+
+    user.passwordResetLastSentAt =
+        new Date()
+
+    await user.save()
+
+    try {
+        await sendPasswordResetCode(
+            user.email,
+            code
+        )
+    } catch(error) {
+        user.passwordResetCodeHash =
+            null
+
+        user.passwordResetCodeExpiresAt =
+            null
+
+        user.passwordResetAttempts =
+            0
+
+        user.passwordResetLastSentAt =
+            null
+
+        await user.save()
+
+        throw error
+    }
+}
+
+const resetUserPassword = async(resetData) => {
+    const transformedEmail =
+        resetData.email.trim().toLowerCase()
+
+    const user = await User.findOne({
+        email: transformedEmail
+    }).select(
+        '+passwordHash +passwordResetCodeHash +passwordResetCodeExpiresAt +passwordResetAttempts'
+    )
+
+    if(
+        !user ||
+        !user.passwordResetCodeHash ||
+        !user.passwordResetCodeExpiresAt
+    )
+        throw new AppError(
+            'Invalid or expired password reset code.',
+            400,
+            'INVALID_PASSWORD_RESET_CODE'
+        )
+
+    if(
+        user.passwordResetCodeExpiresAt <=
+        new Date()
+    ) {
+        user.passwordResetCodeHash =
+            null
+
+        user.passwordResetCodeExpiresAt =
+            null
+
+        user.passwordResetAttempts =
+            0
+
+        await user.save()
+
+        throw new AppError(
+            'Password reset code has expired.',
+            400,
+            'PASSWORD_RESET_CODE_EXPIRED'
+        )
+    }
+
+    if(
+        user.passwordResetAttempts >=
+        PASSWORD_RESET_MAX_ATTEMPTS
+    )
+        throw new AppError(
+            'Too many invalid password reset attempts.',
+            429,
+            'PASSWORD_RESET_ATTEMPTS_EXCEEDED'
+        )
+
+    const codeMatches =
+        await bcrypt.compare(
+            resetData.code,
+            user.passwordResetCodeHash
+        )
+
+    if(!codeMatches) {
+        user.passwordResetAttempts +=
+            1
+
+        await user.save()
+
+        throw new AppError(
+            'Invalid password reset code.',
+            400,
+            'INVALID_PASSWORD_RESET_CODE'
+        )
+    }
+
+    const samePassword =
+        await bcrypt.compare(
+            resetData.password,
+            user.passwordHash
+        )
+
+    if(samePassword)
+        throw new AppError(
+            'New password must be different from the current password.',
+            400,
+            'PASSWORD_UNCHANGED'
+        )
+
+    user.passwordHash =
+        await bcrypt.hash(
+            resetData.password,
+            12
+        )
+
+    user.passwordResetCodeHash =
+        null
+
+    user.passwordResetCodeExpiresAt =
+        null
+
+    user.passwordResetAttempts =
+        0
+
+    user.passwordResetLastSentAt =
+        null
+
+    await user.save()
+
+    await revokeAllUserSessions(
+        user._id
+    )
+}
+
 const refreshUserSession = async(refreshToken) => {
     if(!refreshToken)
         throw new AppError(
@@ -214,6 +408,8 @@ const logoutUser = async(refreshToken) => {
 export {
     registerUser,
     loginUser,
+    requestPasswordReset,
+    resetUserPassword,
     refreshUserSession,
     logoutUser
 }

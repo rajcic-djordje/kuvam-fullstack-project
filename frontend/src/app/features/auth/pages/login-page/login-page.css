@@ -831,3 +831,37 @@
     animation: none;
   }
 }
+
+.forgot-password-link {
+  margin-top: -6px;
+
+  display: flex;
+  justify-content: flex-end;
+}
+
+.forgot-password-link a {
+  color:
+    var(--color-primary);
+
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+
+  transition:
+    color
+    var(--transition-fast);
+}
+
+.forgot-password-link a:hover {
+  color:
+    var(--color-primary-dark);
+}
+
+.forgot-password-link a:focus-visible {
+  outline:
+    2px solid
+    var(--color-primary);
+
+  outline-offset: 3px;
+  border-radius: 2px;
+}

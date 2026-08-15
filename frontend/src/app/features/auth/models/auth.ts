@@ -48,6 +48,20 @@ export interface LoginResponse {
   user: AuthUser;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  password: string;
+}
+
+export interface AuthMessageResponse {
+  message: string;
+}
+
 export interface RefreshSessionResponse {
   message: string;
   accessToken: string;

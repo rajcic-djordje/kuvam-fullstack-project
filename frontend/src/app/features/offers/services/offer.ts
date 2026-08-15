@@ -4,12 +4,12 @@ import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../../../core/constants/api.constants';
 import {
   CreateOfferRequest,
+  DeleteOfferResponse,
   OfferResponse,
   OffersResponse,
   SellerOfferResponse,
   SellerOffersResponse,
-  UpdateOfferRequest,
-  DeleteOfferResponse
+  UpdateOfferRequest
 } from '../models/offer';
 
 export interface OfferFilters {
@@ -97,6 +97,14 @@ export class OfferService {
     return this.http.patch<SellerOfferResponse>(
       `${this.offersUrl}/${offerId}/image`,
       formData
+    );
+  }
+
+  deleteOfferImage(
+    offerId: string
+  ): Observable<SellerOfferResponse> {
+    return this.http.delete<SellerOfferResponse>(
+      `${this.offersUrl}/${offerId}/image`
     );
   }
 

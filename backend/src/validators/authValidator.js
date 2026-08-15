@@ -80,7 +80,32 @@ const loginSchema = z.object({
     password: z.string().min(1)
 })
 
+const forgotPasswordSchema = z.object({
+    email: z
+        .email()
+        .trim()
+        .toLowerCase()
+})
+
+const resetPasswordSchema = z.object({
+    email: z
+        .email()
+        .trim()
+        .toLowerCase(),
+
+    code: z
+        .string()
+        .regex(/^\d{6}$/),
+
+    password: z
+        .string()
+        .min(8)
+        .max(100)
+})
+
 export {
     registerSchema,
-    loginSchema
+    loginSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema
 }

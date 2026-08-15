@@ -8,7 +8,8 @@ import {
     updateOfferListing,
     activateOfferListing,
     deactivateOfferListing,
-    uploadOfferImage
+    uploadOfferImage,
+    deleteOfferImage
 } from "../controllers/offerController.js"
 import {authenticate} from "../middleware/authenticate.js"
 import {authorize} from "../middleware/authorize.js"
@@ -48,6 +49,14 @@ router.patch(
     validateObjectId("offerId"),
     uploadOfferImageMiddleware.single("image"),
     uploadOfferImage
+)
+
+router.delete(
+    "/:offerId/image",
+    authenticate,
+    authorize(USER_ROLES.SELLER),
+    validateObjectId("offerId"),
+    deleteOfferImage
 )
 
 router.patch(

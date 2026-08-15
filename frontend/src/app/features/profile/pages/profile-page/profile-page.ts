@@ -193,7 +193,13 @@ implements OnInit, OnDestroy {
   readonly isUploadingProfileImage =
     signal(false);
 
+  readonly isDeletingProfileImage =
+    signal(false);
+
   readonly isUploadingCoverImage =
+    signal(false);
+
+  readonly isDeletingCoverImage =
     signal(false);
 
   readonly apiOrigin =
@@ -822,6 +828,55 @@ implements OnInit, OnDestroy {
       });
   }
 
+  deleteSellerProfileImage(): void {
+    const currentProfile =
+      this.profile();
+
+    if (
+      !currentProfile
+        ?.sellerProfile
+        ?.profileImageUrl ||
+      this.isUploadingProfileImage() ||
+      this.isDeletingProfileImage()
+    ) {
+      return;
+    }
+
+    this.isDeletingProfileImage
+      .set(true);
+
+    this.sellerProfileService
+      .deleteProfileImage()
+      .subscribe({
+        next: response => {
+          this.updateProfileState({
+            ...currentProfile,
+            sellerProfile:
+              response.seller
+          });
+
+          this.isDeletingProfileImage
+            .set(false);
+
+          this.toastService.success(
+            'Logo domaćinstva je uspešno uklonjen.'
+          );
+        },
+
+        error: error => {
+          this.isDeletingProfileImage
+            .set(false);
+
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Uklanjanje loga trenutno nije uspelo.'
+            )
+          );
+        }
+      });
+  }
+
   uploadSellerCoverImage(
     event: Event
   ): void {
@@ -884,6 +939,55 @@ implements OnInit, OnDestroy {
             this.apiErrorService.getMessage(
               error,
               'Upload slike trenutno nije uspeo.'
+            )
+          );
+        }
+      });
+  }
+
+  deleteSellerCoverImage(): void {
+    const currentProfile =
+      this.profile();
+
+    if (
+      !currentProfile
+        ?.sellerProfile
+        ?.coverImageUrl ||
+      this.isUploadingCoverImage() ||
+      this.isDeletingCoverImage()
+    ) {
+      return;
+    }
+
+    this.isDeletingCoverImage
+      .set(true);
+
+    this.sellerProfileService
+      .deleteCoverImage()
+      .subscribe({
+        next: response => {
+          this.updateProfileState({
+            ...currentProfile,
+            sellerProfile:
+              response.seller
+          });
+
+          this.isDeletingCoverImage
+            .set(false);
+
+          this.toastService.success(
+            'Naslovna fotografija je uspešno uklonjena.'
+          );
+        },
+
+        error: error => {
+          this.isDeletingCoverImage
+            .set(false);
+
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Uklanjanje naslovne fotografije trenutno nije uspelo.'
             )
           );
         }

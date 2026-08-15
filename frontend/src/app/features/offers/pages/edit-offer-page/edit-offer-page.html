@@ -411,27 +411,53 @@
                   </span>
                 </div>
 
-                <label class="image-upload-button">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    [disabled]="isSubmitting()"
-                    (change)="selectImage($event)"
-                  >
+                <div class="image-actions">
+                  <label class="image-upload-button">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      [disabled]="
+                        isSubmitting() ||
+                        isDeletingImage()
+                      "
+                      (change)="selectImage($event)"
+                    >
 
-                  <svg
-                    [lucideIcon]="uploadIcon"
-                    [size]="17"
-                    [strokeWidth]="1.8"
-                    aria-hidden="true"
-                  ></svg>
+                    <svg
+                      [lucideIcon]="uploadIcon"
+                      [size]="17"
+                      [strokeWidth]="1.8"
+                      aria-hidden="true"
+                    ></svg>
 
-                  {{
-                    selectedImage()
-                      ? 'Promeni izabranu sliku'
-                      : 'Izaberi novu sliku'
-                  }}
-                </label>
+                    {{
+                      selectedImage()
+                        ? 'Promeni izabranu sliku'
+                        : 'Izaberi novu sliku'
+                    }}
+                  </label>
+
+                  @if (
+                    currentOffer.imageUrl &&
+                    !selectedImage()
+                  ) {
+                    <button
+                      class="image-remove-button"
+                      type="button"
+                      [disabled]="
+                        isSubmitting() ||
+                        isDeletingImage()
+                      "
+                      (click)="deleteCurrentImage()"
+                    >
+                      {{
+                        isDeletingImage()
+                          ? 'Uklanjanje...'
+                          : 'Ukloni trenutnu sliku'
+                      }}
+                    </button>
+                  }
+                </div>
 
                 @if (
                   selectedImage();
@@ -444,7 +470,10 @@
 
                     <button
                       type="button"
-                      [disabled]="isSubmitting()"
+                      [disabled]="
+                        isSubmitting() ||
+                        isDeletingImage()
+                      "
                       (click)="removeSelectedImage()"
                     >
                       Ukloni
@@ -504,7 +533,10 @@
             <button
               class="submit-button"
               type="submit"
-              [disabled]="isSubmitting()"
+              [disabled]="
+                isSubmitting() ||
+                isDeletingImage()
+              "
             >
               <svg
                 [lucideIcon]="saveIcon"

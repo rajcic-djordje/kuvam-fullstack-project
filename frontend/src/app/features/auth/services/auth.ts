@@ -3,13 +3,16 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { catchError, finalize, Observable, of, shareReplay, tap } from 'rxjs';
 import { API_BASE_URL } from '../../../core/constants/api.constants';
 import {
+  AuthMessageResponse,
   AuthUser,
+  ForgotPasswordRequest,
   LoginRequest,
   LoginResponse,
   LogoutResponse,
   RefreshSessionResponse,
   RegisterRequest,
-  RegisterResponse
+  RegisterResponse,
+  ResetPasswordRequest
 } from '../models/auth';
 
 @Injectable({
@@ -45,6 +48,14 @@ export class AuthService {
         this.currentUserSignal.set(response.user);
       })
     );
+  }
+
+  forgotPassword(data: ForgotPasswordRequest): Observable<AuthMessageResponse> {
+    return this.http.post<AuthMessageResponse>(`${this.authUrl}/forgot-password`, data);
+  }
+
+  resetPassword(data: ResetPasswordRequest): Observable<AuthMessageResponse> {
+    return this.http.post<AuthMessageResponse>(`${this.authUrl}/reset-password`, data);
   }
 
   loginAdmin(data: LoginRequest): Observable<LoginResponse> {
