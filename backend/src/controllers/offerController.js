@@ -82,7 +82,7 @@ const uploadOfferImage = async (req, res) => {
     }
 
     const imageUrl =
-        `${req.protocol}://${req.get("host")}/uploads/offers/${req.file.filename}`
+    `/uploads/offers/${req.file.filename}`
 
     const offer = await updateSellerOfferImage(
         req.auth.userId,
