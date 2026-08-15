@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -29,12 +28,10 @@ import {
   debounceTime,
   Subscription
 } from 'rxjs';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { FormDraftService } from '../../../../shared/services/form-draft';
 import { ToastService } from '../../../../shared/services/toast';
-import {
-  ApiErrorResponse,
-  RegisterRequest
-} from '../../models/auth';
+import { RegisterRequest } from '../../models/auth';
 import { AuthService } from '../../services/auth';
 
 const passwordsMatchValidator: ValidatorFn = (
@@ -86,6 +83,9 @@ implements OnInit, OnDestroy {
 
   private readonly authService =
     inject(AuthService);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   private readonly formDraftService =
     inject(FormDraftService);
@@ -327,7 +327,13 @@ implements OnInit, OnDestroy {
         },
 
         error: error => {
-          this.handleError(error);
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Registracija trenutno nije uspela. Pokušaj ponovo.'
+            ),
+            'Registracija nije uspela'
+          );
 
           this.isSubmitting.set(
             false
@@ -497,49 +503,5 @@ implements OnInit, OnDestroy {
 
     businessNameControl
       .updateValueAndValidity();
-  }
-
-  private handleError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorResponse
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code ===
-        'EMAIL_ALREADY_IN_USE' ||
-      code ===
-        'EMAIL_TAKEN'
-    ) {
-      this.toastService.error(
-        'Nalog sa ovom email adresom već postoji.',
-        'Registracija nije uspela'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'VALIDATION_ERROR'
-    ) {
-      this.toastService.error(
-        'Proveri unete podatke i pokušaj ponovo.',
-        'Registracija nije uspela'
-      );
-
-      return;
-    }
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Registracija trenutno nije uspela. Pokušaj ponovo.',
-      'Registracija nije uspela'
-    );
   }
 }

@@ -1,5 +1,4 @@
 import { DOCUMENT } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   effect,
@@ -28,17 +27,11 @@ import {
   forkJoin,
   of
 } from 'rxjs';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { FormDraftService } from '../../../../shared/services/form-draft';
 import { OfferService } from '../../../offers/services/offer';
 import { OrderService } from '../../../orders/services/order';
 import { CartService } from '../../services/cart';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 interface CartNoteDraft {
   buyerNote: string;
@@ -66,6 +59,9 @@ implements OnInit, OnDestroy {
 
   private readonly offerService =
     inject(OfferService);
+
+  private readonly apiErrorService =
+    inject(ApiErrorService);
 
   private readonly formDraftService =
     inject(FormDraftService);
@@ -347,6 +343,7 @@ implements OnInit, OnDestroy {
     }
 
     this.error.set('');
+
     this.isSubmitting.set(
       true
     );
@@ -390,8 +387,11 @@ implements OnInit, OnDestroy {
         },
 
         error: error => {
-          this.handleSubmitError(
-            error
+          this.error.set(
+            this.apiErrorService.getMessage(
+              error,
+              'Porudžbina trenutno nije poslata. Pokušaj ponovo.'
+            )
           );
 
           this.isSubmitting.set(
@@ -401,77 +401,5 @@ implements OnInit, OnDestroy {
           this.refreshCart();
         }
       });
-  }
-
-  private handleSubmitError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorBody
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code ===
-      'INSUFFICIENT_OFFER_QUANTITY'
-    ) {
-      this.error.set(
-        'Dostupna količina neke od stavki se u međuvremenu promenila. Korpa je osvežena — proveri količine i pokušaj ponovo.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'OFFER_NOT_AVAILABLE'
-    ) {
-      this.error.set(
-        'Jedna od ponuda više nije dostupna. Korpa je osvežena — proveri stavke pre ponovnog slanja.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'OFFER_NOT_FOUND'
-    ) {
-      this.error.set(
-        'Jedna od ponuda više ne postoji. Proveri sadržaj korpe.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'MULTIPLE_SELLERS_NOT_ALLOWED'
-    ) {
-      this.error.set(
-        'Sve stavke u jednoj porudžbini moraju pripadati istom domaćinu.'
-      );
-
-      return;
-    }
-
-    if (
-      code ===
-      'OWN_OFFER_ORDER_NOT_ALLOWED'
-    ) {
-      this.error.set(
-        'Ne možeš poručiti sopstvenu ponudu.'
-      );
-
-      return;
-    }
-
-    this.error.set(
-      response?.error?.message ??
-      'Porudžbina trenutno nije poslata. Pokušaj ponovo.'
-    );
   }
 }

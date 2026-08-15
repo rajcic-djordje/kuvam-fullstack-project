@@ -1,15 +1,15 @@
-import {HttpClient} from '@angular/common/http';
-import {computed, inject, Injectable, signal} from '@angular/core';
-import {Observable, tap, finalize, catchError, of} from 'rxjs';
-import {API_BASE_URL} from '../../../core/constants/api.constants';
+import { HttpClient } from '@angular/common/http';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { catchError, finalize, Observable, of, shareReplay, tap } from 'rxjs';
+import { API_BASE_URL } from '../../../core/constants/api.constants';
 import {
   AuthUser,
   LoginRequest,
   LoginResponse,
-  RegisterRequest,
-  RegisterResponse,
+  LogoutResponse,
   RefreshSessionResponse,
-  LogoutResponse
+  RegisterRequest,
+  RegisterResponse
 } from '../models/auth';
 
 @Injectable({
@@ -23,6 +23,7 @@ export class AuthService {
   private readonly accessTokenSignal = signal<string | null>(null);
   private readonly currentUserSignal = signal<AuthUser | null>(null);
   private readonly authInitializedSignal = signal(false);
+  private refreshRequest$: Observable<RefreshSessionResponse> | null = null;
 
   readonly currentUser = this.currentUserSignal.asReadonly();
   readonly authInitialized = this.authInitializedSignal.asReadonly();
@@ -47,7 +48,6 @@ export class AuthService {
   }
 
   loginAdmin(data: LoginRequest): Observable<LoginResponse> {
-
     return this.http.post<LoginResponse>(`${this.adminAuthUrl}/login`, data, {
       withCredentials: true
     }).pipe(
@@ -59,14 +59,26 @@ export class AuthService {
   }
 
   refreshSession(): Observable<RefreshSessionResponse> {
-    return this.http.post<RefreshSessionResponse>(`${this.authUrl}/refresh`, {}, {
-      withCredentials: true
-    }).pipe(
-      tap(response => {
-        this.accessTokenSignal.set(response.accessToken);
-        this.currentUserSignal.set(response.user);
-      })
-    );
+    if (!this.refreshRequest$) {
+      this.refreshRequest$ = this.http.post<RefreshSessionResponse>(
+        `${this.authUrl}/refresh`,
+        {},
+        {
+          withCredentials: true
+        }
+      ).pipe(
+        tap(response => {
+          this.accessTokenSignal.set(response.accessToken);
+          this.currentUserSignal.set(response.user);
+        }),
+        finalize(() => {
+          this.refreshRequest$ = null;
+        }),
+        shareReplay(1)
+      );
+    }
+
+    return this.refreshRequest$;
   }
 
   initializeSession(): Observable<RefreshSessionResponse | null> {
@@ -87,12 +99,19 @@ export class AuthService {
   }
 
   logout(): Observable<LogoutResponse> {
-    return this.http.post<LogoutResponse>(`${this.authUrl}/logout`, {}, {withCredentials: true}).pipe(
+    return this.http.post<LogoutResponse>(
+      `${this.authUrl}/logout`,
+      {},
+      {
+        withCredentials: true
+      }
+    ).pipe(
       finalize(() => {
         this.clearSession();
       })
     );
   }
+
   getAccessToken(): string | null {
     return this.accessTokenSignal();
   }

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -11,6 +10,7 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { UserProfile } from '../../../profile/models/profile';
 import { ProfileService } from '../../../profile/services/profile';
 import {
@@ -18,13 +18,6 @@ import {
   UpdateLocationRequest
 } from '../../models/location';
 import { CityService } from '../../services/city';
-
-interface ApiErrorBody {
-  error?: {
-    code?: string;
-    message?: string;
-  };
-}
 
 @Component({
   selector: 'app-location-modal',
@@ -36,6 +29,7 @@ export class LocationModal implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly cityService = inject(CityService);
   private readonly profileService = inject(ProfileService);
+  private readonly apiErrorService = inject(ApiErrorService);
 
   readonly saved = output<UserProfile>();
   readonly dismissed = output<void>();
@@ -90,12 +84,11 @@ export class LocationModal implements OnInit {
     const values = this.locationForm.getRawValue();
 
     const request: UpdateLocationRequest = {
-  cityId: values.cityId,
-  street: values.street.trim(),
-  streetNumber: values.streetNumber.trim(),
-  additionalInfo:
-    values.additionalInfo.trim() || undefined
-};
+      cityId: values.cityId,
+      street: values.street.trim(),
+      streetNumber: values.streetNumber.trim(),
+      additionalInfo: values.additionalInfo.trim() || undefined
+    };
 
     this.isSaving.set(true);
 
@@ -106,7 +99,13 @@ export class LocationModal implements OnInit {
       },
       error: error => {
         this.isSaving.set(false);
-        this.handleError(error);
+
+        this.errorMessage.set(
+          this.apiErrorService.getMessage(
+            error,
+            'Čuvanje lokacije trenutno nije uspelo.'
+          )
+        );
       }
     });
   }
@@ -130,63 +129,11 @@ export class LocationModal implements OnInit {
       },
       error: () => {
         this.isLoadingCities.set(false);
+
         this.errorMessage.set(
           'Gradovi trenutno nisu dostupni. Pokušaj ponovo kasnije.'
         );
       }
     });
-  }
-
-  private handleError(error: HttpErrorResponse): void {
-    const response =
-      error.error as ApiErrorBody | undefined;
-
-    const code = response?.error?.code;
-
-    if (code === 'VALIDATION_ERROR') {
-      this.errorMessage.set(
-        'Proveri unete podatke i pokušaj ponovo.'
-      );
-
-      return;
-    }
-
-    if (code === 'CITY_NOT_FOUND') {
-      this.errorMessage.set(
-        'Izabrani grad više nije dostupan.'
-      );
-
-      return;
-    }
-
-
-    if (code === 'ADDRESS_NOT_FOUND') {
-  this.errorMessage.set(
-    'Uneta adresa nije pronađena. Proveri grad, ulicu i broj.'
-  );
-
-  return;
-}
-
-if (code === 'GEOCODING_SERVICE_UNAVAILABLE') {
-  this.errorMessage.set(
-    'Servis za pronalaženje adrese trenutno nije dostupan. Pokušaj ponovo kasnije.'
-  );
-
-  return;
-}
-
-if (code === 'INVALID_GEOCODING_RESPONSE') {
-  this.errorMessage.set(
-    'Koordinate za unetu adresu trenutno nije moguće odrediti.'
-  );
-
-  return;
-}
-
-    this.errorMessage.set(
-      response?.error?.message ??
-      'Čuvanje lokacije trenutno nije uspelo.'
-    );
   }
 }

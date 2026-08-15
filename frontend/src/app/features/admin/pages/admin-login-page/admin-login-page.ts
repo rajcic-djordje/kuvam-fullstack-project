@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   inject,
@@ -28,12 +27,10 @@ import {
   debounceTime,
   Subscription
 } from 'rxjs';
+import { ApiErrorService } from '../../../../shared/services/api-error';
 import { FormDraftService } from '../../../../shared/services/form-draft';
 import { ToastService } from '../../../../shared/services/toast';
-import {
-  ApiErrorResponse,
-  LoginRequest
-} from '../../../auth/models/auth';
+import { LoginRequest } from '../../../auth/models/auth';
 import { AuthService } from '../../../auth/services/auth';
 
 interface AdminLoginDraft {
@@ -53,10 +50,10 @@ interface AdminLoginDraft {
 export class AdminLoginPage implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly apiErrorService = inject(ApiErrorService);
   private readonly formDraftService = inject(FormDraftService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
-
   private readonly draftKey = 'admin-login';
 
   private draftSubscription: Subscription | null = null;
@@ -131,7 +128,14 @@ export class AdminLoginPage implements OnInit, OnDestroy {
       },
 
       error: error => {
-        this.handleError(error);
+        this.toastService.error(
+          this.apiErrorService.getMessage(
+            error,
+            'Prijava trenutno nije uspela. Pokušaj ponovo.'
+          ),
+          'Prijava nije uspela'
+        );
+
         this.isSubmitting.set(false);
       }
     });
@@ -170,66 +174,5 @@ export class AdminLoginPage implements OnInit, OnDestroy {
             } satisfies AdminLoginDraft
           );
         });
-  }
-
-  private handleError(
-    error: HttpErrorResponse
-  ): void {
-    const response =
-      error.error as
-        | ApiErrorResponse
-        | undefined;
-
-    const code =
-      response?.error?.code;
-
-    if (
-      code === 'INVALID_CREDENTIALS' ||
-      code === 'WRONG_PASSWORD' ||
-      code === 'USER_NOT_FOUND'
-    ) {
-      this.toastService.error(
-        'Email adresa ili lozinka nisu ispravni.',
-        'Prijava nije uspela'
-      );
-
-      return;
-    }
-
-    if (code === 'ADMIN_ACCESS_REQUIRED') {
-      this.toastService.error(
-        'Ovaj nalog nema administratorske privilegije.',
-        'Prijava nije uspela'
-      );
-
-      return;
-    }
-
-    if (
-      code === 'ACCOUNT_DISABLED' ||
-      code === 'USER_INACTIVE'
-    ) {
-      this.toastService.error(
-        'Ovaj nalog trenutno nije aktivan.',
-        'Prijava nije uspela'
-      );
-
-      return;
-    }
-
-    if (code === 'VALIDATION_ERROR') {
-      this.toastService.error(
-        'Proveri unete podatke i pokušaj ponovo.',
-        'Prijava nije uspela'
-      );
-
-      return;
-    }
-
-    this.toastService.error(
-      response?.error?.message ??
-      'Prijava trenutno nije uspela. Pokušaj ponovo.',
-      'Prijava nije uspela'
-    );
   }
 }
