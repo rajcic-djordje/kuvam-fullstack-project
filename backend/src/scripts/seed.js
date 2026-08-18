@@ -68,6 +68,27 @@ const cityData = [
 
 const userData = [
   {
+  firstName: "Jovana",
+  lastName: "Popović",
+  email: "jovana.deactivated@kuvam.rs",
+  citySlug: "beograd",
+  address: {
+    street: "Kneza Miloša",
+    streetNumber: "54",
+    additionalInfo: null,
+    latitude: 44.8019,
+    longitude: 20.4592
+  },
+  status: USER_STATUS.DEACTIVATED,
+  reportsCount: 0,
+  offences: 0,
+  suspensionReason: null,
+  suspendedAt: null,
+  banReason: null
+},
+  
+  
+  {
     firstName: "Nikola",
     lastName: "Simić",
     email: "nikola.seed@kuvam.rs",
