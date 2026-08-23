@@ -321,8 +321,16 @@ const deleteSellerOffer = async (
     )
 
     const hasOrders = await Order.exists({
-        offer: offer._id
-    })
+    "items.offer": offer._id
+})
+
+if (hasOrders) {
+    throw new AppError(
+        "Offer with existing orders cannot be deleted.",
+        409,
+        "OFFER_HAS_ORDERS"
+    )
+}
 
     if (hasOrders) {
         throw new AppError(

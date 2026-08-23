@@ -9,9 +9,10 @@
   },
   "packageManager": "npm@11.4.2",
   "scripts": {
-    "start": "node server.js",
+    "start": "node --env-file=.env server.js",
     "dev": "node --watch --env-file=.env server.js",
-    "seed": "node --env-file=.env src/scripts/seed.js"
+    "seed": "node --env-file=.env src/scripts/seed.js",
+    "test:api": "npm run seed && node --env-file=.env server.js"
   },
   "author": "Djordje Rajcic",
   "license": "MIT",

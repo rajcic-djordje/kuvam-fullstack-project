@@ -4,7 +4,7 @@ import { SELLER_APPROVAL_STATUS } from "../constants/seller.js"
 const sellerSchema = new mongoose.Schema({
     user: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true},
     businessName: {type: String, required: true, trim: true, minlength: 2, maxlength: 100},
-    slug: {type: String, trim: true, lowercase: true, unique: true, sparse: true, default: null},
+    slug: {type: String, trim: true, lowercase: true, unique: true, sparse: true},
     description: {type: String, trim: true, maxlength: 500, default: ""},
     profileImageUrl: {type: String, trim: true, default: null},
     coverImageUrl: {type: String, trim: true, default: null},

@@ -9,45 +9,65 @@ import io.restassured.response.Response;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import tests.BaseTest;
+import tests.auth.constants.AuthAccessTestConstants;
 
 public class AuthAccessTest extends BaseTest {
+
 
     @Test
     public void unauthenticatedUnsuccessfulAccessToProtectedRoutes() {
 
-        Response r = AuthRequestBuilder.protectedRouteAccess();
+        Response protectedRouteResponse =
+                AuthRequestBuilder.protectedRouteAccess();
 
-        Assert.assertEquals(r.statusCode(),401);
+        Assert.assertEquals(
+                protectedRouteResponse.statusCode(),
+                AuthAccessTestConstants.STATUS_UNAUTHORIZED
+        );
 
-        ErrorResponse er = r.as(ErrorResponse.class);
+        ErrorResponse errorResponse =
+                protectedRouteResponse.as(ErrorResponse.class);
 
-        Assert.assertEquals(er.getError().getMessage(), "Authentication required.");
-        Assert.assertEquals(er.getError().getCode(), "AUTHENTICATION_REQUIRED");
+        Assert.assertEquals(
+                errorResponse.getError().getMessage(),
+                AuthAccessTestConstants.AUTHENTICATION_REQUIRED_MESSAGE
+        );
 
+        Assert.assertEquals(
+                errorResponse.getError().getCode(),
+                AuthAccessTestConstants.AUTHENTICATION_REQUIRED_CODE
+        );
     }
 
 
     @Test
     public void logoutTest() {
 
-        LoginRequest lr = new LoginRequest(ConfigReader.get("buyerEmail"), ConfigReader.get("buyerPassword"));
+        LoginRequest loginRequest = new LoginRequest(
+                ConfigReader.get("buyerEmail"),
+                ConfigReader.get("buyerPassword")
+        );
 
-        Response lRes = AuthRequestBuilder.login(lr);
+        Response loginResponse =
+                AuthRequestBuilder.login(loginRequest);
 
-        String refreshToken = lRes.getCookie("refreshToken");
+        String refreshToken =
+                loginResponse.getCookie("refreshToken");
 
-        lRes = AuthRequestBuilder.logout(refreshToken);
+        Response logoutResponse =
+                AuthRequestBuilder.logout(refreshToken);
 
-        Assert.assertEquals(lRes.statusCode(),200);
+        Assert.assertEquals(
+                logoutResponse.statusCode(),
+                AuthAccessTestConstants.STATUS_OK
+        );
 
-        MessageResponse mr = lRes.as(MessageResponse.class);
+        MessageResponse messageResponse =
+                logoutResponse.as(MessageResponse.class);
 
-        Assert.assertEquals(mr.getMessage(), "User logged out successfully.");
-
-
-
-
+        Assert.assertEquals(
+                messageResponse.getMessage(),
+                AuthAccessTestConstants.LOGOUT_SUCCESS_MESSAGE
+        );
     }
-
-
 }

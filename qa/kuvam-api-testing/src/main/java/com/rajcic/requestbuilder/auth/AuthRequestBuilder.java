@@ -17,7 +17,6 @@ public class AuthRequestBuilder {
 
         return RestAssured
                 .given()
-                .log().all()
                 .spec(ReqSpecification.requestNoAuthBody(AuthRequestBuilderConstants.LOGIN_PATH, body))
                 .when()
                 .post()

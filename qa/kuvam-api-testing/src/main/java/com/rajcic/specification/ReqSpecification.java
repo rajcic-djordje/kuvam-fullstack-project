@@ -1,5 +1,6 @@
 package com.rajcic.specification;
 
+import com.rajcic.config.ConfigReader;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
@@ -43,6 +44,13 @@ public class ReqSpecification {
         return new RequestSpecBuilder()
                 .setBasePath(path)
                 .setContentType(ContentType.JSON)
+                .build();
+    }
+
+    public static RequestSpecification requestAuthMultipart(String path, String token) {
+        return new RequestSpecBuilder()
+                .setBasePath(path)
+                .addHeader("Authorization", "Bearer " + token)
                 .build();
     }
 

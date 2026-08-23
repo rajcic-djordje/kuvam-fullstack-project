@@ -7,6 +7,7 @@ import path from "node:path"
 import {SELLER_APPROVAL_STATUS} from "../constants/seller.js"
 import {OFFER_CATEGORIES} from "../constants/offer.js"
 import {createPublicLocationZone} from "../utils/publicLocation.js"
+import User from "../models/user.js"
 
 const createSellerSlug = (businessName) => {
     return businessName
@@ -211,7 +212,15 @@ const getPublicSellers = async ({
         )
     }
 
+    const activeSellerUsers = await User.find({
+    status: "active",
+    role: "seller"
+}).select("_id")
+
+const activeSellerUserIds = activeSellerUsers.map((user) => user._id)
+
     const sellerFilter = {
+        user: {$in: activeSellerUserIds},
     approvalStatus: SELLER_APPROVAL_STATUS.APPROVED,
     isOpen: true,
     city: {$ne: null},
@@ -301,7 +310,16 @@ const getPublicSellers = async ({
 }
 
 const getPublicSellerBySlug = async (slug) => {
+
+    const activeSellerUsers = await User.find({
+    status: "active",
+    role: "seller"
+}).select("_id")
+
+const activeSellerUserIds = activeSellerUsers.map((user) => user._id)
+
     const seller = await Seller.findOne({
+        user: {$in: activeSellerUserIds},
     slug,
     approvalStatus: SELLER_APPROVAL_STATUS.APPROVED,
     isOpen: true,

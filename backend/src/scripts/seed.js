@@ -205,6 +205,27 @@ const userData = [
 ]
 
 const sellerData = [
+  
+  {
+  firstName: "Ivana",
+  lastName: "Matić",
+  email: "ivana.rejected@kuvam.rs",
+  businessName: "Ivanina domaća kuhinja",
+  slug: "ivanina-domaca-kuhinja",
+  description: "Domaća kuvana jela i peciva po porudžbini.",
+  citySlug: "nis",
+  pickupAddress: {
+    street: "Dušanova",
+    streetNumber: "48",
+    additionalInfo: null,
+    latitude: 43.3197,
+    longitude: 21.8958
+  },
+  approvalStatus: SELLER_APPROVAL_STATUS.REJECTED,
+  rejectionReason: "Prijava nije sadržala dovoljno informacija za odobravanje profila."
+},
+  
+  
   {
     firstName: "Milica",
     lastName: "Jovanović",
@@ -797,7 +818,7 @@ const seed = async () => {
         city: city._id,
         pickupAddress: data.pickupAddress,
         approvalStatus: data.approvalStatus,
-        rejectionReason: null
+        rejectionReason: data.rejectionReason ?? null
       })
 
       sellersByEmail.set(data.email, seller)
