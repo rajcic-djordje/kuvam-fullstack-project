@@ -612,14 +612,14 @@
                       </span>
 
                       <strong
-                        [class.open]="user.sellerProfile.isOpen"
-                      >
-                        {{
-                          user.sellerProfile.isOpen
-                            ? 'Otvoren'
-                            : 'Zatvoren'
-                        }}
-                      </strong>
+  [class.open]="user.sellerProfile.isOpen"
+>
+  {{
+    user.sellerProfile.isOpen
+      ? 'Prima porudžbine'
+      : 'Ne prima porudžbine'
+  }}
+</strong>
                     </div>
 
                     <button
@@ -634,8 +634,8 @@
                           ? 'Ažuriranje...'
                           : (
                             user.sellerProfile.isOpen
-                              ? 'Zatvori'
-                              : 'Otvori'
+                              ? 'Pauziraj porudžbine'
+                              : 'Počni da primaš'
                           )
                       }}
                     </button>

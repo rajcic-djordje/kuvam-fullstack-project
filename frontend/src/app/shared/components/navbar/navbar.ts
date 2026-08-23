@@ -14,6 +14,7 @@ import {
   LucideBellDot,
   LucideCheckCheck,
   LucideDynamicIcon,
+  LucideLayoutDashboard,
   LucideLogOut,
   LucideMenu,
   LucidePackage,
@@ -69,6 +70,9 @@ export class Navbar {
 
   readonly userIcon =
     LucideUser;
+
+  readonly dashboardIcon =
+    LucideLayoutDashboard;
 
   readonly logoutIcon =
     LucideLogOut;

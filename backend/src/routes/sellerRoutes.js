@@ -16,12 +16,16 @@ import {USER_ROLES} from "../constants/user.js"
 import {updateSellerProfileSchema} from "../validators/sellerValidator.js"
 import {optionalAuthenticate} from "../middleware/optionalAuthenticate.js"
 import uploadSellerImage from "../middleware/uploadSellerImage.js"
+import {validateQuery} from "../middleware/validateQuery.js"
+import {sellerQuerySchema} from "../validators/queryValidator.js"
+
 
 const router = express.Router()
 
 router.get(
     "/",
     optionalAuthenticate,
+    validateQuery(sellerQuerySchema),
     getSellers
 )
 

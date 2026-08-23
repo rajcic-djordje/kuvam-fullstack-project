@@ -168,7 +168,6 @@ const unbanUser = async(userId) => {
     user.banReason = null
     user.offencesSinceLastBan = 0
 
-await user.save()
 
     await user.save()
 

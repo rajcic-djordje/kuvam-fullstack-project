@@ -338,20 +338,36 @@ const getBuyerOrderById = async (
 }
 
 const cancelBuyerOrder = async (buyerId, orderId) => {
-    const order = await Order.findOne({
-        _id: orderId,
-        buyer: buyerId
-    })
+    const order = await Order.findOneAndUpdate(
+        {
+            _id: orderId,
+            buyer: buyerId,
+            status: ORDER_STATUS.PENDING
+        },
+        {
+            $set: {
+                status: ORDER_STATUS.CANCELLED
+            }
+        },
+        {
+            new: true
+        }
+    )
 
     if (!order) {
-        throw new AppError(
-            "Order not found.",
-            404,
-            "ORDER_NOT_FOUND"
-        )
-    }
+        const existingOrder = await Order.exists({
+            _id: orderId,
+            buyer: buyerId
+        })
 
-    if (order.status !== ORDER_STATUS.PENDING) {
+        if (!existingOrder) {
+            throw new AppError(
+                "Order not found.",
+                404,
+                "ORDER_NOT_FOUND"
+            )
+        }
+
         throw new AppError(
             "Only pending orders can be cancelled.",
             409,
@@ -359,17 +375,21 @@ const cancelBuyerOrder = async (buyerId, orderId) => {
         )
     }
 
-    order.status = ORDER_STATUS.CANCELLED
-
-    await order.save()
-
     try {
         await restoreOrderQuantities(order)
     }
     catch (error) {
-        order.status = ORDER_STATUS.PENDING
-
-        await order.save()
+        await Order.findOneAndUpdate(
+            {
+                _id: order._id,
+                status: ORDER_STATUS.CANCELLED
+            },
+            {
+                $set: {
+                    status: ORDER_STATUS.PENDING
+                }
+            }
+        )
 
         throw error
     }
@@ -564,37 +584,39 @@ const acceptSellerOrder = async (
     return getSellerOrderById(userId, orderId)
 }
 
-const rejectSellerOrder = async (
-    userId,
-    orderId,
-    rejectionReason
-) => {
-    const seller = await Seller.findOne({
-        user: userId
-    })
+const rejectSellerOrder = async (sellerId, orderId) => {
+    const seller = await getSellerByUserId(sellerId)
 
-    if (!seller) {
-        throw new AppError(
-            "Seller profile not found.",
-            404,
-            "SELLER_PROFILE_NOT_FOUND"
-        )
-    }
-
-    const order = await Order.findOne({
-        _id: orderId,
-        seller: seller._id
-    })
+    const order = await Order.findOneAndUpdate(
+        {
+            _id: orderId,
+            seller: seller._id,
+            status: ORDER_STATUS.PENDING
+        },
+        {
+            $set: {
+                status: ORDER_STATUS.REJECTED
+            }
+        },
+        {
+            new: true
+        }
+    )
 
     if (!order) {
-        throw new AppError(
-            "Order not found.",
-            404,
-            "ORDER_NOT_FOUND"
-        )
-    }
+        const existingOrder = await Order.exists({
+            _id: orderId,
+            seller: seller._id
+        })
 
-    if (order.status !== ORDER_STATUS.PENDING) {
+        if (!existingOrder) {
+            throw new AppError(
+                "Order not found.",
+                404,
+                "ORDER_NOT_FOUND"
+            )
+        }
+
         throw new AppError(
             "Only pending orders can be rejected.",
             409,
@@ -602,34 +624,34 @@ const rejectSellerOrder = async (
         )
     }
 
-    order.status = ORDER_STATUS.REJECTED
-    order.rejectionReason = rejectionReason
-
-    await order.save()
-
     try {
         await restoreOrderQuantities(order)
     }
     catch (error) {
-        order.status = ORDER_STATUS.PENDING
-        order.rejectionReason = null
-
-        await order.save()
+        await Order.findOneAndUpdate(
+            {
+                _id: order._id,
+                status: ORDER_STATUS.REJECTED
+            },
+            {
+                $set: {
+                    status: ORDER_STATUS.PENDING
+                }
+            }
+        )
 
         throw error
     }
 
-    const orderLabel = getOrderNotificationLabel(order)
-
-    await createNotification({
-        recipient: order.buyer,
+    await createOrderNotification({
+        userId: order.buyer,
+        orderId: order._id,
         type: NOTIFICATION_TYPE.ORDER_REJECTED,
         title: "Porudžbina je odbijena",
-        message: `Prodavac je odbio tvoju porudžbinu: ${orderLabel}.`,
-        order: order._id
+        message: "Domaćin je odbio tvoju porudžbinu."
     })
 
-    return getSellerOrderById(userId, orderId)
+    return order
 }
 
 const markSellerOrderAsReady = async (

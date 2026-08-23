@@ -90,11 +90,25 @@ const adminUsersQuerySchema = z.object({
 })
 
 
+const sellerQuerySchema = z.object({
+    search: z.string()
+        .trim()
+        .min(1)
+        .max(100)
+        .optional(),
+
+    category: z.string().refine(
+        (value) => Object.values(OFFER_CATEGORIES).includes(value),
+        { message: "Invalid offer category." }
+    ).optional()
+})
+
 export {
     offerQuerySchema,
     orderQuerySchema,
     reportQuerySchema,
     pendingSellerQuerySchema,
     suspendedUsersQuerySchema,
-    adminUsersQuerySchema
+    adminUsersQuerySchema,
+    sellerQuerySchema
 }

@@ -1057,8 +1057,8 @@ implements OnInit, OnDestroy {
 
           this.toastService.success(
             newAvailability
-              ? 'Prodavac je sada otvoren i prima nove porudžbine.'
-              : 'Prodavac je sada zatvoren za nove porudžbine.'
+              ? 'Sada primaš nove porudžbine.'
+              : 'Primanje novih porudžbina je pauzirano.'
           );
         },
 

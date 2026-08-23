@@ -89,10 +89,10 @@ const deleteMySellerCoverImage = async (req, res) => {
 
 const getSellers = async (req, res) => {
     const sellers = await getPublicSellers({
-        search: req.query.search,
-        category: req.query.category,
-        cityId: req.auth?.cityId
-    })
+    search: req.queryData.search,
+    category: req.queryData.category,
+    cityId: req.auth?.cityId
+})
 
     return res.status(200).json({
         message: "Sellers retrieved successfully.",

@@ -354,13 +354,7 @@ const deleteSellerOffer = async (
             "OFFER_HAS_ORDERS"
         )
     }
-    if (hasOrders) {
-        throw new AppError(
-            "Offer with existing orders cannot be deleted.",
-            409,
-            "OFFER_HAS_ORDERS"
-        )
-    }
+
 
     await deleteOfferImage(offer.imageUrl)
     await offer.deleteOne()

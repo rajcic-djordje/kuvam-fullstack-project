@@ -71,15 +71,19 @@
               role="menu"
             >
               <div class="profile-summary">
-                <strong>
-                  {{ authService.currentUser()?.firstName }}
-                  {{ authService.currentUser()?.lastName }}
-                </strong>
+  <strong>
+    {{ authService.currentUser()?.firstName }}
+    {{ authService.currentUser()?.lastName }}
+  </strong>
 
-                <span>
-                  {{ authService.currentUser()?.email }}
-                </span>
-              </div>
+  <span>
+    {{ authService.currentUser()?.email }}
+  </span>
+
+  @if (authService.currentUser()?.role === 'admin') {
+    <small>Administrator</small>
+  }
+</div>
 
               <div class="dropdown-divider"></div>
 
@@ -135,21 +139,39 @@
                 </a>
               }
 
-              <a
-                class="dropdown-item"
-                routerLink="/profile"
-                role="menuitem"
-                (click)="closeProfileMenu()"
-              >
-                <svg
-                  [lucideIcon]="userIcon"
-                  [size]="18"
-                  [strokeWidth]="1.8"
-                  aria-hidden="true"
-                ></svg>
+              @if (authService.currentUser()?.role === 'admin') {
+                <a
+                  class="dropdown-item"
+                  routerLink="/admin/dashboard"
+                  role="menuitem"
+                  (click)="closeProfileMenu()"
+                >
+                  <svg
+                    [lucideIcon]="dashboardIcon"
+                    [size]="18"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
 
-                <span>Moj profil</span>
-              </a>
+                  <span>Vrati se na dashboard</span>
+                </a>
+              } @else {
+                <a
+                  class="dropdown-item"
+                  routerLink="/profile"
+                  role="menuitem"
+                  (click)="closeProfileMenu()"
+                >
+                  <svg
+                    [lucideIcon]="userIcon"
+                    [size]="18"
+                    [strokeWidth]="1.8"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <span>Moj profil</span>
+                </a>
+              }
 
               <div class="dropdown-divider"></div>
 
@@ -472,7 +494,23 @@
             </a>
           }
 
-          @if (authService.isAuthenticated()) {
+          @if (authService.currentUser()?.role === 'admin') {
+            <a
+              class="mobile-nav-link mobile-nav-link-icon"
+              routerLink="/admin/dashboard"
+              routerLinkActive="active"
+              (click)="closeMobileMenu()"
+            >
+              <svg
+                [lucideIcon]="dashboardIcon"
+                [size]="18"
+                [strokeWidth]="1.8"
+                aria-hidden="true"
+              ></svg>
+
+              <span>Vrati se na dashboard</span>
+            </a>
+          } @else if (authService.isAuthenticated()) {
             <a
               class="mobile-nav-link mobile-nav-link-icon"
               routerLink="/profile"
