@@ -222,8 +222,7 @@
 
   color: #15251b;
 
-  font-family:
-    var(--font-heading);
+  font-family: var(--font-display);
 
   font-size:
     clamp(

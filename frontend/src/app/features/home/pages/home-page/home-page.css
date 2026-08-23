@@ -1,8 +1,12 @@
 .home-page {
+  
+
   padding:
     clamp(12px, 2vw, 18px)
     0
     var(--space-9);
+
+  font-family: var(--font-body);
 }
 
 .hero-content {
@@ -48,15 +52,16 @@
 
   color: var(--color-text);
 
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: clamp(
     44px,
     4.6vw,
     72px
   );
-  font-weight: 600;
+  
   line-height: 0.99;
-  letter-spacing: -0.025em;
+  font-weight: 600;
+  letter-spacing: -0.035em;
 }
 
 .hero-text h1 span {

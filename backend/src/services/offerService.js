@@ -1,8 +1,13 @@
 import {
     SELLER_APPROVAL_STATUS
 } from "../constants/seller.js"
+import {
+    USER_ROLES,
+    USER_STATUS
+} from "../constants/user.js"
 import AppError from "../errors/appError.js"
 import Seller from "../models/seller.js"
+import User from "../models/user.js"
 import Offer from "../models/offer.js"
 import Order from "../models/order.js"
 import fs from "node:fs/promises"
@@ -15,7 +20,6 @@ const createOffer = async (
     const seller = await Seller.findOne({
         user: userId
     })
-
     if (!seller) {
         throw new AppError(
             "Seller profile not found.",
@@ -34,7 +38,6 @@ const createOffer = async (
             "SELLER_NOT_APPROVED"
         )
     }
-
     return Offer.create({
         seller: seller._id,
         name: offerData.name,
@@ -52,7 +55,6 @@ const getSellerOffers = async userId => {
     const seller = await Seller.findOne({
         user: userId
     })
-
     if (!seller) {
         throw new AppError(
             "Seller profile not found.",
@@ -75,7 +77,6 @@ const getOwnedOffer = async (
     const seller = await Seller.findOne({
         user: userId
     })
-
     if (!seller) {
         throw new AppError(
             "Seller profile not found.",
@@ -93,7 +94,6 @@ const getOwnedOffer = async (
             "OFFER_NOT_FOUND"
         )
     }
-
     if (!offer.seller.equals(seller._id)) {
         throw new AppError(
             "You cannot modify another seller's offer.",
@@ -147,7 +147,6 @@ const deleteOfferImage = async imageUrl => {
         return
 
     let imagePath = imageUrl
-
     if (
         imageUrl.startsWith("http://") ||
         imageUrl.startsWith("https://")
@@ -193,11 +192,28 @@ const updateSellerOfferImage = async (
     return offer
 }
 
+const getActiveSellerUserIds = async () => {
+    const users = await User.find({
+        role: USER_ROLES.SELLER,
+        status: USER_STATUS.ACTIVE
+    })
+        .select("_id")
+        .lean()
+
+    return users.map(user => user._id)
+}
+
 const getPublicOffers = async (
     query,
     cityId
 ) => {
+    const activeSellerUserIds =
+        await getActiveSellerUserIds()
+
     const sellerFilter = {
+        user: {
+            $in: activeSellerUserIds
+        },
         approvalStatus:
             SELLER_APPROVAL_STATUS.APPROVED,
         isOpen: true,
@@ -272,11 +288,31 @@ const getPublicOffers = async (
 }
 
 const getPublicOfferById = async offerId => {
+    const activeSellerUserIds =
+        await getActiveSellerUserIds()
+
+    const publicSellers = await Seller.find({
+        user: {
+            $in: activeSellerUserIds
+        },
+        approvalStatus:
+            SELLER_APPROVAL_STATUS.APPROVED,
+        isOpen: true
+    }).select("_id")
+
+    const publicSellerIds =
+        publicSellers.map(
+            seller => seller._id
+        )
+
     const offer = await Offer.findOne({
         _id: offerId,
         isActive: true,
         availableQuantity: {
             $gt: 0
+        },
+        seller: {
+            $in: publicSellerIds
         }
     }).populate({
         path: "seller",
@@ -288,19 +324,6 @@ const getPublicOfferById = async offerId => {
     })
 
     if (!offer) {
-        throw new AppError(
-            "Offer not found.",
-            404,
-            "OFFER_NOT_FOUND"
-        )
-    }
-
-    if (
-        !offer.seller ||
-        offer.seller.approvalStatus !==
-        SELLER_APPROVAL_STATUS.APPROVED ||
-        !offer.seller.isOpen
-    ) {
         throw new AppError(
             "Offer not found.",
             404,
@@ -321,17 +344,16 @@ const deleteSellerOffer = async (
     )
 
     const hasOrders = await Order.exists({
-    "items.offer": offer._id
-})
+        "items.offer": offer._id
+    })
 
-if (hasOrders) {
-    throw new AppError(
-        "Offer with existing orders cannot be deleted.",
-        409,
-        "OFFER_HAS_ORDERS"
-    )
-}
-
+    if (hasOrders) {
+        throw new AppError(
+            "Offer with existing orders cannot be deleted.",
+            409,
+            "OFFER_HAS_ORDERS"
+        )
+    }
     if (hasOrders) {
         throw new AppError(
             "Offer with existing orders cannot be deleted.",

@@ -94,7 +94,7 @@
 .page-heading h1 {
   margin: 0;
   color: #253126;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: clamp(30px, 2.4vw, 38px);
   line-height: 1.05;
   letter-spacing: -0.025em;
@@ -103,7 +103,7 @@
 .page-heading p {
   margin: 7px 0 0;
   color: #727970;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -132,12 +132,12 @@
 
 .reports-summary strong {
   color: #773f3a;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .reports-summary span {
   color: #817a70;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .reports-panel {
@@ -202,7 +202,7 @@
   border: 0;
   outline: 0;
   font: inherit;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .search-field input::placeholder {
@@ -216,7 +216,7 @@
 
 .filter-field > span {
   color: #657066;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -232,7 +232,7 @@
   border-radius: 12px;
   outline: 0;
   font: inherit;
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
 }
 
@@ -317,8 +317,8 @@
   place-items: center;
   flex: 0 0 auto;
   border-radius: 50%;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 15px;
+  font-family: var(--font-heading);
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -343,7 +343,7 @@
 .participant-label,
 .information-label {
   color: #7c857d;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -358,12 +358,12 @@
 
 .participant-details strong {
   color: #2e2d25;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .participant-details small {
   color: #80877f;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .report-arrow {
@@ -396,14 +396,14 @@
 
 .reason-title {
   color: #3e433e;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .reason-section p {
   margin: 0;
   overflow: hidden;
   color: #747b74;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -417,7 +417,7 @@
   align-items: center;
   gap: 6px;
   border-radius: 9px;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -447,7 +447,7 @@
   align-items: center;
   gap: 7px;
   color: #4e5a51;
-  font-size: 9px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -468,7 +468,7 @@
   border: 1px solid #ead5d0;
   border-radius: 10px;
   font: inherit;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -498,7 +498,7 @@
 .list-footer p {
   margin: 0;
   color: #7b837c;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .list-footer strong {
@@ -562,12 +562,12 @@
 
 .page-state strong {
   color: #26352a;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .page-state span {
   max-width: 360px;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -580,7 +580,7 @@
   border: 0;
   border-radius: 9px;
   font: inherit;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -635,7 +635,7 @@
 
 .modal-eyebrow {
   color: #9e534b;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -644,7 +644,7 @@
 .modal-header h2 {
   margin: 5px 0 0;
   color: #29342b;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: 25px;
 }
 
@@ -680,7 +680,7 @@
 
 .modal-status-row time {
   color: #7a827b;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .modal-users {
@@ -712,7 +712,7 @@
 
 .modal-user span {
   color: #818880;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -726,12 +726,12 @@
 
 .modal-user strong {
   color: #303831;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .modal-user small {
   color: #7d847d;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .modal-user em {
@@ -744,7 +744,7 @@
   color: #45644b;
   background: #edf4e9;
   border-radius: 7px;
-  font-size: 8px;
+  font-size: 10px;
   font-style: normal;
   font-weight: 700;
 }
@@ -790,7 +790,7 @@
 .admin-note-field > span,
 .review-card > span {
   color: #798179;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -800,7 +800,7 @@
   height: 100%;
   margin: 0;
   color: #505850;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -818,13 +818,13 @@
 
 .detail-card dt {
   color: #7b837c;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .detail-card dd {
   margin: 0;
   color: #374038;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   text-align: right;
 }
@@ -845,7 +845,7 @@
   border-radius: 11px;
   outline: 0;
   font: inherit;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -856,7 +856,7 @@
 
 .admin-note-field small {
   color: #899089;
-  font-size: 8px;
+  font-size: 10px;
   text-align: right;
 }
 
@@ -874,7 +874,7 @@
   gap: 8px;
   border-radius: 10px;
   font: inherit;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -911,13 +911,13 @@
 .review-card p {
   margin: 8px 0;
   color: #4e574f;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
 .review-card small {
   color: #7e867f;
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .button-loader {

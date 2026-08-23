@@ -2,6 +2,7 @@ import env from "../config/env.js"
 import {
     loginUser,
     registerUser,
+    reactivateUser,
     requestPasswordReset,
     resetUserPassword,
     refreshUserSession,
@@ -32,6 +33,18 @@ const login = async(req, res) => {
 
     return res.status(200).json({
         message: "User logged in successfully.",
+        user: result.user,
+        accessToken: result.accessToken
+    })
+}
+
+const reactivate = async(req, res) => {
+    const result = await reactivateUser(req.body)
+
+    res.cookie("refreshToken", result.refreshToken, refreshCookieOptions)
+
+    return res.status(200).json({
+        message: "Account reactivated successfully.",
         user: result.user,
         accessToken: result.accessToken
     })
@@ -82,6 +95,7 @@ const logout = async(req, res) => {
 export {
     register,
     login,
+    reactivate,
     forgotPassword,
     resetPassword,
     refresh,

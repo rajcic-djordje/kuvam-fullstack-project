@@ -167,7 +167,7 @@
 
   color: var(--color-text);
 
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: clamp(29px, 3vw, 40px);
   font-weight: 600;
   line-height: 1.08;
@@ -1083,11 +1083,7 @@
   outline: 0;
 
   font: inherit;
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Consolas,
-    monospace;
+  font-family: var(--font-monospace);
 
   font-size: 22px;
   font-weight: 700;

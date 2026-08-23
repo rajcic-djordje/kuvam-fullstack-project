@@ -44,8 +44,23 @@ export class AuthService {
       withCredentials: true
     }).pipe(
       tap(response => {
-        this.accessTokenSignal.set(response.accessToken);
-        this.currentUserSignal.set(response.user);
+        this.setSession(
+          response.accessToken,
+          response.user
+        );
+      })
+    );
+  }
+
+  reactivate(data: LoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.authUrl}/reactivate`, data, {
+      withCredentials: true
+    }).pipe(
+      tap(response => {
+        this.setSession(
+          response.accessToken,
+          response.user
+        );
       })
     );
   }
@@ -63,8 +78,10 @@ export class AuthService {
       withCredentials: true
     }).pipe(
       tap(response => {
-        this.accessTokenSignal.set(response.accessToken);
-        this.currentUserSignal.set(response.user);
+        this.setSession(
+          response.accessToken,
+          response.user
+        );
       })
     );
   }
@@ -79,8 +96,10 @@ export class AuthService {
         }
       ).pipe(
         tap(response => {
-          this.accessTokenSignal.set(response.accessToken);
-          this.currentUserSignal.set(response.user);
+          this.setSession(
+            response.accessToken,
+            response.user
+          );
         }),
         finalize(() => {
           this.refreshRequest$ = null;
@@ -130,5 +149,13 @@ export class AuthService {
   clearSession(): void {
     this.accessTokenSignal.set(null);
     this.currentUserSignal.set(null);
+  }
+
+  private setSession(
+    accessToken: string,
+    user: AuthUser
+  ): void {
+    this.accessTokenSignal.set(accessToken);
+    this.currentUserSignal.set(user);
   }
 }

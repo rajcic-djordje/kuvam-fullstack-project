@@ -34,7 +34,7 @@
 .location-heading h2 {
   margin: 5px 0 0;
   color: var(--color-text);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: clamp(23px, 2.2vw, 31px);
   font-weight: 600;
   line-height: 1.15;

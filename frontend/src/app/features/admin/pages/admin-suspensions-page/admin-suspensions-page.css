@@ -117,7 +117,7 @@ select {
 .page-heading h1 {
   margin: 0;
   color: #253126;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: clamp(30px, 2.4vw, 38px);
   line-height: 1.05;
   letter-spacing: -0.025em;
@@ -126,7 +126,7 @@ select {
 .page-heading p {
   margin: 7px 0 0;
   color: #727970;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -158,13 +158,13 @@ select {
 
 .users-summary strong {
   color: #775019;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.1;
 }
 
 .users-summary span {
   color: #817a70;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .users-panel {
@@ -238,7 +238,7 @@ select {
   background: transparent;
   border: 0;
   outline: 0;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .search-field input::placeholder {
@@ -253,7 +253,7 @@ select {
 
 .filter-field > span {
   color: #657066;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -269,7 +269,7 @@ select {
   border: 1px solid #dddcd5;
   border-radius: 12px;
   outline: 0;
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
 }
 
@@ -377,7 +377,7 @@ select {
   box-shadow:
     0 0 0 4px #ffffff,
     0 0 0 5px #ebe8df;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: 20px;
   font-weight: 700;
 }
@@ -419,15 +419,14 @@ select {
 
 .user-details strong {
   color: #2e2d25;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
 .user-details span {
   color: #747a72;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .card-divider {
@@ -449,7 +448,7 @@ select {
 
 .information-label {
   color: #7c857d;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -466,7 +465,7 @@ select {
   color: #285d34;
   background: #edf5e9;
   border-radius: 9px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -486,7 +485,7 @@ select {
   margin: 0;
   overflow: hidden;
   color: #4f554f;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.45;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -498,7 +497,7 @@ select {
   align-items: center;
   gap: 8px;
   color: #4e5a51;
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -575,7 +574,7 @@ select {
   background: transparent;
   border: 0;
   border-radius: 8px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-align: left;
   cursor: pointer;
@@ -618,7 +617,7 @@ select {
   min-width: 0;
   margin: 0;
   color: #7b837c;
-  font-size: 10px;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -685,12 +684,12 @@ select {
 
 .page-state strong {
   color: #26352a;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .page-state span {
   max-width: 360px;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -702,7 +701,7 @@ select {
   background: #347b45;
   border: 0;
   border-radius: 9px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -793,7 +792,7 @@ select {
 .modal-heading h2 {
   margin: 0;
   color: #173820;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: 22px;
   line-height: 1.2;
 }
@@ -801,7 +800,7 @@ select {
 .modal-heading p {
   margin: 6px 0 0;
   color: #747d75;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -853,7 +852,7 @@ select {
     );
   border: 1px solid #ead7ba;
   border-radius: 50%;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-weight: 700;
 }
 
@@ -892,7 +891,6 @@ select {
 .selected-user strong {
   overflow: hidden;
   color: #1d3022;
-  font-family: Georgia, "Times New Roman", serif;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -902,14 +900,14 @@ select {
 }
 
 .selected-user strong {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .profile-identity span,
 .selected-user span {
   overflow: hidden;
   color: #737c74;
-  font-size: 10px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -956,7 +954,7 @@ select {
 
 .profile-field span {
   color: #858c86;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -965,7 +963,7 @@ select {
 .profile-field strong {
   overflow: hidden;
   color: #334038;
-  font-size: 10px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -980,7 +978,7 @@ select {
 }
 
 .account-note > span {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -988,14 +986,14 @@ select {
 
 .account-note p {
   margin: 7px 0 0;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
 .account-note time {
   display: block;
   margin-top: 8px;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .selected-user {
@@ -1028,7 +1026,7 @@ select {
 
 .confirmation-message p {
   margin: 0;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -1042,7 +1040,7 @@ select {
   background: #fff0ee;
   border: 1px solid #efcbc7;
   border-radius: 10px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -1065,7 +1063,7 @@ select {
   min-height: 40px;
   padding: 0 16px;
   border-radius: 10px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -1273,7 +1271,7 @@ select {
   }
 
   .page-heading p {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .users-panel {
@@ -1307,7 +1305,7 @@ select {
   }
 
   .user-details strong {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .modal-heading {

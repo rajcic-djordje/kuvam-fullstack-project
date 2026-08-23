@@ -54,7 +54,7 @@
 }
 
 .toast-mark span {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: 22px;
   font-weight: 700;
   line-height: 1;
@@ -83,7 +83,6 @@
 .toast-content strong {
   display: block;
   color: #354333;
-  font-family: Georgia, "Times New Roman", serif;
   font-size: 15px;
   line-height: 1.25;
 }

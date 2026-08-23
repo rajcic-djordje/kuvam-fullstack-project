@@ -162,7 +162,7 @@
 
   color: #302923;
 
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: clamp(28px, 4vw, 38px);
   font-weight: 600;
   line-height: 1.08;
@@ -358,7 +358,7 @@
 
   color: #302923;
 
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: 21px;
   font-weight: 600;
 }
@@ -387,11 +387,7 @@
 
   color: #2d6f40;
 
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Consolas,
-    monospace;
+  font-family: var(--font-monospace);
 
   font-size: clamp(34px, 6vw, 45px);
   font-weight: 650;
@@ -479,7 +475,6 @@
 .item-information strong {
   color: #35302b;
 
-  font-family: Georgia, "Times New Roman", serif;
   font-size: 15px;
   font-weight: 600;
 }
@@ -561,7 +556,6 @@
 .seller-information > strong {
   color: #30342f;
 
-  font-family: Georgia, "Times New Roman", serif;
   font-size: 18px;
   font-weight: 600;
 }
@@ -736,7 +730,7 @@
 
   color: #302923;
 
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: 22px;
   font-weight: 600;
 }
@@ -902,7 +896,7 @@
 
   color: #30251f;
 
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading);
   font-size: clamp(27px, 5vw, 34px);
   font-weight: 600;
   line-height: 1.08;

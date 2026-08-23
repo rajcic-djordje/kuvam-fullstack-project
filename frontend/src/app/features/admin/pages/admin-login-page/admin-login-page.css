@@ -186,8 +186,7 @@
   color:
     var(--color-text);
 
-  font-family:
-    var(--font-heading);
+  font-family: var(--font-display);
 
   font-size:
     clamp(
@@ -644,8 +643,6 @@
 
   color: #73453d;
 
-  font-family:
-    var(--font-heading);
 
   font-size: 15px;
   font-weight: 600;

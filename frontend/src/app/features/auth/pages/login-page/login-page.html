@@ -169,26 +169,61 @@
         </a>
       </div>
 
-      <button
-        class="submit-button"
-        type="submit"
-        [disabled]="isSubmitting()"
-      >
-        @if (isSubmitting()) {
-          <span
-            class="button-loader"
-            aria-hidden="true"
-          ></span>
+      @if (canReactivate()) {
+        <div
+          class="success-message"
+          role="status"
+        >
+          <strong>
+            Nalog je deaktiviran.
+          </strong>
 
-          <span>
-            Prijavljivanje...
-          </span>
-        } @else {
-          <span>
-            Prijavi se
-          </span>
-        }
-      </button>
+          Podaci za prijavu su ispravni. Reaktiviraj nalog da bi nastavio sa korišćenjem Kuvam-a.
+        </div>
+
+        <button
+          class="submit-button"
+          type="button"
+          [disabled]="isReactivating()"
+          (click)="reactivateAccount()"
+        >
+          @if (isReactivating()) {
+            <span
+              class="button-loader"
+              aria-hidden="true"
+            ></span>
+
+            <span>
+              Reaktiviranje...
+            </span>
+          } @else {
+            <span>
+              Reaktiviraj nalog i prijavi se
+            </span>
+          }
+        </button>
+      } @else {
+        <button
+          class="submit-button"
+          type="submit"
+          [disabled]="isSubmitting()"
+        >
+          @if (isSubmitting()) {
+            <span
+              class="button-loader"
+              aria-hidden="true"
+            ></span>
+
+            <span>
+              Prijavljivanje...
+            </span>
+          } @else {
+            <span>
+              Prijavi se
+            </span>
+          }
+        </button>
+      }
     </form>
 
     <div

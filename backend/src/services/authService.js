@@ -38,6 +38,7 @@ const registerUser = async(userData) => {
 
     const transformedEmail =
         email.trim().toLowerCase()
+
     const existing = await User.findOne({
         email: transformedEmail
     })
@@ -90,12 +91,9 @@ const registerUser = async(userData) => {
     }
 }
 
-const loginUser = async(credentials) => {
-    const email = credentials.email
-    const password = credentials.password
-
+const getUserByCredentials = async(credentials) => {
     const transformedEmail =
-        email.trim().toLowerCase()
+        credentials.email.trim().toLowerCase()
 
     const user = await User.findOne({
         email: transformedEmail
@@ -110,7 +108,7 @@ const loginUser = async(credentials) => {
 
     const passwordMatch =
         await bcrypt.compare(
-            password,
+            credentials.password,
             user.passwordHash
         )
 
@@ -120,6 +118,36 @@ const loginUser = async(credentials) => {
             401,
             'INVALID_CREDENTIALS'
         )
+
+    return user
+}
+
+const createUserSession = async(user) => {
+    const validUser = {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        status: user.status
+    }
+
+    const accessToken =
+        generateAccessToken(user)
+
+    const refreshToken =
+        await createRefreshSession(user._id)
+
+    return {
+        user: validUser,
+        accessToken,
+        refreshToken
+    }
+}
+
+const loginUser = async(credentials) => {
+    const user =
+        await getUserByCredentials(credentials)
 
     if(!allowedRoles.includes(user.role))
         throw new AppError(
@@ -159,26 +187,32 @@ const loginUser = async(credentials) => {
             'ACCOUNT_DEACTIVATED'
         )
 
-    const validUser = {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        status: user.status
-    }
+    return createUserSession(user)
+}
 
-    const accessToken =
-        generateAccessToken(user)
+const reactivateUser = async(credentials) => {
+    const user =
+        await getUserByCredentials(credentials)
 
-    const refreshToken =
-        await createRefreshSession(user._id)
+    if(!allowedRoles.includes(user.role))
+        throw new AppError(
+            'Administrators cannot reactivate through this endpoint.',
+            403,
+            'ACCOUNT_REACTIVATION_NOT_ALLOWED'
+        )
 
-    return {
-        user: validUser,
-        accessToken,
-        refreshToken
-    }
+    if(user.status !== USER_STATUS.DEACTIVATED)
+        throw new AppError(
+            'Only deactivated accounts can be reactivated.',
+            409,
+            'ACCOUNT_REACTIVATION_NOT_ALLOWED'
+        )
+
+    user.status = USER_STATUS.ACTIVE
+
+    await user.save()
+
+    return createUserSession(user)
 }
 
 const requestPasswordReset = async(email) => {
@@ -408,6 +442,7 @@ const logoutUser = async(refreshToken) => {
 export {
     registerUser,
     loginUser,
+    reactivateUser,
     requestPasswordReset,
     resetUserPassword,
     refreshUserSession,

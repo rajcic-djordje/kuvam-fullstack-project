@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap");
 :root {
   --color-primary: #2f7d4a;
   --color-primary-dark: #23663a;
@@ -22,8 +23,10 @@
   --color-warning: #b8753f;
   --color-warning-soft: #fff4e8;
 
-  --font-body: Inter, "Segoe UI", Arial, sans-serif;
-  --font-heading: Georgia, "Times New Roman", serif;
+  --font-body: "DM Sans", "Segoe UI", Arial, sans-serif;
+  --font-heading: "DM Sans", "Segoe UI", Arial, sans-serif;
+  --font-display: "DM Sans", "Segoe UI", Arial, sans-serif;
+  --font-monospace: ui-monospace, SFMono-Regular, Consolas, monospace;
 
   --radius-sm: 10px;
   --radius-md: 12px;

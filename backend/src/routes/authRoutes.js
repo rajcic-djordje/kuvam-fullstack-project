@@ -2,6 +2,7 @@ import express from "express"
 import {
     register,
     login,
+    reactivate,
     forgotPassword,
     resetPassword,
     refresh,
@@ -27,6 +28,12 @@ router.post(
     "/login",
     validateBody(loginSchema),
     login
+)
+
+router.post(
+    "/reactivate",
+    validateBody(loginSchema),
+    reactivate
 )
 
 router.post(

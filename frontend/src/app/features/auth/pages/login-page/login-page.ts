@@ -55,6 +55,7 @@ export class LoginPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly draftKey = 'login';
+
   private draftSubscription: Subscription | null = null;
 
   readonly emailIcon = LucideMail;
@@ -63,6 +64,8 @@ export class LoginPage implements OnInit, OnDestroy {
   readonly hideIcon = LucideEyeOff;
 
   readonly isSubmitting = signal(false);
+  readonly isReactivating = signal(false);
+  readonly canReactivate = signal(false);
   readonly showPassword = signal(false);
 
   readonly loginForm = this.formBuilder.nonNullable.group({
@@ -129,40 +132,24 @@ export class LoginPage implements OnInit, OnDestroy {
       return;
     }
 
-    const values =
-      this.loginForm.getRawValue();
-
-    const request: LoginRequest = {
-      email:
-        values.email
-          .trim()
-          .toLowerCase(),
-
-      password:
-        values.password
-    };
-
+    this.canReactivate.set(false);
     this.isSubmitting.set(true);
 
     this.authService
-      .login(request)
+      .login(this.getLoginRequest())
       .subscribe({
         next: () => {
-          this.formDraftService.clear(
-            this.draftKey
-          );
-
-          const returnUrl =
-            this.route.snapshot.queryParamMap.get(
-              'returnUrl'
-            ) ?? '/';
-
-          this.router.navigateByUrl(
-            returnUrl
-          );
+          this.completeLogin();
         },
 
         error: error => {
+          if (
+            this.apiErrorService.getCode(error) ===
+            'ACCOUNT_DEACTIVATED'
+          ) {
+            this.canReactivate.set(true);
+          }
+
           this.toastService.error(
             this.apiErrorService.getMessage(
               error,
@@ -174,6 +161,72 @@ export class LoginPage implements OnInit, OnDestroy {
           this.isSubmitting.set(false);
         }
       });
+  }
+
+  reactivateAccount(): void {
+    if (
+      !this.canReactivate() ||
+      this.isReactivating()
+    ) {
+      return;
+    }
+
+    this.isReactivating.set(true);
+
+    this.authService
+      .reactivate(this.getLoginRequest())
+      .subscribe({
+        next: () => {
+          this.toastService.success(
+            'Nalog je uspešno reaktiviran.',
+            'Dobro došao nazad'
+          );
+
+          this.completeLogin();
+        },
+
+        error: error => {
+          this.toastService.error(
+            this.apiErrorService.getMessage(
+              error,
+              'Nalog trenutno nije moguće reaktivirati. Pokušaj ponovo.'
+            ),
+            'Reaktivacija nije uspela'
+          );
+
+          this.isReactivating.set(false);
+        }
+      });
+  }
+
+  private getLoginRequest(): LoginRequest {
+    const values =
+      this.loginForm.getRawValue();
+
+    return {
+      email:
+        values.email
+          .trim()
+          .toLowerCase(),
+
+      password:
+        values.password
+    };
+  }
+
+  private completeLogin(): void {
+    this.formDraftService.clear(
+      this.draftKey
+    );
+
+    const returnUrl =
+      this.route.snapshot.queryParamMap.get(
+        'returnUrl'
+      ) ?? '/';
+
+    this.router.navigateByUrl(
+      returnUrl
+    );
   }
 
   private restoreDraft(): void {
@@ -198,6 +251,8 @@ export class LoginPage implements OnInit, OnDestroy {
           debounceTime(250)
         )
         .subscribe(() => {
+          this.canReactivate.set(false);
+
           const email =
             this.loginForm.controls.email.value;
 
