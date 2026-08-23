@@ -155,6 +155,7 @@ const createOrder = async (buyerId, orderData) => {
 
     const items = []
     const reducedItems = []
+    let createdOrder
 
     try {
         for (const requestedItem of orderData.items) {
@@ -218,25 +219,13 @@ const createOrder = async (buyerId, orderData) => {
             0
         )
 
-        const createdOrder = await Order.create({
+        createdOrder = await Order.create({
             buyer: buyerId,
             seller: seller._id,
             items,
             totalPrice,
             buyerNote: orderData.buyerNote || ""
         })
-
-        const orderLabel = getOrderNotificationLabel(createdOrder)
-
-        await createNotification({
-            recipient: seller.user,
-            type: NOTIFICATION_TYPE.NEW_ORDER,
-            title: "Nova porudžbina",
-            message: `Primili ste novu porudžbinu: ${orderLabel}.`,
-            order: createdOrder._id
-        })
-
-        return createdOrder
     }
     catch (error) {
         if (reducedItems.length > 0) {
@@ -262,6 +251,24 @@ const createOrder = async (buyerId, orderData) => {
 
         throw error
     }
+
+    const orderLabel = getOrderNotificationLabel(createdOrder)
+
+    try {
+        await createNotification({
+            recipient: seller.user,
+            type: NOTIFICATION_TYPE.NEW_ORDER,
+            title: "Nova porudžbina",
+            message: `Primili ste novu porudžbinu: ${orderLabel}.`,
+            order: createdOrder._id
+        })
+    }
+    catch (notificationError) {
+        console.error("New order notification creation failed.")
+        console.error(notificationError)
+    }
+
+    return createdOrder
 }
 
 const getBuyerOrders = async (buyerId, query) => {
@@ -584,8 +591,22 @@ const acceptSellerOrder = async (
     return getSellerOrderById(userId, orderId)
 }
 
-const rejectSellerOrder = async (sellerId, orderId) => {
-    const seller = await getSellerByUserId(sellerId)
+const rejectSellerOrder = async (
+    userId,
+    orderId,
+    rejectionReason
+) => {
+    const seller = await Seller.findOne({
+        user: userId
+    })
+
+    if (!seller) {
+        throw new AppError(
+            "Seller profile not found.",
+            404,
+            "SELLER_PROFILE_NOT_FOUND"
+        )
+    }
 
     const order = await Order.findOneAndUpdate(
         {
@@ -595,7 +616,8 @@ const rejectSellerOrder = async (sellerId, orderId) => {
         },
         {
             $set: {
-                status: ORDER_STATUS.REJECTED
+                status: ORDER_STATUS.REJECTED,
+                rejectionReason
             }
         },
         {
@@ -635,7 +657,8 @@ const rejectSellerOrder = async (sellerId, orderId) => {
             },
             {
                 $set: {
-                    status: ORDER_STATUS.PENDING
+                    status: ORDER_STATUS.PENDING,
+                    rejectionReason: null
                 }
             }
         )
@@ -643,15 +666,15 @@ const rejectSellerOrder = async (sellerId, orderId) => {
         throw error
     }
 
-    await createOrderNotification({
-        userId: order.buyer,
-        orderId: order._id,
+    await createNotification({
+        recipient: order.buyer,
         type: NOTIFICATION_TYPE.ORDER_REJECTED,
         title: "Porudžbina je odbijena",
-        message: "Domaćin je odbio tvoju porudžbinu."
+        message: "Domaćin je odbio tvoju porudžbinu.",
+        order: order._id
     })
 
-    return order
+    return getSellerOrderById(userId, orderId)
 }
 
 const markSellerOrderAsReady = async (
