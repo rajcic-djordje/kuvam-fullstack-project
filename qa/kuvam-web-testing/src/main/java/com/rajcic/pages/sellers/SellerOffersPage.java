@@ -12,6 +12,7 @@ import static com.rajcic.pages.sellers.constants.SellerOffersPageConstants.*;
 public class SellerOffersPage extends BasePage {
 
     private final By sellerOffersPage = By.cssSelector(SELLER_OFFERS_PAGE_SELECTOR);
+    private final By loader = By.cssSelector(LOADER_SELECTOR);
 
     public SellerOffersPage(WebDriver driver, WebDriverWait wait) {
         super(driver, wait);
@@ -19,7 +20,8 @@ public class SellerOffersPage extends BasePage {
 
     public SellerOffersPage open() {
         driver.get(SELLER_OFFERS_URL);
-        wait.until(ExpectedConditions.visibilityOfElementLocated(sellerOffersPage));
+        waitForVisible(sellerOffersPage);
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(loader));
 
         return this;
     }

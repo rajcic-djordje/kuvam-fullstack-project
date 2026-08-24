@@ -4,6 +4,7 @@ public final class SellerOffersPageConstants {
 
     public static final String SELLER_OFFERS_URL = "http://localhost:4200/seller/offers";
     public static final String SELLER_OFFERS_PAGE_SELECTOR = ".seller-offers-page";
+    public static final String LOADER_SELECTOR = ".seller-offers-page .loader";
 
     public static final String OFFER_CARD_XPATH =
             "//article[contains(@class,'offer-card')][.//h2[normalize-space()=\"%s\"]]";

@@ -18,8 +18,14 @@ public class LoginPage extends BasePage {
         super(driver, wait);
     }
 
+    public boolean isLoaded() {
+        return isLoaded(submitButton);
+    }
+
     public LoginPage open() {
         driver.get(LOGIN_URL);
+        isLoaded();
+
         return this;
     }
 
@@ -42,6 +48,7 @@ public class LoginPage extends BasePage {
     }
 
     public void login(String email, String password) {
+        isLoaded();
         enterEmail(email);
         enterPassword(password);
         submit();

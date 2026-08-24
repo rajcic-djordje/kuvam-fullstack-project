@@ -3,6 +3,7 @@ package com.rajcic.pages.offers.constants;
 public final class CreateOfferPageConstants {
 
     public static final String CREATE_OFFER_URL = "http://localhost:4200/seller/offers/new";
+    public static final String SELLER_OFFERS_URL = "http://localhost:4200/seller/offers";
 
     public static final String NAME_INPUT_ID = "offerName";
     public static final String DESCRIPTION_INPUT_ID = "offerDescription";

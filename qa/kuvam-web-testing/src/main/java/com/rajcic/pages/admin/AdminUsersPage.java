@@ -4,6 +4,7 @@ import com.rajcic.pages.base.BasePage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import static com.rajcic.pages.admin.constants.AdminUsersPageConstants.*;
@@ -32,6 +33,10 @@ public class AdminUsersPage extends BasePage {
         return By.xpath(String.format(USER_CARD_XPATH, email));
     }
 
+    private By userStatusBadge(String email) {
+        return By.xpath(String.format(USER_STATUS_BADGE_XPATH, email));
+    }
+
     private WebElement getUserCard(String email) {
         return waitForVisible(userCard(email));
     }
@@ -42,9 +47,7 @@ public class AdminUsersPage extends BasePage {
     }
 
     public String getStatus(String email) {
-        return getUserCard(email)
-                .findElement(statusBadge)
-                .getText();
+        return waitForVisible(userStatusBadge(email)).getText();
     }
 
     public void suspendUser(String email, String reason) {
@@ -56,6 +59,6 @@ public class AdminUsersPage extends BasePage {
         type(suspensionReason, reason);
         click(confirmButton);
 
-        wait.until(driver -> getStatus(email).contains(SUSPENDED_STATUS_PART));
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(userStatusBadge(email), SUSPENDED_STATUS_PART));
     }
 }

@@ -11,6 +11,10 @@ public final class AdminUsersPageConstants {
             "//article[contains(@class,'user-card')]" +
                     "[.//*[contains(@class,'user-details')]//span[normalize-space()=\"%s\"]]";
 
+    public static final String USER_STATUS_BADGE_XPATH =
+            USER_CARD_XPATH +
+                    "//*[contains(@class,'status-badge')]";
+
     public static final String STATUS_BADGE_SELECTOR = ".status-badge";
     public static final String ACTIONS_BUTTON_SELECTOR = ".actions-button";
 

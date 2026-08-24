@@ -5,17 +5,24 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import static com.rajcic.pages.auth.constants.ProfilePageConstants.*;
+
 public class ProfilePage extends BasePage {
 
-    private final By sellerApprovalStatus =
-            By.cssSelector(".seller-status-bar .approval-pill");
+    private final By sellerApprovalStatus = By.cssSelector(SELLER_APPROVAL_STATUS_SELECTOR);
 
     public ProfilePage(WebDriver driver, WebDriverWait wait) {
         super(driver, wait);
     }
 
+    public boolean isLoaded() {
+        return isLoaded(sellerApprovalStatus);
+    }
+
     public ProfilePage open() {
-        driver.get("http://localhost:4200/profile");
+        driver.get(PROFILE_URL);
+        isLoaded();
+
         return this;
     }
 

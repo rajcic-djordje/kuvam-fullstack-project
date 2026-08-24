@@ -3,6 +3,7 @@ package com.rajcic.pages.offers;
 import com.rajcic.pages.base.BasePage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -61,6 +62,7 @@ public class CreateOfferPage extends BasePage {
 
     public void submit() {
         click(submitButton);
+        wait.until(ExpectedConditions.urlToBe(SELLER_OFFERS_URL));
     }
 
     public void createOffer(String name, String description, String category, int price, int quantity, String unit) {

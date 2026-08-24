@@ -24,8 +24,14 @@ public class RegisterPage extends BasePage {
         super(driver, wait);
     }
 
+    public boolean isLoaded() {
+        return isLoaded(sellerRoleButton);
+    }
+
     public RegisterPage open() {
         driver.get(REGISTER_URL);
+        isLoaded();
+
         return this;
     }
 
