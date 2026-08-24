@@ -1,0 +1,281 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 24
+          cache: maven
+          cache-dependency-path: qa/kuvam-api-testing/pom.xml
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Create backend environment
+        working-directory: backend
+        run: |
+          cat > .env <<'EOF'
+          NODE_ENV=test
+          PORT=3000
+          CLIENT_ORIGIN=http://localhost:4200
+          MONGODB_URI=mongodb://localhost:27017/kuvam_ci_api
+          ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
+          ACCESS_TOKEN_EXPIRES_IN=15m
+          REFRESH_SESSION_EXPIRES_IN_DAYS=7
+          ADMIN_FIRST_NAME=${{ secrets.ADMIN_FIRST_NAME }}
+          ADMIN_LAST_NAME=${{ secrets.ADMIN_LAST_NAME }}
+          ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+          PUBLIC_LOCATION_SECRET=${{ secrets.PUBLIC_LOCATION_SECRET }}
+          PICKUP_CODE_SECRET=${{ secrets.PICKUP_CODE_SECRET }}
+          SMTP_HOST=${{ secrets.SMTP_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT }}
+          SMTP_SECURE=false
+          SMTP_USER=${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
+          MAIL_FROM=${{ secrets.SMTP_USER }}
+          EOF
+
+      - name: Seed database
+        working-directory: backend
+        run: npm run seed
+
+      - name: Start backend
+        working-directory: backend
+        run: npm start > ../backend-api.log 2>&1 &
+
+      - name: Wait for backend
+        run: |
+          for i in {1..30}; do
+            if curl --silent --output /dev/null http://localhost:3000/; then
+              exit 0
+            fi
+
+            sleep 1
+          done
+
+          cat backend-api.log
+          exit 1
+
+      - name: Run API tests
+        working-directory: qa/kuvam-api-testing
+        run: mvn --batch-mode test
+
+      - name: Upload API test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-reports
+          path: qa/kuvam-api-testing/target/surefire-reports
+          if-no-files-found: ignore
+
+      - name: Upload backend log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-backend-log
+          path: backend-api.log
+          if-no-files-found: ignore
+
+  web-tests:
+    name: Web Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MOZ_HEADLESS: "1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 24
+          cache: maven
+          cache-dependency-path: qa/kuvam-web-testing/pom.xml
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Create backend environment
+        working-directory: backend
+        run: |
+          cat > .env <<'EOF'
+          NODE_ENV=test
+          PORT=3000
+          CLIENT_ORIGIN=http://localhost:4200
+          MONGODB_URI=mongodb://localhost:27017/kuvam_ci_web
+          ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
+          ACCESS_TOKEN_EXPIRES_IN=15m
+          REFRESH_SESSION_EXPIRES_IN_DAYS=7
+          ADMIN_FIRST_NAME=${{ secrets.ADMIN_FIRST_NAME }}
+          ADMIN_LAST_NAME=${{ secrets.ADMIN_LAST_NAME }}
+          ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+          PUBLIC_LOCATION_SECRET=${{ secrets.PUBLIC_LOCATION_SECRET }}
+          PICKUP_CODE_SECRET=${{ secrets.PICKUP_CODE_SECRET }}
+          SMTP_HOST=${{ secrets.SMTP_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT }}
+          SMTP_SECURE=false
+          SMTP_USER=${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
+          MAIL_FROM=${{ secrets.SMTP_USER }}
+          EOF
+
+      - name: Seed database
+        working-directory: backend
+        run: npm run seed
+
+      - name: Start backend
+        working-directory: backend
+        run: npm start > ../backend-web.log 2>&1 &
+
+      - name: Start frontend
+        working-directory: frontend
+        run: npm start -- --host 127.0.0.1 > ../frontend-web.log 2>&1 &
+
+      - name: Wait for application
+        run: |
+          for i in {1..45}; do
+            backend_ready=false
+            frontend_ready=false
+
+            if curl --silent --output /dev/null http://localhost:3000/; then
+              backend_ready=true
+            fi
+
+            if curl --silent --fail --output /dev/null http://localhost:4200/; then
+              frontend_ready=true
+            fi
+
+            if [ "$backend_ready" = true ] && [ "$frontend_ready" = true ]; then
+              exit 0
+            fi
+
+            sleep 1
+          done
+
+          echo "Backend log:"
+          cat backend-web.log || true
+
+          echo "Frontend log:"
+          cat frontend-web.log || true
+
+          exit 1
+
+      - name: Verify Firefox
+        run: firefox --version
+
+      - name: Run Selenium tests
+        working-directory: qa/kuvam-web-testing
+        run: mvn --batch-mode test
+
+      - name: Upload web test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-test-reports
+          path: qa/kuvam-web-testing/target/surefire-reports
+          if-no-files-found: ignore
+
+      - name: Upload application logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-test-application-logs
+          path: |
+            backend-web.log
+            frontend-web.log
+          if-no-files-found: ignore
