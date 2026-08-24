@@ -1,8 +1,10 @@
 # Kuvam
 
+[![CI](https://github.com/rajcic-djordje/kuvam-fullstack-project/actions/workflows/ci.yml/badge.svg)](https://github.com/rajcic-djordje/kuvam-fullstack-project/actions/workflows/ci.yml)
+
 **Kuvam** is a full-stack web platform that connects local home cooks and food makers with buyers in the same area. It covers the complete workflow from discovering a local seller and browsing available food, through ordering and order tracking, to in-person pickup, pickup confirmation, reviews, reports, and administration.
 
-The project is organized as a monorepo with a standalone Angular frontend, a Node.js/Express REST API, MongoDB persistence, real-time Socket.IO notifications, location features based on Leaflet and OpenStreetMap/Nominatim, and a dedicated QA layer with test documentation and automated API tests.
+The project is organized as a monorepo with a standalone Angular frontend, a Node.js/Express REST API, MongoDB persistence, real-time Socket.IO notifications, location features based on Leaflet and OpenStreetMap/Nominatim, and a dedicated QA layer with test documentation, automated API testing and Selenium-based end-to-end web testing. A GitHub Actions CI pipeline automatically verifies the frontend build, API regression suite and browser-based web tests.
 
 > **Core domain idea:** Kuvam is not a delivery marketplace. Sellers are local people preparing food, each seller has one pickup location, and the buyer personally collects the order from the seller.
 
@@ -34,6 +36,7 @@ The project is organized as a monorepo with a standalone Angular frontend, a Nod
 - [Image uploads](#image-uploads)
 - [Validation and error handling](#validation-and-error-handling)
 - [QA and testing](#qa-and-testing)
+- [Continuous integration](#continuous-integration)
 - [Local development setup](#local-development-setup)
 - [Environment variables](#environment-variables)
 - [Seed data](#seed-data)
@@ -297,7 +300,6 @@ Kuvam distinguishes between:
 ### Buyer location
 
 A buyer can store:
-
 - city;
 - street;
 - street number;
@@ -924,11 +926,14 @@ The controller layer is intentionally thin. Domain rules are concentrated in ser
 
 | Technology | Purpose |
 |---|---|
-| **Java 24** | API automation project |
+| **Java 24** | API and web test automation |
 | **Maven** | build/dependency management |
 | **Rest Assured 6.0.1** | HTTP API automation |
+| **Selenium WebDriver 4.47.0** | browser-based end-to-end web testing |
 | **TestNG 7.12.0** | test runner and assertions |
 | **Jackson 3.2.1** | JSON response mapping |
+| **Firefox / GeckoDriver** | browser execution for Selenium tests |
+| **GitHub Actions** | continuous integration and automated regression execution |
 
 ---
 
@@ -1197,7 +1202,6 @@ On `SIGINT` or `SIGTERM` it attempts to:
 2. close the HTTP server;
 3. disconnect MongoDB;
 4. set an appropriate process exit code.
-
 ---
 
 # Express application configuration
@@ -1497,7 +1501,6 @@ http://localhost:3000/api/v1
 | `PATCH` | `/orders/received/:orderId/complete` | Seller/owner | complete order with pickup code |
 
 ## Reviews
-
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | `POST` | `/reviews` | Buyer | review a completed order |
@@ -1797,7 +1800,6 @@ Maximum offer image size:
 ```text
 5 MB
 ```
-
 Uploaded files receive a UUID-based server filename.
 
 This prevents the original user-controlled filename from directly becoming the stored server filename.
@@ -1891,7 +1893,12 @@ The original exception is logged server-side for debugging.
 
 QA is maintained as a first-class part of the repository.
 
-The `qa/` directory contains both documentation and an automated API test project.
+The `qa/` directory contains manual QA documentation together with two independent automated test projects:
+
+- REST API regression testing with Rest Assured;
+- end-to-end browser testing with Selenium WebDriver.
+
+The automated suites exercise the application against real backend, frontend and MongoDB instances instead of mocked application flows.
 
 ## QA documentation
 
@@ -1961,12 +1968,192 @@ cd qa/kuvam-api-testing
 mvn test
 ```
 
+## Automated web testing
+
+The Selenium WebDriver project is located at:
+
+```text
+qa/kuvam-web-testing/
+```
+
+Its stack includes:
+
+- Java 24;
+- Maven;
+- Selenium WebDriver 4.47.0;
+- TestNG 7.12.0;
+- Firefox.
+
+The project follows the **Page Object Model**. Browser interaction, locators and synchronization logic are kept inside Page Objects, while test classes focus on business flows and assertions.
+
+Shared Page Object infrastructure provides:
+
+- explicit waits for asynchronous UI behavior;
+- page-load synchronization;
+- reusable element interaction;
+- handling of temporary toast overlays;
+- isolated browser/session cleanup between tests.
+
+Locators and reusable UI constants are separated from test-scenario data. Tests therefore avoid direct Selenium/DOM manipulation and interact with the application through Page Object APIs.
+
+### Web test coverage
+
+The current Selenium suite contains **10 end-to-end tests** covering representative buyer, seller, authentication and administration workflows.
+
+Covered flows include:
+
+- buyer registration and login;
+- seller registration and pending approval state;
+- buyer location configuration and seller discovery;
+- cart and order creation;
+- complete buyer/seller pickup workflow;
+- review and report creation after completed orders;
+- seller offer creation, activation, deactivation and deletion;
+- seller order processing;
+- administrator seller approval and user suspension;
+- administrator report moderation.
+
+Several scenarios deliberately switch between buyer, seller and administrator sessions in the same test so that complete cross-role business workflows are verified through the actual UI.
+
+### Running web tests
+
+The following services must be running first:
+
+```text
+MongoDB
+backend  -> http://localhost:3000
+frontend -> http://localhost:4200
+```
+
+The database should contain the expected seed data:
+
+```bash
+cd backend
+npm run seed
+```
+
+Then run:
+
+```bash
+cd qa/kuvam-web-testing
+mvn test
+```
+
+Firefox is used as the browser. During GitHub Actions execution it runs in headless mode.
+
 ## Verified project state
 
 For the current finalized project state used to prepare this README:
 
 - the complete automated API suite passes: **84/84 tests**;
-- the Angular production build completes without errors.
+- the complete Selenium web suite passes: **10/10 tests**;
+- the Angular production build completes without errors;
+- the complete GitHub Actions CI workflow passes successfully.
+
+---
+
+# Continuous integration
+
+The repository includes a GitHub Actions workflow:
+
+```text
+.github/workflows/ci.yml
+```
+
+The CI pipeline runs automatically on:
+
+- pushes to `main`;
+- pull requests targeting `main`;
+- manual execution through `workflow_dispatch`.
+
+The workflow uses minimal repository permissions:
+
+```yaml
+permissions:
+  contents: read
+```
+
+## CI pipeline
+
+The pipeline is divided into three independent jobs:
+
+```text
+CI
+├── Frontend Build
+├── API Tests
+└── Web Tests
+```
+
+### Frontend Build
+
+The frontend job:
+
+1. checks out the repository;
+2. configures Node.js 22;
+3. restores the npm dependency cache;
+4. installs dependencies with `npm ci`;
+5. executes the Angular production build.
+
+### API Tests
+
+The API job provisions an isolated MongoDB 8 service and then:
+
+1. configures Node.js 22 and Java 24;
+2. restores npm and Maven caches;
+3. installs backend dependencies;
+4. creates the test environment from GitHub Actions secrets;
+5. seeds an isolated CI database;
+6. starts the backend;
+7. waits until the backend is reachable;
+8. executes the Rest Assured/TestNG suite with Maven;
+9. uploads Surefire test reports.
+
+Backend logs are preserved as an artifact when the job fails.
+
+### Web Tests
+
+The web-testing job runs the complete application stack.
+
+It:
+
+1. provisions an isolated MongoDB 8 service;
+2. configures Node.js 22 and Java 24;
+3. installs backend and frontend dependencies;
+4. creates the test environment from GitHub Actions secrets;
+5. seeds a dedicated web-testing database;
+6. starts the Express backend;
+7. starts the Angular development server;
+8. waits until both services are available;
+9. verifies Firefox availability;
+10. executes the Selenium/TestNG suite in headless Firefox;
+11. uploads Surefire reports.
+
+Application logs are uploaded when a web-testing run fails, making CI failures easier to diagnose.
+
+The API and web jobs use separate MongoDB databases:
+
+```text
+kuvam_ci_api
+kuvam_ci_web
+```
+
+This keeps the two test suites isolated from one another.
+
+## CI secrets
+
+Sensitive configuration is not committed to the workflow.
+
+GitHub repository secrets provide values such as:
+
+- access-token signing secret;
+- pickup-code secret;
+- public-location secret;
+- administrator credentials;
+- SMTP credentials.
+
+The workflow constructs the required backend `.env` only inside the temporary GitHub Actions runner.
+
+This allows the same application startup and seed logic used locally to be exercised in CI without storing private credentials in version control.
 
 ---
 
@@ -1979,7 +2166,8 @@ Recommended local environment:
 - **Node.js 22.x**
 - **npm 11.x**
 - a reachable **MongoDB** instance
-- **Java 24** and **Maven** for API automation
+- **Java 24** and **Maven** for API and Selenium automation
+- **Firefox** for local Selenium web testing
 - internet access if testing Nominatim geocoding
 - SMTP credentials if testing forgot-password email delivery
 
@@ -2098,7 +2286,6 @@ The real `.env` file must not be committed.
 | `REFRESH_SESSION_EXPIRES_IN_DAYS` | Yes | refresh-session lifetime in days |
 
 ## Administrative seed/configuration
-
 | Variable | Required | Purpose |
 |---|---:|---|
 | `ADMIN_FIRST_NAME` | Yes | admin first name used by current configuration/seed |
@@ -2261,6 +2448,10 @@ The codebase is not tied to one cloud provider. The frontend and backend can be 
 ```text
 kuvam-fullstack-project/
 │
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
 ├── backend/
 │   ├── .env.example
 │   ├── package.json
@@ -2304,7 +2495,11 @@ kuvam-fullstack-project/
 │   ├── #Kuvam - Bug Report.md
 │   ├── #Kuvam - Test Report.md
 │   │
-│   └── kuvam-api-testing/
+│   ├── kuvam-api-testing/
+│   │   ├── pom.xml
+│   │   └── src/
+│   │
+│   └── kuvam-web-testing/
 │       ├── pom.xml
 │       └── src/
 │
@@ -2398,7 +2593,6 @@ Kuvam instead performs a conditional database update that succeeds only when suf
 This makes the available quantity itself part of the database write condition.
 
 ---
-
 ## Why is notification failure separated from successful order creation?
 
 An order and its reserved inventory form the primary transaction-level business result.
@@ -2546,12 +2740,16 @@ The system also includes:
 - privacy-aware public maps;
 - image uploads;
 - QA documentation;
-- automated API regression coverage.
+- automated API regression coverage;
+- automated Selenium end-to-end web testing;
+- GitHub Actions continuous integration.
 
 For the finalized code state represented by this README:
 
-- automated API tests pass;
-- Angular production build passes.
+- automated API tests pass: **84/84**;
+- automated Selenium web tests pass: **10/10**;
+- Angular production build passes;
+- GitHub Actions CI passes across all three jobs.
 
 ---
 
