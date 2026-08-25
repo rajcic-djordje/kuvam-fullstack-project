@@ -17,29 +17,11 @@ const getPendingSellers = async(search, sort) => {
     )
 
     const filter = {
-            approvalStatus: SELLER_APPROVAL_STATUS.PENDING,
-            user: {
-                $in: activeSellerUserIds
-            },
-            description: {
-                $nin: [null, ""]
-            },
-            city: {
-                $ne: null
-            },
-            "pickupAddress.street": {
-                $nin: [null, ""]
-            },
-            "pickupAddress.streetNumber": {
-                $nin: [null, ""]
-            },
-            "pickupAddress.latitude": {
-                $ne: null
-            },
-            "pickupAddress.longitude": {
-                $ne: null
-            }
+        approvalStatus: SELLER_APPROVAL_STATUS.PENDING,
+        user: {
+            $in: activeSellerUserIds
         }
+    }
 
     if(search) {
         const searchRegex = new RegExp(search, "i")
