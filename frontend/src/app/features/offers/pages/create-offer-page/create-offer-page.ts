@@ -229,16 +229,16 @@ export class CreateOfferPage implements OnInit, OnDestroy {
                 ]);
               },
               error: error => {
-                this.isSubmitting.set(
-                  false
-                );
-
                 this.toastService.error(
                   this.apiErrorService.getMessage(
                     error,
                     'Ponuda je kreirana, ali sliku trenutno nije moguće otpremiti. Možeš je dodati kroz izmenu ponude.'
                   )
                 );
+
+                this.router.navigate([
+                  '/seller/offers'
+                ]);
               }
             });
         },

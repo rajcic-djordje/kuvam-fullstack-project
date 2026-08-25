@@ -24,6 +24,11 @@ yarn-error.log*
 .idea/
 .vscode/
 
+uploads/
+
+seed-v2.js
+
 # Operating system files
 .DS_Store
 Thumbs.db
+backend/src/scripts/seed_v2.js

@@ -11,4 +11,18 @@ const OFFER_CATEGORIES = {
     OTHER: "other"
 }
 
-export {OFFER_CATEGORIES}
+const OFFER_UNITS = {
+    PORTION: "porcija",
+    KILOGRAM: "kilogram",
+    PIECE: "komad",
+    PACKAGE: "pakovanje",
+    TRAY: "tepsija",
+    CAKE: "torta",
+    JAR: "tegla",
+    LITER: "litar"
+}
+
+export {
+    OFFER_CATEGORIES,
+    OFFER_UNITS
+}

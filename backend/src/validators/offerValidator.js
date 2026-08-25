@@ -1,13 +1,16 @@
 import z from "zod"
-import {OFFER_CATEGORIES} from "../constants/offer.js"
+import {
+    OFFER_CATEGORIES,
+    OFFER_UNITS
+} from "../constants/offer.js"
 
 const createOfferSchema = z.object({
     name: z.string().trim().min(2).max(100),
-    description: z.string().trim().max(1000).optional(),
+    description: z.string().trim().min(10).max(1000),
     category: z.enum(Object.values(OFFER_CATEGORIES)),
-    price: z.number().positive(),
-    availableQuantity: z.number().int().min(0),
-    unit: z.string().trim().min(1).max(30)
+    price: z.number().min(1),
+    availableQuantity: z.number().int().min(1),
+    unit: z.enum(Object.values(OFFER_UNITS))
 })
 
 const updateOfferSchema = createOfferSchema

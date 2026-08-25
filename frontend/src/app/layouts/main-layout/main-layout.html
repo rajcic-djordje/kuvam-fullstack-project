@@ -1,5 +1,7 @@
 <app-navbar />
-<app-cart-modal />
+<app-cart-modal
+  (locationRequired)="openLocationModal()"
+/>
 
 @if (isLocationModalOpen()) {
   <app-location-modal

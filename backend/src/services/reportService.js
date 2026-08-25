@@ -84,15 +84,40 @@ const approveReport = async (adminId, reportId, adminNote) => {
     const report = await Report.findById(reportId)
 
     if (!report)
-        throw new AppError("Report not found.",404,"REPORT_NOT_FOUND")
+        throw new AppError("Report not found.", 404, "REPORT_NOT_FOUND")
 
     if (report.status !== REPORT_STATUS.PENDING)
-        throw new AppError("Only pending reports can be reviewed.",409,"REPORT_ALREADY_REVIEWED" )
+        throw new AppError("Only pending reports can be reviewed.", 409, "REPORT_ALREADY_REVIEWED")
 
     const reportedUser = await User.findById(report.reportedUser)
 
     if (!reportedUser)
-        throw new AppError("Reported user not found.",404,"REPORTED_USER_NOT_FOUND")
+        throw new AppError("Reported user not found.", 404, "REPORTED_USER_NOT_FOUND")
+
+    const approvedReport = await Report.findOneAndUpdate(
+        {
+            _id: reportId,
+            status: REPORT_STATUS.PENDING
+        },
+        {
+            $set: {
+                status: REPORT_STATUS.APPROVED,
+                reviewedBy: adminId,
+                adminNote: adminNote || null,
+                reviewedAt: new Date()
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    if (!approvedReport)
+        throw new AppError(
+            "Only pending reports can be reviewed.",
+            409,
+            "REPORT_ALREADY_REVIEWED"
+        )
 
     reportedUser.offences += 1
     reportedUser.offencesSinceLastBan += 1
@@ -110,18 +135,18 @@ const approveReport = async (adminId, reportId, adminNote) => {
 
     await reportedUser.save()
 
-    if(reportedUser.status === USER_STATUS.BANNED)
-        await revokeAllUserSessions(reportedUser._id)
-
-    report.status = REPORT_STATUS.APPROVED
-    report.reviewedBy = adminId
-    report.adminNote = adminNote || null
-    report.reviewedAt = new Date()
-
-    await report.save()
+    if (reportedUser.status === USER_STATUS.BANNED) {
+        try {
+            await revokeAllUserSessions(reportedUser._id)
+        }
+        catch (error) {
+            console.error("Failed to revoke banned user sessions.")
+            console.error(error)
+        }
+    }
 
     return {
-        report,
+        report: approvedReport,
         reportedUser: {
             id: reportedUser._id,
             offences: reportedUser.offences,
@@ -134,22 +159,43 @@ const approveReport = async (adminId, reportId, adminNote) => {
 
 
 const rejectReport = async (adminId, reportId, adminNote) => {
-    const report = await Report.findById(reportId)
+    const report = await Report.findOneAndUpdate(
+        {
+            _id: reportId,
+            status: REPORT_STATUS.PENDING
+        },
+        {
+            $set: {
+                status: REPORT_STATUS.REJECTED,
+                reviewedBy: adminId,
+                adminNote: adminNote || null,
+                reviewedAt: new Date()
+            }
+        },
+        {
+            new: true
+        }
+    )
 
-    if (!report)
-        throw new AppError("Report not found.",404,"REPORT_NOT_FOUND")
+    if (report)
+        return report
 
-    if (report.status !== REPORT_STATUS.PENDING)
-        throw new AppError("Only pending reports can be reviewed.",409,"REPORT_ALREADY_REVIEWED")
+    const existingReport = await Report.exists({
+        _id: reportId
+    })
 
-    report.status = REPORT_STATUS.REJECTED
-    report.reviewedBy = adminId
-    report.adminNote = adminNote
-    report.reviewedAt = new Date()
+    if (!existingReport)
+        throw new AppError(
+            "Report not found.",
+            404,
+            "REPORT_NOT_FOUND"
+        )
 
-    await report.save()
-
-    return report
+    throw new AppError(
+        "Only pending reports can be reviewed.",
+        409,
+        "REPORT_ALREADY_REVIEWED"
+    )
 }
 
 

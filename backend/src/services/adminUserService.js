@@ -5,6 +5,42 @@ import {
 } from '../constants/user.js'
 import AppError from '../errors/appError.js'
 import {revokeAllUserSessions} from "./refreshSessionService.js"
+import Order from "../models/order.js"
+import Seller from "../models/seller.js"
+import {ORDER_STATUS} from "../constants/order.js"
+
+const hasActiveOrders = async user => {
+    const activeStatuses = [
+        ORDER_STATUS.PENDING,
+        ORDER_STATUS.ACCEPTED,
+        ORDER_STATUS.READY
+    ]
+
+    if (user.role === USER_ROLES.BUYER) {
+        return Order.exists({
+            buyer: user._id,
+            status: {$in: activeStatuses}
+        })
+    }
+
+    if (user.role === USER_ROLES.SELLER) {
+        const seller = await Seller.findOne({
+            user: user._id
+        }).select("_id")
+
+        if (!seller)
+            return false
+
+        return Order.exists({
+            seller: seller._id,
+            status: {$in: activeStatuses}
+        })
+    }
+
+    return false
+}
+
+
 
 const suspendUser = async(userId, reason) => {
 
@@ -14,6 +50,13 @@ const suspendUser = async(userId, reason) => {
     if(!user)
         throw new AppError("User not found.", 404, "USER_NOT_FOUND")
     
+    if(user.role === USER_ROLES.ADMIN)
+    throw new AppError(
+        "Admin account cant be suspended.",
+        403,
+        "ADMIN_ACCOUNT_CANNOT_BE_SUSPENDED"
+    )
+
     if(user.status===USER_STATUS.SUSPENDED)
         throw new AppError("User is already suspended.", 409, "USER_ALREADY_SUSPENDED")
     else if(user.status === USER_STATUS.BANNED)
@@ -21,6 +64,14 @@ const suspendUser = async(userId, reason) => {
     else if(user.status === USER_STATUS.DEACTIVATED)
     throw new AppError(
         "Deactivated user cant be suspended.",409,"USER_DEACTIVATED")
+
+
+    if (await hasActiveOrders(user))
+        throw new AppError(
+            "User has active orders.",
+            409,
+            "USER_HAS_ACTIVE_ORDERS"
+        )    
 
     user.status = USER_STATUS.SUSPENDED
     user.suspensionReason = reason
@@ -143,6 +194,14 @@ const banUser = async(userId, reason) => {
 
     if(user.status === USER_STATUS.DEACTIVATED)
         throw new AppError("Deactivated user cant be banned.",409,"USER_DEACTIVATED")
+
+
+    if (await hasActiveOrders(user))
+        throw new AppError(
+            "User has active orders.",
+            409,
+            "USER_HAS_ACTIVE_ORDERS"
+        )
 
     user.status = USER_STATUS.BANNED
     user.banReason = reason

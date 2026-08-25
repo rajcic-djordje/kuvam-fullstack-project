@@ -507,6 +507,148 @@
         </section>
 
         <div class="profile-side">
+
+          @if (user.role === 'buyer') {
+              <section class="profile-card location-card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <span class="card-icon">
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <circle
+                          cx="12"
+                          cy="10"
+                          r="3"
+                        ></circle>
+
+                        <path
+                          d="M12 21s7-5.3 7-11a7 7 0 1 0-14 0c0 5.7 7 11 7 11Z"
+                        ></path>
+                      </svg>
+                    </span>
+
+                    <div>
+                      <h2>
+                        Lokacija
+                      </h2>
+
+                      <p>
+                        Koristi se za prikaz domaćina i ponuda iz tvog grada.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="card-actions">
+                    <button
+                      class="edit-button"
+                      type="button"
+                      (click)="openLocationModal()"
+                    >
+                      Promeni
+                    </button>
+                  </div>
+                </div>
+
+                <div class="information-list">
+                  <div class="information-row">
+                    <span class="row-icon">
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <circle
+                          cx="12"
+                          cy="10"
+                          r="3"
+                        ></circle>
+
+                        <path
+                          d="M12 21s7-5.3 7-11a7 7 0 1 0-14 0c0 5.7 7 11 7 11Z"
+                        ></path>
+                      </svg>
+                    </span>
+
+                    <span class="row-label">
+                      Grad
+                    </span>
+
+                    <strong>
+                      {{
+                        user.city?.name ||
+                        'Lokacija nije podešena'
+                      }}
+                    </strong>
+                  </div>
+
+                  <div class="information-row">
+                    <span class="row-icon">
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M3 11 12 4l9 7"
+                        ></path>
+
+                        <path
+                          d="M5 10v10h14V10"
+                        ></path>
+                      </svg>
+                    </span>
+
+                    <span class="row-label">
+                      Adresa
+                    </span>
+
+                    <strong>
+                      @if (
+                        user.address.street &&
+                        user.address.streetNumber
+                      ) {
+                        {{ user.address.street }}
+                        {{ user.address.streetNumber }}
+                      } @else {
+                        Nije uneta
+                      }
+                    </strong>
+                  </div>
+
+                  @if (user.address.additionalInfo) {
+                    <div class="information-row">
+                      <span class="row-icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M4 5h16v14H4z"
+                          ></path>
+
+                          <path
+                            d="M7 9h10M7 13h8M7 17h5"
+                          ></path>
+                        </svg>
+                      </span>
+
+                      <span class="row-label">
+                        Dodatno
+                      </span>
+
+                      <strong>
+                        {{
+                          user.address.additionalInfo
+                        }}
+                      </strong>
+                    </div>
+                  }
+                </div>
+              </section>
+            }
+
+
+
           @if (user.sellerProfile) {
             <section class="profile-card seller-card">
               <div class="card-header">
@@ -1510,6 +1652,21 @@
     }
   </div>
 </main>
+
+@if (
+  isLocationModalOpen() &&
+  profile();
+  as user
+) {
+  <app-location-modal
+    mode="edit"
+    [initialProfile]="user"
+    [confirmCityChange]="hasCartItems()"
+    (cityChanged)="clearCartAfterCityChange()"
+    (saved)="locationUpdated($event)"
+    (dismissed)="closeLocationModal()"
+  />
+}
 
 @if (isPasswordModalOpen()) {
   <div

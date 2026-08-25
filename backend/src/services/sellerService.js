@@ -8,6 +8,9 @@ import {SELLER_APPROVAL_STATUS} from "../constants/seller.js"
 import {OFFER_CATEGORIES} from "../constants/offer.js"
 import {createPublicLocationZone} from "../utils/publicLocation.js"
 import User from "../models/user.js"
+import Order from "../models/order.js"
+import {ORDER_STATUS} from "../constants/order.js"
+
 
 const createSellerSlug = (businessName) => {
     return businessName
@@ -158,10 +161,35 @@ const updateCurrentSellerProfile = async (userId, updateData) => {
         seller.isOpen = updateData.isOpen
 
     const containsAddressData =
-        updateData.cityId !== undefined ||
-        updateData.street !== undefined ||
-        updateData.streetNumber !== undefined ||
-        updateData.additionalInfo !== undefined
+    updateData.cityId !== undefined ||
+    updateData.street !== undefined ||
+    updateData.streetNumber !== undefined ||
+    updateData.additionalInfo !== undefined
+
+    const containsCoordinates =
+        updateData.latitude !== undefined ||
+        updateData.longitude !== undefined
+
+    if (containsAddressData || containsCoordinates) {
+        const hasActiveOrders = await Order.exists({
+            seller: seller._id,
+            status: {
+                $in: [
+                    ORDER_STATUS.PENDING,
+                    ORDER_STATUS.ACCEPTED,
+                    ORDER_STATUS.READY
+                ]
+            }
+        })
+
+        if (hasActiveOrders) {
+            throw new AppError(
+                "Pickup location cannot be changed while active orders exist.",
+                409,
+                "SELLER_HAS_ACTIVE_ORDERS"
+            )
+        }
+    }
 
     if (containsAddressData) {
         const city = await City.findOne({
@@ -181,10 +209,6 @@ const updateCurrentSellerProfile = async (userId, updateData) => {
         seller.pickupAddress.streetNumber = updateData.streetNumber
         seller.pickupAddress.additionalInfo = updateData.additionalInfo || null
     }
-
-    const containsCoordinates =
-        updateData.latitude !== undefined ||
-        updateData.longitude !== undefined
 
     if (containsCoordinates) {
         seller.pickupAddress.latitude = updateData.latitude

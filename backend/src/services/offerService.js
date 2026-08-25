@@ -297,7 +297,16 @@ const getPublicOfferById = async offerId => {
         },
         approvalStatus:
             SELLER_APPROVAL_STATUS.APPROVED,
-        isOpen: true
+        isOpen: true,
+        city: {
+            $ne: null
+        },
+        "pickupAddress.street": {
+            $nin: [null, ""]
+        },
+        "pickupAddress.streetNumber": {
+            $nin: [null, ""]
+        }
     }).select("_id")
 
     const publicSellerIds =

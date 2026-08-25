@@ -6,9 +6,11 @@ import {
   OnDestroy,
   OnInit,
   signal,
-  untracked
+  untracked,
+  output
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../auth/services/auth';
 import {
   LucideAlertCircle,
   LucideDynamicIcon,
@@ -49,6 +51,12 @@ interface CartNoteDraft {
 })
 export class CartModal
 implements OnInit, OnDestroy {
+
+  private readonly authService =
+  inject(AuthService);
+
+  readonly locationRequired = output<void>();
+
   readonly cartService =
     inject(CartService);
 
@@ -346,6 +354,21 @@ implements OnInit, OnDestroy {
       return;
     }
 
+    const user =
+        this.authService.currentUser();
+
+      if (
+        !user ||
+        user.role !== 'buyer' ||
+        user.hasLocation !== true
+      ) {
+        this.cartService.close();
+        this.locationRequired.emit();
+
+        return;
+      }
+
+
     this.error.set('');
 
     this.isSubmitting.set(
@@ -395,19 +418,31 @@ implements OnInit, OnDestroy {
         },
 
         error: error => {
-          this.error.set(
-            this.apiErrorService.getMessage(
-              error,
-              'Porudžbina trenutno nije poslata. Pokušaj ponovo.'
-            )
-          );
+            const message =
+              this.apiErrorService.getMessage(
+                error,
+                'Porudžbina trenutno nije poslata. Pokušaj ponovo.'
+              );
 
-          this.isSubmitting.set(
-            false
-          );
+            if (
+              this.apiErrorService.getCode(error) ===
+              'SELLER_OUTSIDE_BUYER_CITY'
+            ) {
+              this.toastService.error(
+                message
+              );
+            } else {
+              this.error.set(
+                message
+              );
+            }
 
-          this.refreshCart();
-        }
+            this.isSubmitting.set(
+              false
+            );
+
+            this.refreshCart();
+          }
       });
   }
 }

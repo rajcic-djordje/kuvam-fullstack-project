@@ -38,6 +38,8 @@ import {
 } from '../../models/profile';
 import { ProfileService } from '../../services/profile';
 import { SellerProfileService } from '../../services/seller-profile';
+import { LocationModal } from '../../../location/components/location-modal/location-modal';
+import { CartService } from '../../../cart/services/cart';
 
 const NAME_PATTERN =
   /^[\p{L}]+(?:[ '\-][\p{L}]+)*$/u;
@@ -114,7 +116,8 @@ interface SellerProfileDraft {
   selector: 'app-profile-page',
   imports: [
     ReactiveFormsModule,
-    LocationPicker
+    LocationPicker,
+    LocationModal
   ],
   templateUrl:
     './profile-page.html',
@@ -125,6 +128,9 @@ export class ProfilePage
 implements OnInit, OnDestroy {
   private readonly formBuilder =
     inject(FormBuilder);
+
+    private readonly cartService =
+  inject(CartService);
 
   private readonly profileService =
     inject(ProfileService);
@@ -162,6 +168,9 @@ implements OnInit, OnDestroy {
     signal<UserProfile | null>(
       null
     );
+
+    readonly isLocationModalOpen =
+  signal(false);
 
   readonly isLoading =
     signal(true);
@@ -256,6 +265,18 @@ implements OnInit, OnDestroy {
         )}`
       ).toUpperCase();
     });
+
+    readonly hasCartItems =
+        computed(() => {
+          return (
+            this.cartService
+              .items()
+              .length > 0
+          );
+        });
+
+
+  
 
   readonly personalForm =
     this.formBuilder
@@ -410,6 +431,10 @@ implements OnInit, OnDestroy {
 
     this.sellerDraftSubscription
       ?.unsubscribe();
+  }
+
+  clearCartAfterCityChange(): void {
+      this.cartService.clear();
   }
 
   startPersonalEditing(): void {
@@ -1775,4 +1800,32 @@ implements OnInit, OnDestroy {
 
     return true;
   }
+
+  openLocationModal(): void {
+  this.isLocationModalOpen.set(
+    true
+  );
+}
+
+closeLocationModal(): void {
+  this.isLocationModalOpen.set(
+    false
+  );
+}
+
+locationUpdated(
+  user: UserProfile
+): void {
+  this.updateProfileState(
+    user
+  );
+
+  this.isLocationModalOpen.set(
+    false
+  );
+
+  this.toastService.success(
+    'Lokacija je uspešno promenjena.'
+  );
+}
 }

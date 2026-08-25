@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import User from "../models/user.js"
 import AppError from "../errors/appError.js"
 import Offer from "../models/offer.js"
 import Seller from "../models/seller.js"
@@ -6,6 +6,7 @@ import Order from "../models/order.js"
 import {SELLER_APPROVAL_STATUS} from "../constants/seller.js"
 import {ORDER_STATUS} from "../constants/order.js"
 import {NOTIFICATION_TYPE} from "../constants/notification.js"
+import {USER_STATUS} from "../constants/user.js"
 import {createNotification} from "./notificationService.js"
 import {
     generatePickupCode,
@@ -77,6 +78,36 @@ const restoreOrderQuantities = async order => {
 }
 
 const createOrder = async (buyerId, orderData) => {
+
+        const buyer = await User.findById(buyerId)
+
+    if (!buyer) {
+        throw new AppError(
+            "Buyer not found.",
+            404,
+            "BUYER_NOT_FOUND"
+        )
+    }
+
+    const hasLocation = Boolean(
+        buyer.city &&
+        buyer.address?.street &&
+        buyer.address?.streetNumber &&
+        buyer.address?.latitude !== null &&
+        buyer.address?.latitude !== undefined &&
+        buyer.address?.longitude !== null &&
+        buyer.address?.longitude !== undefined
+    )
+
+    if (!hasLocation) {
+        throw new AppError(
+            "You must set your location before placing an order.",
+            409,
+            "BUYER_LOCATION_REQUIRED"
+        )
+    }
+
+
     const offerIds = orderData.items.map(item => item.offerId)
 
     const offers = await Offer.find({
@@ -126,6 +157,30 @@ const createOrder = async (buyerId, orderData) => {
             "Seller profile not found.",
             404,
             "SELLER_PROFILE_NOT_FOUND"
+        )
+    }
+
+    const isSellerActive = await User.exists({
+        _id: seller.user,
+        status: USER_STATUS.ACTIVE
+    })
+
+    if (!isSellerActive) {
+        throw new AppError(
+            "Offer is currently not available.",
+            409,
+            "OFFER_NOT_AVAILABLE"
+        )
+    }
+
+        if (
+        !seller.city ||
+        !buyer.city.equals(seller.city)
+    ) {
+        throw new AppError(
+            "You can only order from sellers in your city.",
+            409,
+            "SELLER_OUTSIDE_BUYER_CITY"
         )
     }
 
@@ -446,13 +501,19 @@ const markBuyerAsOnTheWay = async (
 
     const orderLabel = getOrderNotificationLabel(order)
 
-    await createNotification({
-        recipient: order.seller.user,
-        type: NOTIFICATION_TYPE.BUYER_ON_THE_WAY,
-        title: "Kupac je krenuo",
-        message: `Kupac je krenuo po porudžbinu: ${orderLabel}.`,
-        order: order._id
-    })
+    try {
+        await createNotification({
+            recipient: order.seller.user,
+            type: NOTIFICATION_TYPE.BUYER_ON_THE_WAY,
+            title: "Kupac je krenuo",
+            message: `Kupac je krenuo po porudžbinu: ${orderLabel}.`,
+            order: order._id
+        })
+    }
+    catch (notificationError) {
+        console.error("Buyer on the way notification creation failed.")
+        console.error(notificationError)
+    }
 
     return order
 }
@@ -580,13 +641,19 @@ const acceptSellerOrder = async (
 
     const orderLabel = getOrderNotificationLabel(order)
 
-    await createNotification({
-        recipient: order.buyer,
-        type: NOTIFICATION_TYPE.ORDER_ACCEPTED,
-        title: "Porudžbina je prihvaćena",
-        message: `Prodavac je prihvatio tvoju porudžbinu: ${orderLabel}.`,
-        order: order._id
-    })
+    try {
+        await createNotification({
+            recipient: order.buyer,
+            type: NOTIFICATION_TYPE.ORDER_ACCEPTED,
+            title: "Porudžbina je prihvaćena",
+            message: `Prodavac je prihvatio tvoju porudžbinu: ${orderLabel}.`,
+            order: order._id
+        })
+    }
+    catch (notificationError) {
+        console.error("Order accepted notification creation failed.")
+        console.error(notificationError)
+    }
 
     return getSellerOrderById(userId, orderId)
 }
@@ -666,13 +733,19 @@ const rejectSellerOrder = async (
         throw error
     }
 
-    await createNotification({
-        recipient: order.buyer,
-        type: NOTIFICATION_TYPE.ORDER_REJECTED,
-        title: "Porudžbina je odbijena",
-        message: "Domaćin je odbio tvoju porudžbinu.",
-        order: order._id
-    })
+    try {
+        await createNotification({
+            recipient: order.buyer,
+            type: NOTIFICATION_TYPE.ORDER_REJECTED,
+            title: "Porudžbina je odbijena",
+            message: "Domaćin je odbio tvoju porudžbinu.",
+            order: order._id
+        })
+    }
+    catch (notificationError) {
+        console.error("Order rejected notification creation failed.")
+        console.error(notificationError)
+    }
 
     return getSellerOrderById(userId, orderId)
 }
@@ -726,13 +799,19 @@ const markSellerOrderAsReady = async (
 
     const orderLabel = getOrderNotificationLabel(order)
 
-    await createNotification({
-        recipient: order.buyer,
-        type: NOTIFICATION_TYPE.ORDER_READY,
-        title: "Porudžbina je spremna",
-        message: `Tvoja porudžbina ${orderLabel} je spremna za preuzimanje.`,
-        order: order._id
-    })
+    try {
+        await createNotification({
+            recipient: order.buyer,
+            type: NOTIFICATION_TYPE.ORDER_READY,
+            title: "Porudžbina je spremna",
+            message: `Tvoja porudžbina ${orderLabel} je spremna za preuzimanje.`,
+            order: order._id
+        })
+    }
+    catch (notificationError) {
+        console.error("Order ready notification creation failed.")
+        console.error(notificationError)
+    }
 
     return getSellerOrderById(userId, orderId)
 }
@@ -836,13 +915,19 @@ const completeSellerOrder = async (
 
     const orderLabel = getOrderNotificationLabel(order)
 
-    await createNotification({
-        recipient: order.buyer,
-        type: NOTIFICATION_TYPE.ORDER_COMPLETED,
-        title: "Porudžbina je završena",
-        message: `Preuzimanje porudžbine ${orderLabel} je uspešno potvrđeno.`,
-        order: order._id
-    })
+    try {
+        await createNotification({
+            recipient: order.buyer,
+            type: NOTIFICATION_TYPE.ORDER_COMPLETED,
+            title: "Porudžbina je završena",
+            message: `Preuzimanje porudžbine ${orderLabel} je uspešno potvrđeno.`,
+            order: order._id
+        })
+    }
+    catch (notificationError) {
+        console.error("Order completed notification creation failed.")
+        console.error(notificationError)
+    }
 
     return getSellerOrderById(userId, orderId)
 }

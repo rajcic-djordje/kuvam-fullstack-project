@@ -62,9 +62,13 @@ export class ApiErrorService {
     INSUFFICIENT_QUANTITY: 'Za ovu porudžbinu više nema dovoljno dostupne količine.',
 
     INVALID_PICKUP_CODE: 'Uneti kod za preuzimanje nije tačan.',
-    PICKUP_CODE_TEMPORARILY_BLOCKED: 'Unos koda je privremeno blokiran zbog previše pogrešnih pokušaja.'
-    
-    
+    PICKUP_CODE_TEMPORARILY_BLOCKED: 'Unos koda je privremeno blokiran zbog previše pogrešnih pokušaja.',
+    SELLER_HAS_ACTIVE_ORDERS: 'Mesto preuzimanja ne možeš menjati dok imaš aktivne porudžbine.',
+    SELLER_OUTSIDE_BUYER_CITY: 'Možeš poručivati samo od domaćina koji se nalaze u istom gradu kao ti.',
+    BUYER_LOCATION_REQUIRED: 'Moraš podesiti svoju lokaciju pre nego što možeš da poručiš.',
+
+    ADMIN_ACCOUNT_CANNOT_BE_SUSPENDED: 'Administratorski nalog ne može biti suspendovan.',
+    USER_HAS_ACTIVE_ORDERS: 'Nalog ne može biti suspendovan ili banovan dok postoje aktivne porudžbine.',
   };
 
   getMessage(error: unknown, fallback: string): string {

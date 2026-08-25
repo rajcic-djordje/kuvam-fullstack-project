@@ -17,11 +17,29 @@ const getPendingSellers = async(search, sort) => {
     )
 
     const filter = {
-        approvalStatus: SELLER_APPROVAL_STATUS.PENDING,
-        user: {
-            $in: activeSellerUserIds
+            approvalStatus: SELLER_APPROVAL_STATUS.PENDING,
+            user: {
+                $in: activeSellerUserIds
+            },
+            description: {
+                $nin: [null, ""]
+            },
+            city: {
+                $ne: null
+            },
+            "pickupAddress.street": {
+                $nin: [null, ""]
+            },
+            "pickupAddress.streetNumber": {
+                $nin: [null, ""]
+            },
+            "pickupAddress.latitude": {
+                $ne: null
+            },
+            "pickupAddress.longitude": {
+                $ne: null
+            }
         }
-    }
 
     if(search) {
         const searchRegex = new RegExp(search, "i")
@@ -90,6 +108,26 @@ const approveSeller = async(sellerId) => {
 
     if(seller.user.status !== USER_STATUS.ACTIVE)
         throw new AppError("Only an active user can be approved as a seller.", 409, "SELLER_USER_NOT_ACTIVE")
+
+        const isProfileComplete = Boolean(
+        seller.businessName &&
+        seller.description &&
+        seller.city &&
+        seller.pickupAddress?.street &&
+        seller.pickupAddress?.streetNumber &&
+        seller.pickupAddress?.latitude !== null &&
+        seller.pickupAddress?.latitude !== undefined &&
+        seller.pickupAddress?.longitude !== null &&
+        seller.pickupAddress?.longitude !== undefined
+    )
+
+    if(!isProfileComplete)
+        throw new AppError(
+            "Seller profile must be complete before approval.",
+            409,
+            "SELLER_PROFILE_INCOMPLETE"
+        )
+
 
     seller.approvalStatus = SELLER_APPROVAL_STATUS.APPROVED
     seller.rejectionReason = null

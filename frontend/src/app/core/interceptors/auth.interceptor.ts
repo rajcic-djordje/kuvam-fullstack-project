@@ -41,7 +41,10 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         authService.clearSession();
 
         toastService.error(
-          apiErrorService.getMessage(error, 'Tvoj nalog trenutno nije dostupan.'),
+          apiErrorService.getMessage(
+            error,
+            'Tvoj nalog trenutno nije dostupan.'
+          ),
           'Sesija prekinuta'
         );
 
@@ -70,6 +73,22 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         }),
         catchError(refreshError => {
           authService.clearSession();
+
+          if (
+            refreshError instanceof HttpErrorResponse &&
+            refreshError.status === 403 &&
+            apiErrorService.isBlockedAccountError(refreshError)
+          ) {
+            toastService.error(
+              apiErrorService.getMessage(
+                refreshError,
+                'Tvoj nalog trenutno nije dostupan.'
+              ),
+              'Sesija prekinuta'
+            );
+          }
+
+          void router.navigate(['/login']);
 
           return throwError(() => refreshError);
         })

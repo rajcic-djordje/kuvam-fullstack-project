@@ -102,6 +102,12 @@ export class MainLayout {
     );
   }
 
+  openLocationModal(): void {
+      this.isLocationModalOpen.set(
+        true
+      );
+  }
+
   locationDismissed(): void {
     const user =
       this.authService.currentUser();
