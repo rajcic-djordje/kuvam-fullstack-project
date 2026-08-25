@@ -891,6 +891,20 @@ const completeSellerOrder = async (
 
             await order.save()
 
+            try {
+                await createNotification({
+                    recipient: order.buyer,
+                    type: NOTIFICATION_TYPE.PICKUP_CODE_BLOCKED,
+                    title: "Provera koda je privremeno zaključana",
+                    message: "Uneto je previše pogrešnih kodova za preuzimanje. Novi pokušaj biće moguć za 15 minuta.",
+                    order: order._id
+                })
+            }
+            catch (notificationError) {
+                console.error("Pickup code blocked notification creation failed.")
+                console.error(notificationError)
+            }
+
             throw new AppError(
                 "Too many incorrect pickup code attempts.",
                 429,
