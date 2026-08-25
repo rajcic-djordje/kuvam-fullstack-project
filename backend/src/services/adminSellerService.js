@@ -91,24 +91,7 @@ const approveSeller = async(sellerId) => {
     if(seller.user.status !== USER_STATUS.ACTIVE)
         throw new AppError("Only an active user can be approved as a seller.", 409, "SELLER_USER_NOT_ACTIVE")
 
-        const isProfileComplete = Boolean(
-        seller.businessName &&
-        seller.description &&
-        seller.city &&
-        seller.pickupAddress?.street &&
-        seller.pickupAddress?.streetNumber &&
-        seller.pickupAddress?.latitude !== null &&
-        seller.pickupAddress?.latitude !== undefined &&
-        seller.pickupAddress?.longitude !== null &&
-        seller.pickupAddress?.longitude !== undefined
-    )
-
-    if(!isProfileComplete)
-        throw new AppError(
-            "Seller profile must be complete before approval.",
-            409,
-            "SELLER_PROFILE_INCOMPLETE"
-        )
+    
 
 
     seller.approvalStatus = SELLER_APPROVAL_STATUS.APPROVED
