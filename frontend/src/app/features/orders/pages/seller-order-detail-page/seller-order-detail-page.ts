@@ -24,7 +24,7 @@ import {
   SellerOrder
 } from '../../models/order';
 import { OrderService } from '../../services/order';
-
+import { ToastService } from '../../../../shared/services/toast';
 @Component({
   selector: 'app-seller-order-detail-page',
   imports: [
@@ -40,7 +40,7 @@ export class SellerOrderDetailPage implements OnInit {
   private readonly orderService = inject(OrderService);
   private readonly reportService = inject(ReportService);
   private readonly apiErrorService = inject(ApiErrorService);
-
+  private readonly toastService = inject(ToastService);
   readonly backIcon = LucideArrowLeft;
   readonly orderIcon = LucidePackage;
   readonly buyerIcon = LucideUser;
@@ -351,15 +351,16 @@ export class SellerOrderDetailPage implements OnInit {
         this.isPerformingAction.set(false);
       },
       error: error => {
-        this.actionError.set(
-          this.apiErrorService.getMessage(
+          const message = this.apiErrorService.getMessage(
             error,
             'Akcija trenutno nije moguća.'
-          )
-        );
+          );
 
-        this.isPerformingAction.set(false);
-      }
+          this.actionError.set(message);
+          this.toastService.error(message);
+
+          this.isPerformingAction.set(false);
+        }
     });
   }
 
@@ -425,8 +426,8 @@ export class SellerOrderDetailPage implements OnInit {
         this.isReportModalOpen.set(false);
         this.reportReason.set('');
         this.reportDescription.set('');
-        this.actionSuccess.set(
-          'Prijava kupca je poslata administratoru.'
+        this.toastService.success(
+          'Prijava kupca je uspešno poslata administratoru.'
         );
       },
       error: error => {

@@ -168,15 +168,26 @@ export class OrderDetailPage implements OnInit {
         },
 
         error: error => {
-          this.isMarkingOnTheWay.set(false);
+            this.isMarkingOnTheWay.set(false);
 
-          this.toastService.error(
-            this.apiErrorService.getMessage(
-              error,
-              'Prodavca trenutno nije moguće obavestiti.'
-            )
-          );
-        }
+            const code = this.apiErrorService.getCode(error);
+
+            if (code === 'BUYER_CANNOT_BE_MARKED_ON_THE_WAY') {
+              this.toastService.error(
+                'Status porudžbine je u međuvremenu promenjen. Podaci su osveženi.'
+              );
+
+              this.loadOrder(currentOrder._id);
+              return;
+            }
+
+            this.toastService.error(
+              this.apiErrorService.getMessage(
+                error,
+                'Prodavca trenutno nije moguće obavestiti.'
+              )
+            );
+          }
       });
   }
 

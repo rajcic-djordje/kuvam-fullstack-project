@@ -47,7 +47,22 @@ public class AdminUsersPage extends BasePage {
     }
 
     public String getStatus(String email) {
-        return waitForVisible(userStatusBadge(email)).getText();
+        By status = userStatusBadge(email);
+
+        return wait.until(driver -> {
+            try {
+                WebElement element = driver.findElement(status);
+
+                if (!element.isDisplayed()) {
+                    return null;
+                }
+
+                return element.getText();
+            }
+            catch (org.openqa.selenium.StaleElementReferenceException e) {
+                return null;
+            }
+        });
     }
 
     public void suspendUser(String email, String reason) {
