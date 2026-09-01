@@ -28,6 +28,8 @@ The project is organized as a monorepo with a standalone Angular frontend, a Nod
 - [Technology stack](#technology-stack)
 - [Frontend architecture](#frontend-architecture)
 - [Backend architecture](#backend-architecture)
+- [Server lifecycle](#server-lifecycle)
+- [Express application configuration](#express-application-configuration)
 - [Data model](#data-model)
 - [API overview](#api-overview)
 - [Authentication and security](#authentication-and-security)
@@ -108,7 +110,7 @@ A buyer can:
 - cancel a pending order;
 - see pickup information when the order reaches an allowed state;
 - receive the pickup code when the order is ready;
-- notify the seller with **“Kreni po porudžbinu”** / “I am on the way”;
+- notify the seller with the **“Krenuo sam”** action when traveling to the pickup point;
 - receive persistent and real-time notifications;
 - review a successfully completed order;
 - report a problem related to a completed order;
@@ -300,6 +302,7 @@ Kuvam distinguishes between:
 ### Buyer location
 
 A buyer can store:
+
 - city;
 - street;
 - street number;
@@ -626,6 +629,8 @@ The action:
 - can only be performed once per order;
 - creates a `buyer_on_the_way` notification for the seller.
 
+The action is intentionally informational rather than a prerequisite for completion. A valid pickup code can complete a `ready` order even if the buyer did not previously use the “on the way” action.
+
 ### Pickup verification
 
 At pickup, the buyer provides the code to the seller.
@@ -641,7 +646,8 @@ Pickup verification includes brute-force protection:
 - maximum incorrect attempts: **5**;
 - after the limit is reached, verification is blocked for **15 minutes**;
 - when the blocking period expires, the attempt state can be reset;
-- successful verification clears the attempt and block state.
+- successful verification clears the attempt and block state;
+- when the temporary block is activated, the buyer receives a persistent and real-time notification.
 
 ---
 
@@ -821,6 +827,20 @@ Once the threshold is reached:
 - suspension data is cleared;
 - active refresh sessions are revoked.
 
+### Active-order moderation protection
+
+Manual suspension or banning is rejected while a buyer or seller participates in an active order.
+
+For this rule, active order states are:
+
+- `pending`;
+- `accepted`;
+- `ready`.
+
+This prevents administrative moderation from leaving an in-progress order and pickup workflow in an inconsistent state. Once no active order remains, normal moderation actions are available again.
+
+Administrator accounts cannot be suspended through the ordinary user-moderation flow.
+
 ---
 
 # System architecture
@@ -984,17 +1004,17 @@ The main layout contains routes such as:
 
 ```text
 /
- /offers
- /offers/:offerId
- /sellers/:slug
- /profile
- /orders
- /orders/:orderId
- /seller/orders
- /seller/orders/:orderId
- /seller/offers
- /seller/offers/new
- /seller/offers/:offerId/edit
+/offers
+/offers/:offerId
+/sellers/:slug
+/profile
+/orders
+/orders/:orderId
+/seller/orders
+/seller/orders/:orderId
+/seller/offers
+/seller/offers/new
+/seller/offers/:offerId/edit
 ```
 
 ## Authentication routes
@@ -1202,6 +1222,7 @@ On `SIGINT` or `SIGTERM` it attempts to:
 2. close the HTTP server;
 3. disconnect MongoDB;
 4. set an appropriate process exit code.
+
 ---
 
 # Express application configuration
@@ -1501,6 +1522,7 @@ http://localhost:3000/api/v1
 | `PATCH` | `/orders/received/:orderId/complete` | Seller/owner | complete order with pickup code |
 
 ## Reviews
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | `POST` | `/reviews` | Buyer | review a completed order |
@@ -1704,6 +1726,7 @@ Current domain events are:
 | `order_ready` | buyer learns order is ready |
 | `buyer_on_the_way` | seller learns buyer started traveling |
 | `order_completed` | buyer receives completion confirmation |
+| `pickup_code_blocked` | buyer learns pickup-code verification was temporarily blocked after too many incorrect attempts |
 
 ## Read state
 
@@ -1800,6 +1823,7 @@ Maximum offer image size:
 ```text
 5 MB
 ```
+
 Uploaded files receive a UUID-based server filename.
 
 This prevents the original user-controlled filename from directly becoming the stored server filename.
@@ -2048,7 +2072,8 @@ For the current finalized project state used to prepare this README:
 - the complete automated API suite passes: **84/84 tests**;
 - the complete Selenium web suite passes: **10/10 tests**;
 - the Angular production build completes without errors;
-- the complete GitHub Actions CI workflow passes successfully.
+- the complete GitHub Actions CI workflow passes successfully;
+- the final manual smoke test of the main buyer, seller and administrator workflows was completed successfully.
 
 ---
 
@@ -2286,6 +2311,7 @@ The real `.env` file must not be committed.
 | `REFRESH_SESSION_EXPIRES_IN_DAYS` | Yes | refresh-session lifetime in days |
 
 ## Administrative seed/configuration
+
 | Variable | Required | Purpose |
 |---|---:|---|
 | `ADMIN_FIRST_NAME` | Yes | admin first name used by current configuration/seed |
@@ -2593,6 +2619,7 @@ Kuvam instead performs a conditional database update that succeeds only when suf
 This makes the available quantity itself part of the database write condition.
 
 ---
+
 ## Why is notification failure separated from successful order creation?
 
 An order and its reserved inventory form the primary transaction-level business result.
@@ -2715,7 +2742,7 @@ seller marks ready
 buyer receives pickup code
         |
         v
-buyer marks "on the way"
+buyer optionally marks "on the way"
         |
         v
 in-person pickup
@@ -2734,6 +2761,7 @@ completed order
 The system also includes:
 
 - account suspension/ban/deactivation flows;
+- active-order protection for manual suspension and banning;
 - refresh-session rotation and revocation;
 - realtime order notifications;
 - seller approval;
@@ -2749,7 +2777,8 @@ For the finalized code state represented by this README:
 - automated API tests pass: **84/84**;
 - automated Selenium web tests pass: **10/10**;
 - Angular production build passes;
-- GitHub Actions CI passes across all three jobs.
+- GitHub Actions CI passes across all three jobs;
+- the final manual smoke test of the main buyer, seller and administrator workflows was completed successfully.
 
 ---
 
