@@ -18,6 +18,8 @@ public final class RegisterPageConstants {
     public static final String SELLER_ROLE_BUTTON_XPATH =
             "//button[contains(@class,'role-button')][.//span[normalize-space()='Domaćin']]";
 
+    public static final String PHONE_NUMBER_INPUT_ID = "phoneNumber";
+
     private RegisterPageConstants() {
     }
 }

@@ -13,6 +13,7 @@ public class RegisterPage extends BasePage {
     private final By firstNameInput = By.id(FIRST_NAME_INPUT_ID);
     private final By lastNameInput = By.id(LAST_NAME_INPUT_ID);
     private final By emailInput = By.id(EMAIL_INPUT_ID);
+    private final By phoneNumberInput = By.id(PHONE_NUMBER_INPUT_ID);
     private final By passwordInput = By.id(PASSWORD_INPUT_ID);
     private final By confirmPasswordInput = By.id(CONFIRM_PASSWORD_INPUT_ID);
     private final By submitButton = By.cssSelector(SUBMIT_BUTTON_SELECTOR);
@@ -47,6 +48,11 @@ public class RegisterPage extends BasePage {
 
     public RegisterPage enterEmail(String email) {
         type(emailInput, email);
+        return this;
+    }
+
+    public RegisterPage enterPhoneNumber(String phoneNumber) {
+        type(phoneNumberInput, phoneNumber);
         return this;
     }
 
@@ -87,6 +93,7 @@ public class RegisterPage extends BasePage {
         enterFirstName(firstName);
         enterLastName(lastName);
         enterEmail(email);
+        enterPhoneNumber("+381641234567");
         enterPassword(password);
         enterConfirmPassword(password);
         submit();
@@ -97,6 +104,7 @@ public class RegisterPage extends BasePage {
         enterFirstName(firstName);
         enterLastName(lastName);
         enterEmail(email);
+        enterPhoneNumber("+381641234568");
         enterPassword(password);
         enterConfirmPassword(password);
         enterBusinessName(businessName);
