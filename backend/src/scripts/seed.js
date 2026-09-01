@@ -33,6 +33,15 @@ const passwordHash = await bcrypt.hash("Test1234", 12)
 
 const adminPasswordHash = await bcrypt.hash(env.adminPassword, 12)
 
+let phoneNumberSequence = 1
+
+const getSeedPhoneNumber = () => {
+  const suffix = String(phoneNumberSequence).padStart(7, "0")
+  phoneNumberSequence += 1
+
+  return `+38164${suffix}`
+}
+
 const adminData = {
   firstName: env.adminFirstName,
   lastName: env.adminLastName,
@@ -86,8 +95,8 @@ const userData = [
   suspendedAt: null,
   banReason: null
 },
-  
-  
+
+
   {
     firstName: "Nikola",
     lastName: "Simić",
@@ -205,7 +214,7 @@ const userData = [
 ]
 
 const sellerData = [
-  
+
   {
   firstName: "Ivana",
   lastName: "Matić",
@@ -224,8 +233,8 @@ const sellerData = [
   approvalStatus: SELLER_APPROVAL_STATUS.REJECTED,
   rejectionReason: "Prijava nije sadržala dovoljno informacija za odobravanje profila."
 },
-  
-  
+
+
   {
     firstName: "Milica",
     lastName: "Jovanović",
@@ -727,6 +736,7 @@ const seed = async () => {
       email: adminData.email,
       passwordHash: adminPasswordHash,
       role: USER_ROLES.ADMIN,
+      phoneNumber: getSeedPhoneNumber(),
       status: USER_STATUS.ACTIVE,
       city: null,
       address: {
@@ -762,6 +772,7 @@ const seed = async () => {
         email: data.email,
         passwordHash,
         role: USER_ROLES.BUYER,
+        phoneNumber: getSeedPhoneNumber(),
         status: data.status,
         city: city?._id ?? null,
         address: data.address,
@@ -790,6 +801,7 @@ const seed = async () => {
         email: data.email,
         passwordHash,
         role: USER_ROLES.SELLER,
+        phoneNumber: getSeedPhoneNumber(),
         status: USER_STATUS.ACTIVE,
         city: null,
         address: {

@@ -286,6 +286,27 @@
                   </a>
                 </div>
               </div>
+
+              <div class="buyer-row">
+                  <svg
+                    [lucideIcon]="phoneIcon"
+                    [size]="18"
+                    [strokeWidth]="1.7"
+                    aria-hidden="true"
+                  ></svg>
+
+                  <div>
+                    <span>
+                      Broj telefona
+                    </span>
+
+                    <a
+                      [href]="'tel:' + currentOrder.buyer.phoneNumber"
+                    >
+                      {{ currentOrder.buyer.phoneNumber }}
+                    </a>
+                  </div>
+                </div>
             </div>
 
             @if (currentOrder.status === 'completed') {

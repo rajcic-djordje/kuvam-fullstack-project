@@ -26,6 +26,7 @@ const getCurrentUserProfile = async (userId) => {
         email: user.email,
         role: user.role,
         status: user.status,
+        phoneNumber: user.phoneNumber,
         reportsCount: user.reportsCount,
         offences: user.offences,
         createdAt: user.createdAt,
@@ -149,6 +150,9 @@ const updateCurrentUserProfile = async (
 
     if (updateData.lastName !== undefined)
         user.lastName = updateData.lastName
+
+    if (updateData.phoneNumber !== undefined)
+        user.phoneNumber = updateData.phoneNumber
 
     await user.save()
 

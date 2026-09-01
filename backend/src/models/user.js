@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
     passwordResetCodeExpiresAt: {type: Date, default: null, select: false},
     passwordResetAttempts: {type: Number, default: 0, min: 0, select: false},
     passwordResetLastSentAt: {type: Date, default: null, select: false},
+    phoneNumber: {type: String, trim: true, maxlength: 16, required:true},
     city: {type: mongoose.Schema.Types.ObjectId, ref: "City", default: null},
     address: {
     street: {type: String, trim: true, maxlength: 150, default: null},

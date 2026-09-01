@@ -32,6 +32,13 @@ const registerSchema = z.object({
         .trim()
         .toLowerCase(),
 
+    phoneNumber: z
+        .string()
+        .trim()
+        .min(8)
+        .max(16)
+        .regex(/^\+\d{8,15}$/),
+
     password: z
         .string()
         .min(8)

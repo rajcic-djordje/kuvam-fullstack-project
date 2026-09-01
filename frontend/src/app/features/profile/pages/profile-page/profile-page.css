@@ -321,6 +321,9 @@
   gap:
     var(--space-4);
 }
+.location-card {
+  grid-column: 1 / -1;
+}
 
 .seller-card {
   grid-column:

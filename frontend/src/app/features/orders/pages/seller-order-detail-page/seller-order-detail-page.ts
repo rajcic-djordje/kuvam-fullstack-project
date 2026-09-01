@@ -14,7 +14,8 @@ import {
   LucidePackageCheck,
   LucideShoppingBag,
   LucideUser,
-  LucideX
+  LucideX,
+  LucidePhone
 } from '@lucide/angular';
 import { ApiErrorService } from '../../../../shared/services/api-error';
 import { ReportReason } from '../../../reports/models/report';
@@ -54,6 +55,7 @@ export class SellerOrderDetailPage implements OnInit {
   readonly closeIcon = LucideX;
   readonly pickupTimeIcon = LucideCalendarClock;
   readonly reportIcon = LucideFlag;
+  readonly phoneIcon = LucidePhone;
 
   readonly order = signal<SellerOrder | null>(null);
   readonly isLoading = signal(true);

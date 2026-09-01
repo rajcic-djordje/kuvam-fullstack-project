@@ -267,6 +267,63 @@
             }
           </span>
         </div>
+
+        <div class="form-field">
+          <label for="phoneNumber">
+            Broj telefona
+          </label>
+
+          <div
+            class="input-wrapper"
+            [class.invalid]="
+              registerForm.controls.phoneNumber.touched &&
+              registerForm.controls.phoneNumber.invalid
+            "
+          >
+            <svg
+              [lucideIcon]="phoneIcon"
+              [size]="18"
+              [strokeWidth]="1.7"
+              aria-hidden="true"
+            ></svg>
+
+            <input
+              id="phoneNumber"
+              type="tel"
+              formControlName="phoneNumber"
+              autocomplete="tel"
+              inputmode="tel"
+              placeholder="+381641234567"
+            >
+          </div>
+
+          <span
+            class="field-message field-error"
+            aria-live="polite"
+          >
+            @if (
+              registerForm.controls.phoneNumber.touched &&
+              registerForm.controls.phoneNumber.hasError('required')
+            ) {
+              Broj telefona je obavezan.
+            } @else if (
+              registerForm.controls.phoneNumber.touched &&
+              registerForm.controls.phoneNumber.hasError('pattern')
+            ) {
+              Unesi broj u međunarodnom formatu, na primer +381641234567.
+            } @else if (
+              registerForm.controls.phoneNumber.touched &&
+              registerForm.controls.phoneNumber.hasError('minlength')
+            ) {
+              Broj telefona je prekratak.
+            } @else if (
+              registerForm.controls.phoneNumber.touched &&
+              registerForm.controls.phoneNumber.hasError('maxlength')
+            ) {
+              Broj telefona je predugačak.
+            }
+          </span>
+        </div>
       </section>
 
       <section class="form-section password-section">

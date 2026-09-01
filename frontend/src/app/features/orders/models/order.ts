@@ -56,12 +56,17 @@ export interface PickupAddress {
 }
 
 
+export interface OrderSellerUser {
+  phoneNumber: string;
+}
+
 export interface OrderSeller {
   _id: string;
   businessName: string;
   description?: string;
   city?: OrderCity | null;
   pickupAddress?: PickupAddress | null;
+  user?: OrderSellerUser;
 }
 
 
@@ -70,6 +75,7 @@ export interface OrderBuyer {
   firstName: string;
   lastName: string;
   email: string;
+  phoneNumber: string;
 }
 
 

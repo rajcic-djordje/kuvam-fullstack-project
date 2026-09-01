@@ -22,7 +22,8 @@ import {
   LucideMail,
   LucideStore,
   LucideUser,
-  LucideUsers
+  LucideUsers,
+  LucidePhone
 } from '@lucide/angular';
 import {
   debounceTime,
@@ -64,6 +65,7 @@ interface RegisterDraft {
   role: 'buyer' | 'seller';
   businessName: string;
   description: string;
+  phoneNumber: string;
 }
 
 @Component({
@@ -123,6 +125,9 @@ implements OnInit, OnDestroy {
   readonly hideIcon =
     LucideEyeOff;
 
+  readonly phoneIcon = 
+    LucidePhone;
+
   readonly isSubmitting =
     signal(false);
 
@@ -150,6 +155,16 @@ implements OnInit, OnDestroy {
             Validators.required,
             Validators.minLength(2),
             Validators.maxLength(50)
+          ]
+        ],
+
+        phoneNumber: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(8),
+            Validators.maxLength(16),
+            Validators.pattern(/^\+\d{8,15}$/)
           ]
         ],
 
@@ -282,6 +297,10 @@ implements OnInit, OnDestroy {
           values.email
             .trim()
             .toLowerCase(),
+        
+        phoneNumber:
+          values.phoneNumber
+          .trim(),
 
         password:
           values.password,
@@ -374,6 +393,9 @@ implements OnInit, OnDestroy {
         email:
           draft.email ?? '',
 
+          phoneNumber:
+  draft.phoneNumber ?? '',
+
         role,
 
         businessName:
@@ -440,6 +462,9 @@ implements OnInit, OnDestroy {
 
               email:
                 values.email,
+
+              phoneNumber:
+                values.phoneNumber,
 
               role:
                 values.role,

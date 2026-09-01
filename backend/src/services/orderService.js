@@ -38,11 +38,15 @@ const populateBuyerOrder = query => {
         })
         .populate({
             path: "seller",
-            select: "businessName description city pickupAddress",
-            populate: {
+            select: "user businessName description city pickupAddress",
+            populate: [ {
                 path: "city",
                 select: "name slug"
-            }
+            },
+            {
+                path: "user",
+                select: "phoneNumber"
+            }]
         })
 }
 
@@ -54,7 +58,7 @@ const populateSellerOrder = query => {
         })
         .populate({
             path: "buyer",
-            select: "firstName lastName email"
+            select: "firstName lastName email phoneNumber"
         })
 }
 
@@ -588,6 +592,7 @@ const getSellerOrderById = async (
     }
 
     const orderObject = order.toObject()
+
 
     delete orderObject.pickupCodeGeneratedAt
     delete orderObject.pickupCodeAttempts

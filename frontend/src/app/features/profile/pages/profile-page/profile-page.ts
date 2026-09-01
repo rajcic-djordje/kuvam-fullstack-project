@@ -99,6 +99,7 @@ const passwordFormValidator: ValidatorFn = (
 interface PersonalProfileDraft {
   firstName: string;
   lastName: string;
+  phoneNumber: string;
 }
 
 interface SellerProfileDraft {
@@ -311,6 +312,13 @@ implements OnInit, OnDestroy {
               NAME_PATTERN
             )
           ]
+        ],
+        phoneNumber: [
+          '',
+          [
+            Validators.required,
+            Validators.pattern(/^\+\d{8,15}$/)
+          ]
         ]
       });
 
@@ -509,7 +517,10 @@ implements OnInit, OnDestroy {
           values.firstName.trim(),
 
         lastName:
-          values.lastName.trim()
+          values.lastName.trim(),
+
+        phoneNumber:
+          values.phoneNumber.trim()
       };
 
     this.isSavingPersonal.set(
@@ -1482,7 +1493,10 @@ implements OnInit, OnDestroy {
         user.firstName,
 
       lastName:
-        user.lastName
+        user.lastName,
+
+      phoneNumber:
+        user.phoneNumber
     });
 
     this.personalForm
@@ -1591,7 +1605,10 @@ implements OnInit, OnDestroy {
 
       lastName:
         draft.lastName ??
-        ''
+        '',
+    phoneNumber:
+      draft.phoneNumber ??
+      ''
     });
   }
 
@@ -1620,7 +1637,10 @@ implements OnInit, OnDestroy {
                 values.firstName,
 
               lastName:
-                values.lastName
+                values.lastName,
+
+              phoneNumber:
+                values.phoneNumber
             };
 
           this.formDraftService

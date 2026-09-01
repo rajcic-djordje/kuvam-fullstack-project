@@ -28,6 +28,7 @@ const registerUser = async(userData) => {
     const email = userData.email
     const password = userData.password
     const role = userData.role
+    const phoneNumber = userData.phoneNumber
 
     if(!allowedRoles.includes(role))
         throw new AppError(
@@ -58,7 +59,8 @@ const registerUser = async(userData) => {
         lastName,
         email: transformedEmail,
         passwordHash,
-        role
+        role,
+        phoneNumber
     })
 
     if(role === USER_ROLES.SELLER) {
@@ -87,6 +89,7 @@ const registerUser = async(userData) => {
         email: user.email,
         role: user.role,
         status: user.status,
+        phoneNumber: user.phoneNumber,
         createdAt: user.createdAt
     }
 }

@@ -23,7 +23,15 @@ const updateProfileSchema = z.object({
             NAME_PATTERN,
             "Last name can contain letters, spaces, apostrophes and hyphens only."
         )
-        .optional()
+        .optional(),
+
+    phoneNumber: z
+            .string()
+            .trim()
+            .min(8)
+            .max(16)
+            .regex(/^\+\d{8,15}$/)
+            .optional(),
 }).refine(
     (data) => Object.keys(data).length > 0,
     {

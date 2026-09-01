@@ -264,6 +264,36 @@
                   {{ currentOrder.seller.description }}
                 </p>
               }
+
+              @if (
+                canShowPickupAddress(currentOrder) &&
+                currentOrder.seller.user?.phoneNumber;
+                as phoneNumber
+              ) {
+                <a
+                  class="seller-phone"
+                  [href]="'tel:' + phoneNumber"
+                >
+                  <span class="seller-phone-icon">
+                    <svg
+                      [lucideIcon]="phoneIcon"
+                      [size]="17"
+                      [strokeWidth]="1.8"
+                      aria-hidden="true"
+                    ></svg>
+                  </span>
+
+                  <span>
+                    <small>
+                      Kontakt telefon
+                    </small>
+
+                    <strong>
+                      {{ phoneNumber }}
+                    </strong>
+                  </span>
+                </a>
+              }
             </div>
 
             @if (currentOrder.status === 'completed') {

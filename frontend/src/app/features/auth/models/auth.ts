@@ -9,6 +9,7 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   status: string;
+  phoneNumber: string;
   createdAt?: string;
   city?: City | null;
   address?: Address;
@@ -23,6 +24,7 @@ export interface RegisterRequest {
   role: UserRole;
   businessName?: string;
   description?: string;
+  phoneNumber: string;
 }
 
 export interface RegisterResponse {

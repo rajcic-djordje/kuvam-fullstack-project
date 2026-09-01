@@ -58,6 +58,7 @@ export interface SellerProfileResponse {
 export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
+  phoneNumber?: string;
 }
 
 export interface UpdateSellerProfileRequest {

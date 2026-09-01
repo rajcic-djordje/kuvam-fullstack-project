@@ -245,9 +245,50 @@
               </div>
 
               <div class="form-field">
+                <label for="phoneNumber">
+                  Broj telefona
+                </label>
+
+                <input
+                  id="phoneNumber"
+                  type="tel"
+                  formControlName="phoneNumber"
+                  autocomplete="tel"
+                  inputmode="tel"
+                  placeholder="+381641234567"
+                >
+
+                <span class="field-message field-error">
+                  @if (
+                    personalForm.controls.phoneNumber.touched &&
+                    personalForm.controls.phoneNumber.hasError('required')
+                  ) {
+                    Broj telefona je obavezan.
+                  } @else if (
+                    personalForm.controls.phoneNumber.touched &&
+                    personalForm.controls.phoneNumber.hasError('pattern')
+                  ) {
+                    Unesi broj u međunarodnom formatu, na primer +381641234567.
+                  } @else if (
+                    personalForm.controls.phoneNumber.touched &&
+                    personalForm.controls.phoneNumber.hasError('minlength')
+                  ) {
+                    Broj telefona je prekratak.
+                  } @else if (
+                    personalForm.controls.phoneNumber.touched &&
+                    personalForm.controls.phoneNumber.hasError('maxlength')
+                  ) {
+                    Broj telefona je predugačak.
+                  }
+                </span>
+              </div>
+
+              <div class="form-field">
                 <label for="email">
                   Email adresa
                 </label>
+
+                
 
                 <div class="disabled-field">
                   <input
@@ -362,6 +403,27 @@
 
                 <strong>
                   {{ user.email }}
+                </strong>
+              </div>
+
+              <div class="information-row">
+                <span class="row-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92Z"
+                    ></path>
+                  </svg>
+                </span>
+
+                <span class="row-label">
+                  Broj telefona
+                </span>
+
+                <strong>
+                  {{ user.phoneNumber }}
                 </strong>
               </div>
 

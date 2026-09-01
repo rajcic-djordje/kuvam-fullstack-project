@@ -553,6 +553,58 @@
   border-top: 1px solid #e3e7e0;
 }
 
+.seller-phone {
+  width: fit-content;
+  margin-top: 14px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+
+  color: #4e6f56;
+
+  text-decoration: none;
+
+  transition:
+    color 160ms ease;
+}
+
+.seller-phone:hover {
+  color:
+    var(--color-primary-dark);
+}
+
+.seller-phone-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+
+  color:
+    #6c8973;
+}
+
+.seller-phone > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.seller-phone small {
+  color:
+    #7f8981;
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.seller-phone strong {
+  color:
+    #405848;
+
+  font-size: 14px;
+  font-weight: 650;
+}
+
+
 .seller-information > strong {
   color: #30342f;
 

@@ -12,7 +12,8 @@ import {
   LucidePackage,
   LucideStar,
   LucideStore,
-  LucideX
+  LucideX,
+  LucidePhone
 } from '@lucide/angular';
 import { ApiErrorService } from '../../../../shared/services/api-error';
 import { ToastService } from '../../../../shared/services/toast';
@@ -55,6 +56,7 @@ export class OrderDetailPage implements OnInit {
   readonly navigationIcon = LucideNavigation;
   readonly starIcon = LucideStar;
   readonly closeIcon = LucideX;
+  readonly phoneIcon = LucidePhone;
 
   readonly order = signal<BuyerOrder | null>(null);
   readonly isLoading = signal(true);
